@@ -1,4 +1,4 @@
-package pkg
+package backend
 
 import (
 	"github.com/gorilla/mux"

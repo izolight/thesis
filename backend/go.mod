@@ -1,4 +1,4 @@
-module gitlab.ti.bfh.ch/hirtp1/thesis
+module gitlab.ti.bfh.ch/hirtp1/thesis/backend
 
 go 1.12
 

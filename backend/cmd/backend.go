@@ -1,14 +1,14 @@
 package main
 
 import (
-	"gitlab.ti.bfh.ch/hirtp1/thesis/pkg"
+	"gitlab.ti.bfh.ch/hirtp1/thesis/backend"
 	"log"
 	"net/http"
 	"time"
 )
 
 func main() {
-	c, err := pkg.NewOIDCClient(
+	c, err := backend.NewOIDCClient(
 		"https://accounts.google.com",
 		"ID",
 		"Secret",
@@ -18,7 +18,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	r := pkg.NewRouter(c)
+	r := backend.NewRouter(c)
 
 	srv := &http.Server{
 		Handler:      r,

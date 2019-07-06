@@ -4,10 +4,10 @@ GO_FILES := $(shell find . -type f -name "*.go")
 
 all: fmt vet backend
 
-backend: pkg/signature.pb.go $(GO_FILES) go.mod
+backend: signature.pb.go $(GO_FILES) go.mod
 	go build -o backend ./cmd
 
-pkg/signature.pb.go: pkg/signature.proto
+signature.pb.go: signature.proto
 	protoc --go_out=paths=source_relative:. signature.proto
 
 clean:
