@@ -24,10 +24,7 @@
 %---------------------------------------------------------------------------
 \usepackage[standard-baselineskips]{cmbright}
 
-\usepackage[ngerman,english]{babel}										% english hyphenation
-%\usepackage[latin1]{inputenc}  							% Unix/Linux - load extended character set (ISO 8859-1)
-\usepackage[ansinew]{inputenc}  							% Windows - load extended character set (ISO 8859-1)
-\usepackage[T1]{fontenc}											% hyphenation of words with ä,ö and ü
+\usepackage[english]{babel}										% english hyphenation
 \usepackage{textcomp}													% additional symbols
 \usepackage{ae}																% better resolution of Type1-Fonts 
 \usepackage{fancyhdr}													% simple manipulation of header and footer 
@@ -74,7 +71,7 @@
 	hypertexnames = {true},               % no failures "same page(i)"
 	bookmarksopen = {true},               % opens the bar on the left side
 	bookmarksopenlevel = {0},             % depth of opened bookmarks
-	pdftitle = {Template für Bachelor Thesis},	   	% PDF-property
+	pdftitle = {Remote Signing Service},	   	% PDF-property
 	pdfauthor = {brd3},        					  % PDF-property
 	pdfsubject = {LaTeX Template},        % PDF-property
 	linkcolor = {linkcolor},              % Color of Links
@@ -154,8 +151,8 @@
 
 % Title Page and Abstract
 %---------------------------------------------------------------------------
-%\include{leader/frontpage_without_picture}		% activate for frontpage without picture
-\include{leader/frontpage_with_picture}		% activate for frontpage with picture
+\include{leader/frontpage_without_picture}		% activate for frontpage without picture
+%\include{leader/frontpage_with_picture}		% activate for frontpage with picture
 \include{leader/versions}
 \cleardoubleemptypage
 \setcounter{page}{1}
