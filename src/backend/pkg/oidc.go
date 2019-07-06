@@ -1,9 +1,9 @@
-package backend
+package pkg
 
 import (
 	"context"
-	"golang.org/x/oauth2"
 	oidc "github.com/coreos/go-oidc"
+	"golang.org/x/oauth2"
 	"net/http"
 )
 
@@ -14,7 +14,7 @@ type OIDCClient struct {
 	verifier Verifier // TODO: change this
 }
 
-type Verifier struct {}
+type Verifier struct{}
 
 func NewOIDCClient(providerURL, clientID, clientSecret, redirectURL string) (*OIDCClient, error) {
 	client := &OIDCClient{
@@ -27,11 +27,11 @@ func NewOIDCClient(providerURL, clientID, clientSecret, redirectURL string) (*OI
 	client.Provider = provider
 
 	config := &oauth2.Config{
-		ClientID: clientID,
+		ClientID:     clientID,
 		ClientSecret: clientSecret,
-		RedirectURL: redirectURL,
-		Endpoint: client.Provider.Endpoint(),
-		Scopes: []string{oidc.ScopeOpenID, "profile", "email"},
+		RedirectURL:  redirectURL,
+		Endpoint:     client.Provider.Endpoint(),
+		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
 	}
 	client.Config = config
 
