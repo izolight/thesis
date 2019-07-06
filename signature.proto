@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+enum HashAlgorithm  {
+    SHA2_256 = 0;
+    SHA2_512 = 1;
+    SHA3_256 = 2;
+    SHA3_512 = 3;
+}
+
+message Subject {
+    HashAlgorithm hash_algorithm = 1;
+    string x509_public_key = 2;
+    string x509_authority = 3;
+    string hash_value = 4;
+    uint64 valid_from = 5;
+    uint64 valid_to = 6;
+}
+
+message Signature {
+    enum SignatureFormat {
+        RSA_PSS = 0;
+        ECDSA_ED25519 = 1;
+    }
+
+    SignatureFormat signature_format = 1;
+    HashAlgorithm hash_algorithm = 2;
+    bytes rfc3161_timestamp = 3;
+    string signature_value = 4;
+    bytes subject = 5;
+}
