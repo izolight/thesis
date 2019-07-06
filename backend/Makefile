@@ -1,8 +1,8 @@
-.PHONY: all clean fmt vet
+.PHONY: all clean fmt vet test
 
 GO_FILES := $(shell find . -type f -name "*.go")
 
-all: fmt vet backend
+all: fmt vet test backend
 
 backend: signature.pb.go $(GO_FILES) go.mod
 	go build -o backend ./cmd
@@ -18,3 +18,6 @@ fmt:
 
 vet:
 	go vet ./...
+
+test:
+	go test -v ./...
