@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/coreos/go-oidc v2.0.0+incompatible
+	github.com/golang/protobuf v1.2.0
 	github.com/gorilla/mux v1.7.3
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/stretchr/testify v1.3.0 // indirect
