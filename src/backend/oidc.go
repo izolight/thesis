@@ -11,9 +11,12 @@ type OIDCClient struct {
 	ctx context.Context
 	*oidc.Provider
 	*oauth2.Config
+	verifier Verifier // TODO: change this
 }
 
-func newOIDCProvider(providerURL, clientID, clientSecret, redirectURL string) (*OIDCClient, error) {
+type Verifier struct {}
+
+func NewOIDCClient(providerURL, clientID, clientSecret, redirectURL string) (*OIDCClient, error) {
 	client := &OIDCClient{
 		ctx: context.Background(), // TODO: change to real context
 	}
@@ -36,6 +39,7 @@ func newOIDCProvider(providerURL, clientID, clientSecret, redirectURL string) (*
 }
 
 func (c *OIDCClient) oidcRedirectHandler(w http.ResponseWriter, r *http.Request) {
+	state := "test" // TODO: change this
 	http.Redirect(w, r, c.Config.AuthCodeURL(state), http.StatusFound)
 }
 
@@ -54,10 +58,16 @@ func (c *OIDCClient) oidcCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idToken, err := verifier.Verify(c.ctx, rawIDToken)
+	idToken, err := c.verifier.verify(c.ctx, rawIDToken)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(idToken))
+}
+
+func (v *Verifier) verify(ctx context.Context, rawIDToken string) (string, error) {
+	return rawIDToken, nil // TODO: change this
 }

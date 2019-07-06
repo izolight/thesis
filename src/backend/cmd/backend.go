@@ -8,7 +8,17 @@ import (
 )
 
 func main() {
-	r := backend.NewRouter()
+	c, err := backend.NewOIDCClient(
+		"https://accounts.google.com",
+		"ID",
+		"Secret",
+		"https://localhost:8080",
+		)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	r := backend.NewRouter(c)
 
 	srv := &http.Server{
 		Handler: r,
