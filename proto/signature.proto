@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package = "gitlab.ti.bfh.ch/hirtp1/thesis/proto";
+
 enum HashAlgorithm  {
     SHA2_256 = 0;
     SHA2_512 = 1;
