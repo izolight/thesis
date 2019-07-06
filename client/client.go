@@ -1,22 +1,22 @@
-package main
+package client
 
 import (
 	"fmt"
 	"fyne.io/fyne/app"
 	"fyne.io/fyne/widget"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"os"
 )
 
-func setUpEnv() {
+func SetUpEnv() {
 	err := os.Setenv("FYNE_SCALE", "1.0")
 	if err != nil {
-		log.Info(fmt.Sprintf("Unable to set environment variable: %s", err))
+		logrus.Info(fmt.Sprintf("Unable to set environment variable: %s", err))
 	}
 
 }
 
-func setUpMainWindow() {
+func SetUpMainWindow() {
 
 	a := app.New()
 
@@ -28,9 +28,4 @@ func setUpMainWindow() {
 		})))
 
 	w.ShowAndRun()
-}
-
-func main() {
-	setUpEnv()
-	setUpMainWindow()
 }

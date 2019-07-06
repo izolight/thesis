@@ -1,4 +1,4 @@
-package backend
+package main
 
 import (
 	"gitlab.ti.bfh.ch/hirtp1/thesis/backend"
