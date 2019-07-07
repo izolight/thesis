@@ -29,6 +29,6 @@ func main() {
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-	logger.Info("Started server at %s", srv.Addr)
+	logger.Infof("Started server at %s", srv.Addr)
 	logger.Fatal(srv.ListenAndServe())
 }
