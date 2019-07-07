@@ -49,3 +49,23 @@ func uploadHashHandler(w http.ResponseWriter, r *http.Request) {
 
 	respondJSON(w, http.StatusCreated, createResponse{Msg: "accepted hashes"})
 }
+
+func dumpHashes(w http.ResponseWriter, r *http.Request) {
+	session, err := store.Get(r, "SESSIONID")
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	hashes, ok := session.Values["hashes"].([]string)
+	if !ok {
+		respondError(w, http.StatusBadRequest, "no hashes found")
+		return
+	}
+
+	req := hashRequest{
+		Hashes: hashes,
+	}
+
+	respondJSON(w, http.StatusOK, req)
+}

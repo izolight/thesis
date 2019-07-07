@@ -16,7 +16,8 @@ func NewRouter(client *OIDCClient, logger *logrus.Logger) *mux.Router {
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static", http.FileServer(http.Dir(dir))))
 	r.Handle("/api/hashes", handlers.CombinedLoggingHandler(logger.Writer(), http.HandlerFunc(uploadHashHandler))).Methods("POST")
 	r.HandleFunc("/oauth-redirect", client.oidcRedirectHandler)
-	r.Use(cookieMiddleware)
+	r.Handle("/api/dump", handlers.CombinedLoggingHandler(logger.Writer(), http.HandlerFunc(dumpHashes)))
+//	r.Use(cookieMiddleware)
 
 	return r
 }
