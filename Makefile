@@ -1,12 +1,11 @@
 .PHONY: all clean fmt vet test client backend
 
 BACKEND_FILES := $(shell find backend -type f -name "*.go")
-CLIENT_FILES := $(shell find client -type f -name "*.go")
 
 all: fmt vet test backend client
 
-client: proto/signature.pb.go $(CLIENT_FILES) go.mod
-	go build -o build/client ./cmd/client/
+client:
+	echo "add java build"
 
 backend: proto/signature.pb.go $(BACKEND_FILES) go.mod
 	go build -o build/backend ./cmd/backend/
