@@ -30,13 +30,10 @@ type createResponse struct {
 }
 
 func uploadHashHandler(w http.ResponseWriter, r *http.Request) {
-	req := hashRequest{}
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&req); err != nil {
+	req, err := decodeHashRequest(w, r)
+	if err != nil {
 		respondError(w, http.StatusBadRequest, err.Error())
-		return
 	}
-	defer r.Body.Close()
 
 	session, err := store.Get(r, "SESSIONID")
 	if err != nil {
@@ -48,6 +45,39 @@ func uploadHashHandler(w http.ResponseWriter, r *http.Request) {
 	session.Save(r, w)
 
 	respondJSON(w, http.StatusCreated, createResponse{Msg: "accepted hashes"})
+}
+
+func decodeHashRequest(w http.ResponseWriter, r *http.Request) (hashRequest, error) {
+	req := hashRequest{}
+	decoder := json.NewDecoder(r.Body)
+	defer r.Body.Close()
+	err := decoder.Decode(&req)
+	return req, err
+}
+
+func updateHashHandler(w http.ResponseWriter, r *http.Request) {
+	req, err := decodeHashRequest(w, r)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	session, err := store.Get(r, "SESSIONID")
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	existingHashes, ok := session.Values["hashes"].([]string)
+	if !ok {
+		session.Values["hashes"] = req.Hashes
+	} else {
+		session.Values["hashes"] = append(existingHashes, req.Hashes...)
+	}
+	session.Save(r, w)
+
+	respondJSON(w, http.StatusCreated, createResponse{Msg: "accepted hashes"})
+
 }
 
 func dumpHashes(w http.ResponseWriter, r *http.Request) {
