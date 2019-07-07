@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/sirupsen/logrus"
 	"gitlab.ti.bfh.ch/hirtp1/thesis/backend"
 	"log"
 	"net/http"
@@ -18,7 +19,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	r := backend.NewRouter(c)
+	logger := logrus.New()
+
+	r := backend.NewRouter(c, logger)
 
 	srv := &http.Server{
 		Handler:      r,
@@ -26,6 +29,6 @@ func main() {
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-
-	log.Fatal(srv.ListenAndServe())
+	logger.Info("Started server at %s", srv.Addr)
+	logger.Fatal(srv.ListenAndServe())
 }
