@@ -7,12 +7,12 @@
 
 %---------------------------------------------------------------------------
 \documentclass[
-	a4paper,					% paper format
-	10pt,							% fontsize
-	twoside,					% double-sided
-	openright,				% begin new chapter on right side
-	notitlepage,			% use no standard title page
-	parskip=half,			% set paragraph skip to half of a line
+a4paper,					% paper format
+10pt,							% fontsize
+twoside,					% double-sided
+openright,				% begin new chapter on right side
+notitlepage,			% use no standard title page
+parskip=half,			% set paragraph skip to half of a line
 ]{scrreprt}					% KOMA-script report
 %---------------------------------------------------------------------------
 
@@ -51,7 +51,7 @@
 \setlength{\TPHorizModule}{1mm}
 \setlength{\TPVertModule}{1mm}
 %---------------------------------------------------------------------------					
-			
+
 % Definition of Colors
 %---------------------------------------------------------------------------
 \RequirePackage{color}                          % Color (not xcolor!)
@@ -65,18 +65,18 @@
 % Hyperref Package (Create links in a pdf)
 %---------------------------------------------------------------------------
 \usepackage[
-	pdftex,ngerman,bookmarks,plainpages=false,pdfpagelabels,
-	backref = {false},										% No index backreference
-	colorlinks = {true},                  % Color links in a PDF
-	hypertexnames = {true},               % no failures "same page(i)"
-	bookmarksopen = {true},               % opens the bar on the left side
-	bookmarksopenlevel = {0},             % depth of opened bookmarks
-	pdftitle = {Remote Signing Service},	   	% PDF-property
-	pdfauthor = {brd3},        					  % PDF-property
-	pdfsubject = {LaTeX Template},        % PDF-property
-	linkcolor = {linkcolor},              % Color of Links
-	citecolor = {linkcolor},              % Color of Cite-Links
-	urlcolor = {linkcolor},               % Color of URLs
+pdftex,ngerman,bookmarks,plainpages=false,pdfpagelabels,
+backref = {false},										% No index backreference
+colorlinks = {true},                  % Color links in a PDF
+hypertexnames = {true},               % no failures "same page(i)"
+bookmarksopen = {true},               % opens the bar on the left side
+bookmarksopenlevel = {0},             % depth of opened bookmarks
+pdftitle = {Remote Signing Service},	   	% PDF-property
+pdfauthor = {brd3},        					  % PDF-property
+pdfsubject = {LaTeX Template},        % PDF-property
+linkcolor = {linkcolor},              % Color of Links
+citecolor = {linkcolor},              % Color of Cite-Links
+urlcolor = {linkcolor},               % Color of URLs
 ]{hyperref}
 %---------------------------------------------------------------------------
 
@@ -84,14 +84,14 @@
 %---------------------------------------------------------------------------
 \usepackage{geometry}
 \geometry{
-	a4paper,
-	left=28mm,
-	right=15mm,
-	top=30mm,
-	headheight=20mm,
-	headsep=10mm,
-	textheight=242mm,
-	footskip=15mm
+a4paper,
+left=28mm,
+right=15mm,
+top=30mm,
+headheight=20mm,
+headsep=10mm,
+textheight=242mm,
+footskip=15mm
 }
 %---------------------------------------------------------------------------
 
@@ -121,119 +121,120 @@
 % Intro:
 %---------------------------------------------------------------------------
 \begin{document}                              	% Start Document
-\settocdepth{section}														% Set depth of toc
-\pagenumbering{roman}														
-%---------------------------------------------------------------------------
+    \settocdepth{section}														% Set depth of toc
+    \pagenumbering{roman}
+    %---------------------------------------------------------------------------
 
-\input{leader/title}					% Titel der Arbeit aus Datei titel.tex lesen
-\input{leader/version}				% Versionsnummer und -datum aus Datei version.tex lesen
+    \input{leader/title}					% Titel der Arbeit aus Datei titel.tex lesen
+    \input{leader/version}				% Versionsnummer und -datum aus Datei version.tex lesen
 
-% Set up header and footer
-%---------------------------------------------------------------------------
-\makeatletter
-\patchcmd{\@fancyhead}{\rlap}{\color{bfhgrey}\rlap}{}{}		% new color of header
-\patchcmd{\@fancyfoot}{\rlap}{\color{bfhgrey}\rlap}{}{}		% new color of footer
-\makeatother
+    % Set up header and footer
+    %---------------------------------------------------------------------------
+    \makeatletter
+    \patchcmd{\@fancyhead}{\rlap}{\color{bfhgrey}\rlap}{}{}		% new color of header
+    \patchcmd{\@fancyfoot}{\rlap}{\color{bfhgrey}\rlap}{}{}		% new color of footer
+    \makeatother
 
-\fancyhf{}																		% clean all fields
-\fancypagestyle{plain}{												% new definition of plain style	
-	\fancyfoot[OR,EL]{\footnotesize \thepage} 	% footer right part --> page number
-	\fancyfoot[OL,ER]{\footnotesize \heading, Version \versionnumber, \versiondate}	% footer even page left part 
-}
+    \fancyhf{}																		% clean all fields
+    \fancypagestyle{plain}{												% new definition of plain style
+    \fancyfoot[OR,EL]{\footnotesize \thepage} 	% footer right part --> page number
+    \fancyfoot[OL,ER]{\footnotesize \heading, Version \versionnumber, \versiondate}	% footer even page left part
+    }
 
-\renewcommand{\chaptermark}[1]{\markboth{\thechapter.  #1}{}}
-\renewcommand{\headrulewidth}{0pt}				% no header stripline
-\renewcommand{\footrulewidth}{0pt} 				% no bottom stripline
+    \renewcommand{\chaptermark}[1]{\markboth{\thechapter.  #1}{}}
+    \renewcommand{\headrulewidth}{0pt}				% no header stripline
+    \renewcommand{\footrulewidth}{0pt} 				% no bottom stripline
 
-\pagestyle{plain}
-%---------------------------------------------------------------------------
+    \pagestyle{plain}
+    %---------------------------------------------------------------------------
 
 
-% Title Page and Abstract
-%---------------------------------------------------------------------------
-\include{leader/frontpage_without_picture}		% activate for frontpage without picture
-%\include{leader/frontpage_with_picture}		% activate for frontpage with picture
-\include{leader/versions}
-\cleardoubleemptypage
-\setcounter{page}{1}
-\cleardoublepage
-\phantomsection 
-\addcontentsline{toc}{chapter}{Management Summary}
-\include{leader/management_summary}
-\cleardoubleemptypage
-%---------------------------------------------------------------------------
+    % Title Page and Abstract
+    %---------------------------------------------------------------------------
+    \include{leader/frontpage_without_picture}		% activate for frontpage without picture
+    %\include{leader/frontpage_with_picture}		% activate for frontpage with picture
+    \include{leader/versions}
+    \cleardoubleemptypage
+    \setcounter{page}{1}
+    \cleardoublepage
+    \phantomsection
+    \addcontentsline{toc}{chapter}{Management Summary}
+    \include{leader/management_summary}
+    \cleardoubleemptypage
+    %---------------------------------------------------------------------------
 
-% Table of contents
-%---------------------------------------------------------------------------
-\tableofcontents
-\cleardoublepage
-%---------------------------------------------------------------------------
+    % Table of contents
+    %---------------------------------------------------------------------------
+    \tableofcontents
+    \cleardoublepage
+    %---------------------------------------------------------------------------
 
-% Main part:
-%---------------------------------------------------------------------------
-\pagenumbering{arabic}
+    % Main part:
+    %---------------------------------------------------------------------------
+    \pagenumbering{arabic}
 
-\include{chapters/introduction}
-\include{chapters/instructions}
-\include{chapters/typeareatest}
-\include{chapters/conclusions}
-%---------------------------------------------------------------------------
+    \include{chapters/technologies}
+    \include{chapters/introduction}
+    \include{chapters/instructions}
+    \include{chapters/typeareatest}
+    \include{chapters/conclusions}
+    %---------------------------------------------------------------------------
 
-% Selbständigkeitserklärung
-%---------------------------------------------------------------------------
-\cleardoublepage
-\phantomsection 
-\addcontentsline{toc}{chapter}{Declaration of authorship}
-\include{leader/declaration_authorship}
-%---------------------------------------------------------------------------
+    % Selbständigkeitserklärung
+    %---------------------------------------------------------------------------
+    \cleardoublepage
+    \phantomsection
+    \addcontentsline{toc}{chapter}{Declaration of authorship}
+    \include{leader/declaration_authorship}
+    %---------------------------------------------------------------------------
 
-% Glossary
-%---------------------------------------------------------------------------
-\cleardoublepage
-\phantomsection 
-\addcontentsline{toc}{chapter}{Glossay}
-%\renewcommand{\glossaryname}{Glossay}
-\printglossary
-%---------------------------------------------------------------------------
+    % Glossary
+    %---------------------------------------------------------------------------
+    \cleardoublepage
+    \phantomsection
+    \addcontentsline{toc}{chapter}{Glossay}
+    %\renewcommand{\glossaryname}{Glossay}
+    \printglossary
+    %---------------------------------------------------------------------------
 
-% Bibliography
-%---------------------------------------------------------------------------
-\cleardoublepage
-\phantomsection 
-\addcontentsline{toc}{chapter}{Bibliography}
-\bibliographystyle{IEEEtranS}
-\bibliography{database/bibliography}{}
-%---------------------------------------------------------------------------
+    % Bibliography
+    %---------------------------------------------------------------------------
+    \cleardoublepage
+    \phantomsection
+    \addcontentsline{toc}{chapter}{Bibliography}
+    \bibliographystyle{IEEEtranS}
+    \bibliography{database/bibliography}{}
+    %---------------------------------------------------------------------------
 
-% Listings
-%---------------------------------------------------------------------------
-\cleardoublepage
-\phantomsection 
-\addcontentsline{toc}{chapter}{List of figures}
-\listoffigures
-\cleardoublepage
-\phantomsection 
-\addcontentsline{toc}{chapter}{List fo tables}
-\listoftables
-%---------------------------------------------------------------------------
+    % Listings
+    %---------------------------------------------------------------------------
+    \cleardoublepage
+    \phantomsection
+    \addcontentsline{toc}{chapter}{List of figures}
+    \listoffigures
+    \cleardoublepage
+    \phantomsection
+    \addcontentsline{toc}{chapter}{List fo tables}
+    \listoftables
+    %---------------------------------------------------------------------------
 
-% Index
-%---------------------------------------------------------------------------
-\cleardoublepage
-\phantomsection 
-\addcontentsline{toc}{chapter}{Index}
-\printindex
-%---------------------------------------------------------------------------
+    % Index
+    %---------------------------------------------------------------------------
+    \cleardoublepage
+    \phantomsection
+    \addcontentsline{toc}{chapter}{Index}
+    \printindex
+    %---------------------------------------------------------------------------
 
-% Attachment:
-%---------------------------------------------------------------------------
-\appendix
-\settocdepth{section}
-\include{appendix/appendixexemple}
-\include{appendix/appendixexempleB}
-\include{appendix/contentCDROM}
-%---------------------------------------------------------------------------
+    % Attachment:
+    %---------------------------------------------------------------------------
+    \appendix
+    \settocdepth{section}
+    \include{appendix/appendixexemple}
+    \include{appendix/appendixexempleB}
+    \include{appendix/contentCDROM}
+    %---------------------------------------------------------------------------
 
-%---------------------------------------------------------------------------
+    %---------------------------------------------------------------------------
 \end{document}
 
