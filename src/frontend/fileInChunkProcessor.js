@@ -17,7 +17,7 @@ function processFile() {
     let end = start + chunkSize;
 
     fileReader.onload = function () {
-        const buffer = new Uint8Array(fileReader.result);
+        const buffer = new Uint32Array(fileReader.result);
         const resultElement = document.getElementById("result");
         resultElement.innerHTML = `${resultElement.innerHTML} <p>Read ${buffer.byteLength} bytes: ${buffer.slice(0, 10).toString()}....</p>`;
         start = end;
