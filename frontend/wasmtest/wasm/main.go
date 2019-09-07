@@ -2,8 +2,8 @@ package main
 
 import (
   "crypto/sha256"
+  "fmt"
   "syscall/js"
-  "time"
 )
 
 var hasher Hasher
@@ -34,11 +34,11 @@ func (h *Hasher) sha256Hash(){
   for {
     data, more := <- h.input
     if more {
-      println("received data")
-      println(data)
+      fmt.Println("received data")
+      fmt.Printf("%c\n", data)
       hash.Write(data)
     } else {
-      println("received close")
+      fmt.Println("received close")
       break
     }
   }
@@ -61,14 +61,15 @@ func startHash(this js.Value, in []js.Value) interface{} {
 
 func getHash(this js.Value, in []js.Value) interface{} {
   close(hasher.input)
-  time.Sleep(1 * time.Second)
-  println(hasher.result)
+  hash := <- hasher.result
+  fmt.Printf("Hash: %x\n", hash)
+
   return this
 }
 
 func main() {
 	c := make(chan struct{}, 0)
-	println("WASM Go Initialized")
+	fmt.Println("WASM Go Initialized")
 	registerCallbacks()
 	<-c
 }
