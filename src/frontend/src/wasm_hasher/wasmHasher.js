@@ -1,12 +1,16 @@
 function wasmProgressiveHash(input) {
+    let str = "progressivehash with " + input.toString();
+    console.log(str.slice(0, 100));
     progressiveHash(input);
 }
 
 function wasmStartHash() {
-    starthash();
+    console.log("startHash");
+    startHash();
 }
 
 function wasmGetHash() {
+    console.log("getHash");
     return getHash();
 }
 
@@ -19,7 +23,7 @@ function wasmGetHash() {
     }
     const go = new Go();
     let mod, inst;
-    WebAssembly.instantiateStreaming(fetch("../test.wasm"), go.importObject).then(
+WebAssembly.instantiateStreaming(fetch("../../test.wasm"), go.importObject).then(
         async result => {
             mod = result.module;
             inst = result.instance;

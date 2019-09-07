@@ -10,6 +10,10 @@ interface FileReaderOnLoadCallback {
     (event: ProgressEvent): void
 }
 
+interface ProcessingCompletedCallback {
+    (): void
+}
+
 class Validate {
     public static notNull<T>(obj: T): obj is Exclude<T, null> {
         if (obj == null) {
@@ -35,16 +39,22 @@ class FileInChunksProcessor {
     private readonly fileReader: FileReader;
     private readonly dataCallback: FileChunkDataCallback;
     private readonly errorCallback: ErrorCallback;
+    private readonly processingCompletedCallback: ProcessingCompletedCallback;
     private buffer: Uint8Array | null = null;
     private start: number = 0;
     private end: number = this.start + this.CHUNK_SIZE_IN_BYTES;
     private inputFile: File | null = null;
 
-    constructor(dataCallback: FileChunkDataCallback, errorCallback: ErrorCallback) {
+    constructor(dataCallback: FileChunkDataCallback,
+                errorCallback: ErrorCallback,
+                processingCompletedCallback: ProcessingCompletedCallback) {
         this.fileReader = new FileReader();
         this.fileReader.onload = this.getFileReadOnLoadHandler();
         this.dataCallback = dataCallback;
         this.errorCallback = errorCallback;
+        this.processingCompletedCallback = processingCompletedCallback;
+        // @ts-ignore
+        wasmStartHash();
     }
 
     public processChunks(inputFile: File) {
@@ -80,6 +90,8 @@ class FileInChunksProcessor {
                 }
                 if (this.end != this.inputFile.size) {
                     this.read(this.start, this.end);
+                } else if(this.end == this.inputFile.size) {
+                    this.processingCompletedCallback()
                 }
             }
         }
@@ -110,15 +122,19 @@ function handleError(message: string) {
 }
 
 function processFileButtonHandler() {
-    const processor = new FileInChunksProcessor(handleData, handleError);
+    const processor = new FileInChunksProcessor(handleData, handleError, processingCompleted);
     const file = processor.getFileFromElement("file");
     if (Validate.notNullNotUndefined(file)) {
         processor.processChunks(file);
-        // @ts-ignore
-        const result = wasmGetHash();
-        const resultElement = document.getElementById("result");
-        if (Validate.notNull(resultElement)) {
-            resultElement.innerHTML = `<p>Got: ${result} </p>`;
-        }
     }
+}
+
+function processingCompleted() {
+    // @ts-ignore
+    const result = wasmGetHash();
+    const resultElement = document.getElementById("result");
+    if (Validate.notNull(resultElement)) {
+        resultElement.innerHTML = `<p>Got: ${result} </p>`;
+    }
+
 }
