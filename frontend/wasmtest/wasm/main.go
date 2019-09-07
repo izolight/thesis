@@ -67,9 +67,13 @@ func getHash(this js.Value, in []js.Value) interface{} {
   return this
 }
 
+func waitForever() {
+  c := make(chan struct{}, 0)
+  <-c
+}
+
 func main() {
-	c := make(chan struct{}, 0)
 	fmt.Println("WASM Go Initialized")
 	registerCallbacks()
-	<-c
+	waitForever()
 }
