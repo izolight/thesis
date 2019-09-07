@@ -94,10 +94,12 @@ class FileInChunksProcessor {
 
 
 function handleData(data: ArrayBuffer) {
-    const resultElement = document.getElementById("result");
-    if (Validate.notNull(resultElement)) {
-        resultElement.innerHTML = `${resultElement.innerHTML} <p>Got ${data.byteLength} bytes: ${data.slice(0, 10).toString()}...</p>`;
-    }
+    // const resultElement = document.getElementById("result");
+    // if (Validate.notNull(resultElement)) {
+    //     resultElement.innerHTML = `${resultElement.innerHTML} <p>Got ${data.byteLength} bytes: ${data.slice(0, 10).toString()}...</p>`;
+    // }
+    // @ts-ignore
+    wasmProgressiveHash(data);
 }
 
 function handleError(message: string) {
@@ -112,5 +114,11 @@ function processFileButtonHandler() {
     const file = processor.getFileFromElement("file");
     if (Validate.notNullNotUndefined(file)) {
         processor.processChunks(file);
+        // @ts-ignore
+        const result = wasmGetHash();
+        const resultElement = document.getElementById("result");
+        if (Validate.notNull(resultElement)) {
+            resultElement.innerHTML = `<p>Got: ${result} </p>`;
+        }
     }
 }

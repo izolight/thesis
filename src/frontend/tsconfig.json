@@ -7,7 +7,7 @@
     "strict": true
   },
   "include": [
-    "./src/*ts"
+    "./src/file_chunker/*ts"
   ],
   "exclude": [
     "node_modules"
