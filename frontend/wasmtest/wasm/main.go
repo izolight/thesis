@@ -3,6 +3,7 @@ package main
 import (
   "crypto/sha256"
   "syscall/js"
+  "time"
 )
 
 var hasher Hasher
@@ -20,6 +21,7 @@ func registerCallbacks() {
 	js.Global().Set("consoleLog", js.FuncOf(consoleLog))
 	js.Global().Set("progressiveHash", js.FuncOf(progressiveHash))
 	js.Global().Set("startHash", js.FuncOf(startHash))
+	js.Global().Set("getHash", js.FuncOf(getHash))
 }
 
 type Hasher struct {
@@ -32,12 +34,16 @@ func (h *Hasher) sha256Hash(){
   for {
     data, more := <- h.input
     if more {
+      println("received data")
+      println(data)
       hash.Write(data)
     } else {
+      println("received close")
       break
     }
   }
   h.result <- hash.Sum(nil)
+  println(h.result)
   return
 }
 
@@ -49,6 +55,14 @@ func progressiveHash(this js.Value, in []js.Value) interface{} {
 func startHash(this js.Value, in []js.Value) interface{} {
   hasher.result = make(chan []byte)
   hasher.input = make(chan []byte)
+  go hasher.sha256Hash()
+  return this
+}
+
+func getHash(this js.Value, in []js.Value) interface{} {
+  close(hasher.input)
+  time.Sleep(1 * time.Second)
+  println(hasher.result)
   return this
 }
 
