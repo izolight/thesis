@@ -10,6 +10,26 @@ interface FileReaderOnLoadCallback {
     (event: ProgressEvent): void
 }
 
+class Validate {
+    public static notNull<T>(obj: T): obj is Exclude<T, null> {
+        if (obj == null) {
+            throw new ReferenceError(`Error: Object ${obj} was null`);
+        }
+        return true;
+    }
+
+    public static notUndefined<T>(obj: T): obj is Exclude<T, undefined> {
+        if (obj === undefined) {
+            throw new ReferenceError(`Error: Object ${obj} was undefined`);
+        }
+        return true;
+    }
+
+    public static notNullNotUndefined<T>(obj: T): obj is NonNullable<T> {
+        return Validate.notNull(obj) && Validate.notUndefined(obj);
+    }
+}
+
 class FileInChunksProcessor {
     public readonly CHUNK_SIZE_IN_BYTES: number = 1024*100;
     private readonly fileReader: FileReader;
@@ -33,35 +53,22 @@ class FileInChunksProcessor {
     }
 
     public getFileFromElement(elementId: string): File | undefined {
-        const filesElement = document.getElementById(elementId);
-        if(filesElement == null) {
-            console.log(`Error: element with id ${elementId} not found`);
-        }
-        else {
-            const htmlInputElement = filesElement as HTMLInputElement;
-            if(htmlInputElement == null || htmlInputElement.files == null) {
-                console.log(`Error: element ${filesElement} is not a HTMLInputElement`);
-            }
-            else {
-                if(htmlInputElement.files.length < 0) {
-                    this.errorCallback("Too few files specified. Please select one file.")
-                }
-                else if (htmlInputElement.files.length > 1) {
-                    this.errorCallback("Too many files specified. Please select one file.")
-                }
-                else {
-                    return htmlInputElement.files[0];
-                }
+        const filesElement = document.getElementById(elementId) as HTMLInputElement;
+        if (Validate.notNull(filesElement) &&
+            Validate.notNull(filesElement.files)) {
+            if (filesElement.files.length < 0) {
+                this.errorCallback("Too few files specified. Please select one file.")
+            } else if (filesElement.files.length > 1) {
+                this.errorCallback("Too many files specified. Please select one file.")
+            } else {
+                return filesElement.files[0];
             }
         }
     }
 
     private getFileReadOnLoadHandler(): FileReaderOnLoadCallback {
         return () => {
-            if (this.inputFile == null) {
-                console.log("Error: Input File was null");
-            }
-            else {
+            if (Validate.notNull(this.inputFile)) {
                 this.buffer = new Uint8Array((this.fileReader.result as ArrayBuffer));
                 this.dataCallback(this.buffer);
 
@@ -79,31 +86,23 @@ class FileInChunksProcessor {
     }
 
     private read(start: number, end: number) {
-        if(this.inputFile == null) {
-            console.log("Error: Input File was null");
-        }
-        else {
+        if (Validate.notNull(this.inputFile)) {
             this.fileReader.readAsArrayBuffer(this.inputFile.slice(start, end));
         }
     }
 }
 
+
 function handleData(data: ArrayBuffer) {
     const resultElement = document.getElementById("result");
-    if(resultElement == null) {
-        console.log("Result Element was null");
-    }
-    else {
+    if (Validate.notNull(resultElement)) {
         resultElement.innerHTML = `${resultElement.innerHTML} <p>Got ${data.byteLength} bytes: ${data.slice(0, 10).toString()}...</p>`;
     }
 }
 
 function handleError(message: string) {
     const errorElement = document.getElementById("error");
-    if(errorElement == null) {
-        console.log("Error Element was null");
-    }
-    else {
+    if (Validate.notNull(errorElement)) {
         errorElement.innerHTML = `${errorElement.innerHTML} <p>${message}</p>`;
     }
 }
@@ -111,11 +110,7 @@ function handleError(message: string) {
 function processFileButtonHandler() {
     const processor = new FileInChunksProcessor(handleData, handleError);
     const file = processor.getFileFromElement("file");
-    if(file == null) {
-        console.log("Input file was null");
-    }
-    else {
+    if (Validate.notNullNotUndefined(file)) {
         processor.processChunks(file);
-
     }
 }
