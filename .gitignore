@@ -333,3 +333,5 @@ build/
 out/
 
 *iml
+
+test.wasm
