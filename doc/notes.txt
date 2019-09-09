@@ -1,0 +1,4 @@
+- cannot run wasm program without webserver, implement and start own webserver
+- using precise version of wasm_exec.js
+- passing values from js to go-wasm because lol no types
+- changed go wasm program from goroutine-based to no goroutines, speedup of 17s -> 3s when hashing 100MBs. maybe also reference
