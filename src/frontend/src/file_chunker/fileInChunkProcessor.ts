@@ -110,7 +110,7 @@ function handleData(data: ArrayBuffer) {
     // if (Validate.notNull(resultElement)) {
     //     resultElement.innerHTML = `${resultElement.innerHTML} <p>Got ${data.byteLength} bytes: ${data.slice(0, 10).toString()}...</p>`;
     // }
-    const str: string = `progressiveHash() len: ${data.byteLength} value: ${data.slice(0, 30).toString()}`;
+    const str: string = `progressiveHash() len: ${data.byteLength} value: ${data.slice(0, 5).toString()}...`;
     console.log(str);
     // @ts-ignore
     progressiveHash(data);
