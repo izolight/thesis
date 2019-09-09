@@ -6,7 +6,7 @@ import (
 	"syscall/js"
 )
 
-var hasher = hash.Hash
+var hasher = sha256.New()
 
 func consoleLog(this js.Value, in []js.Value) interface{} {
 	println(js.Global().
@@ -29,18 +29,19 @@ func progressiveHash(this js.Value, in []js.Value) interface{} {
 	buf := make([]byte, array.Get("length").Int())
 	n := js.CopyBytesToGo(buf, array)
 	fmt.Printf("Copied %d bytes\n", n)
-	hasher.Write(array)
+	hasher.Write(buf)
 	return this
 }
 
 func startHash(this js.Value, in []js.Value) interface{} {
-	hasher := sha256.New()
+	hasher = sha256.New()
 	return this
 }
 
 func getHash(this js.Value, in []js.Value) interface{} {
 	hash := hasher.Sum(nil)
-	fmt.Printf("Hash: %x\n", hash)
+	hashStr := fmt.Sprintf("%x", hash)
+	fmt.Printf("Hash: %s\n", hashStr)
 
 	return js.ValueOf(hashStr)
 }
