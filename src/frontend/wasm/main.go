@@ -6,7 +6,7 @@ import (
 	"syscall/js"
 )
 
-var hasher Hasher
+var hasher = hash.Hash
 
 func consoleLog(this js.Value, in []js.Value) interface{} {
 	println(js.Global().
@@ -24,50 +24,23 @@ func registerCallbacks() {
 	js.Global().Set("getHash", js.FuncOf(getHash))
 }
 
-type Hasher struct {
-	input  chan []byte
-	result chan []byte
-}
-
-func (h *Hasher) sha256Hash() {
-	hash := sha256.New()
-	for {
-		data, more := <-h.input
-		if more {
-			fmt.Println("received data")
-			hash.Write(data)
-			fmt.Println("hashed data")
-		} else {
-			fmt.Println("received close")
-			break
-		}
-	}
-	h.result <- hash.Sum(nil)
-	println(h.result)
-	return
-}
-
 func progressiveHash(this js.Value, in []js.Value) interface{} {
 	array := in[0]
 	buf := make([]byte, array.Get("length").Int())
 	n := js.CopyBytesToGo(buf, array)
 	fmt.Printf("Copied %d bytes\n", n)
-	hasher.input <- buf
+	hasher.Write(array)
 	return this
 }
 
 func startHash(this js.Value, in []js.Value) interface{} {
-	hasher.result = make(chan []byte)
-	hasher.input = make(chan []byte)
-	go hasher.sha256Hash()
+	hasher := sha256.New()
 	return this
 }
 
 func getHash(this js.Value, in []js.Value) interface{} {
-	close(hasher.input)
-	hash := <-hasher.result
-	hashStr := fmt.Sprintf("%x", hash)
-	fmt.Printf("Hash: %s\n", hashStr)
+	hash := hasher.Sum(nil)
+	fmt.Printf("Hash: %x\n", hash)
 
 	return js.ValueOf(hashStr)
 }
