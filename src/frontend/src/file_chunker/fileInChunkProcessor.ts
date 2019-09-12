@@ -34,6 +34,8 @@ class Validate {
     }
 }
 
+ // TODO use SubtleCrypto for small files, wasm fuck for large files
+
 class FileInChunksProcessor {
     public readonly CHUNK_SIZE_IN_BYTES: number = 1024*1000*20;
     private readonly fileReader: FileReader;
