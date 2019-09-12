@@ -34,6 +34,26 @@ parskip=half,			% set paragraph skip to half of a line
 \usepackage{caption}													% for captions of figures and tables
 \usepackage{booktabs}													% package for nicer tables
 \usepackage{tocvsec2}													% provides means of controlling the sectional numbering
+\usepackage{listings}
+\usepackage{color}
+\definecolor{lightgray}{rgb}{.9,.9,.9}
+\definecolor{darkgray}{rgb}{.4,.4,.4}
+\definecolor{purple}{rgb}{0.65, 0.12, 0.82}
+
+\lstdefinelanguage{JavaScript}{
+  keywords={do, if, in, for, let, new, try, var, case, else, enum, eval, null, this, true, void, with, await, break, catch, class, const, false, super, throw, while, yield, delete, export, import, public, return, static, switch, typeof, default, extends, finally, package, private, continue, debugger, function, arguments, interface, protected, implements, instanceof},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this},
+  ndkeywordstyle=\color{darkgray}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{purple}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
+}
 %---------------------------------------------------------------------------
 
 % Load Math Packages
@@ -54,7 +74,6 @@ parskip=half,			% set paragraph skip to half of a line
 
 % Definition of Colors
 %---------------------------------------------------------------------------
-\RequirePackage{color}                          % Color (not xcolor!)
 \definecolor{linkblue}{rgb}{0,0,0.8}            % Standard
 \definecolor{darkblue}{rgb}{0,0.08,0.45}        % Dark blue
 \definecolor{bfhgrey}{rgb}{0.41,0.49,0.57}      % BFH grey

@@ -46,6 +46,30 @@ Each of these options comes with a number of advantages and disadvantages, as sh
 
 \subsubsection{Using SubtleCrypto}
 \label{subsubsec:subtlecrypto}
+The \texttt{SubtleCrypto} class offers the \texttt{digest(algorithm, data)} method, which can be used to
+calculate the \gls{SHA-256} checksum of the given data.
+The advantage of using this implementation is that it is available in all modern browsers\footnote{Where modern browsers means Mozilla Firefox, Google Chrome/Chromium, and Microsoft Edge},
+and since it's executed with native code instead of JavaScript it's quite fast.
+There's a major drawback though: hashing a large amount of data progressively is not supported, the data has to be
+passed to the function en bloc.
+Our testing showed that selecting files larger than 100MB crashes Firefox tabs when trying to read their contents
+into memory before we could pass it to the \texttt{digest} function.
+If we assume the users will only ever select small files this should not pose a problem, but unfortunately it's not safe to assume this.
+
+\subsubsection{Using CryptoJS}
+\label{subsubsec:cryptojs}
+\texttt{CryptoJS} does not have the limitation of \texttt{SubtleCrypto} and supports progressive hashing,
+as seen in listing~\ref{lst:cryptojsprogressive}.
+
+\begin{lstlisting}[caption={Progressive SHA-256 hashing using CryptoJS},captionpos=b,language=JavaScript,label={lst:cryptojsprogressive}]
+const sha256 = CryptoJS.algo.SHA256.create();
+
+sha256.update("Message Part 1");
+sha256.update("Message Part 2");
+sha256.update("Message Part 3");
+
+const hash = sha256.finalize();
+\end{lstlisting}
 
 
 
