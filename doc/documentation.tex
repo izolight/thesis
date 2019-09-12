@@ -113,9 +113,10 @@ footskip=15mm
 %
 % for futher informations go to http://ewus.de/tipp-1029.html
 %---------------------------------------------------------------------------
-\usepackage[nonumberlist]{glossaries}
-\makeglossaries
+\usepackage[nonumberlist,acronym]{glossaries}
 \include{database/glossary}
+\include{database/acronyms}
+\makeglossaries
 %---------------------------------------------------------------------------
 
 % Intro:
@@ -172,7 +173,8 @@ footskip=15mm
     %---------------------------------------------------------------------------
     \pagenumbering{arabic}
 
-    \include{chapters/technologies}
+    \include{chapters/objectives}
+    \include{chapters/technologicalchoices}
     \include{chapters/introduction}
     \include{chapters/instructions}
     \include{chapters/typeareatest}

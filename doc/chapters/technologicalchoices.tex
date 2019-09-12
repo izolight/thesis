@@ -1,0 +1,59 @@
+\chapter*{Choices in Technologies}
+\label{ch:techchoices}
+In this chapter, we outline the technologies we choose, and the reasoning for choosing them.
+
+\section{Backend}
+\label{sec:techbackend}
+It is implemented using the Play Framework\cite{playframework} and the Scala\cite{scalalang} programming language.
+TODO explain why.
+
+\section{Frontend}
+\label{sec:techfrontend}
+
+Given that the frontend must support the three desktop operating systems Microsoft Windows, GNU/Linux as well as Apple MacOS,
+the technological choices available to us are limited.
+On the desktop, we could use the \gls{JVM} platform and the JavaFX \gls{GUI} library, whereas on the phones
+we could use Flutter\cite{flutterframework}.
+However, developing three applications on five platforms using two new-to-us frameworks and programming languages
+would take a lot more time and resources than what is available to us in the scope of this thesis.
+
+In order to reduce complexity we decide to implement the frontend as a web application, capable of running
+in any modern web browser regardless of platform, be it mobile or desktop.
+We're not happy about this, as we would much rather use mature, strongly-typed and well-designed languages and frameworks,
+but we're forced to make this compromise in order to meet our objectives in the time available.
+
+\subsection{Client-Side File Hashing in the Web Browser}
+\label{subsec:browserhashing}
+This choice presents us with a challenge: hashing the files to be signed client-side.
+If we had implemented "proper" client applications this would've been easy, but in a web browser and its
+JavaScript language not so much: they weren't designed with file I/O and CPU-intensive cryptographic functions in mind.
+The easiest solution would be to upload the files to be signed to the server and hash them there,
+but this would be a clear violation of the least-information principle (the server doesn't need the file, only the hash)
+and a breach of user privacy.
+Another solution would be to ask the user to enter the file hashes instead of selecting files,
+but this would be very user-unfriendly and probably downright impossible for many people.
+
+It is clear we must find a way to hash files in the web browser itself.
+In order to achieve this we have found the following options:
+
+\begin{enumerate}
+    \item Using the browser-implemented \texttt{SubtleCrypto}\cite{subtlecrypto} \gls{API}
+    \item Using the \texttt{CryptoJS}\cite{cryptojs} JavaScript implementation
+    \item Using a \gls{WASM}-based implementation
+\end{enumerate}
+
+Each of these options comes with a number of advantages and disadvantages, as shown in detail in the following sections.
+
+\subsubsection{Using SubtleCrypto}
+\label{subsubsec:subtlecrypto}
+
+
+
+
+
+
+
+
+
+
+

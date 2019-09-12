@@ -1,0 +1,26 @@
+\chapter*{Objectives}
+\label{ch:objectives}
+
+The implementation consists of the remote signing service itself in the form of a \gls{REST} \gls{API},
+and a cross-platform frontend authenticating the users through a trusted \gls{OIDC} \gls{IDP}.
+This frontend uses the \gls{REST} \gls{API} for signing the users' files.
+On top of that, it offers offline verification of existing signatures on desktop operating systems.
+
+\section{Previous Works}
+\label{section:previousworks}
+
+We build upon our previous work of Project 2\cite{projekt2}, where we specified the authentication process
+for qualified signatures, non-qualified batch signatures as well as the signature file format.
+
+\section{Backend}
+\label{section:backend}
+
+The server is the centrepiece of the service, where the actual signatures are being created. TODO expand what the server does.
+
+\section{Frontend}
+\label{section:frontend}
+
+The frontend must be cross-platform, where cross-platform means supporting the desktop operating systems
+GNU/Linux, Microsoft Windows and Apple MacOS as well as the mobile phone operating systems Google Android and Apple iOS.
+The frontend must support authentication, creating signatures as well as verifying them.
+Verification must be available online as well as offline, except for the mobile version, where offline verification is not required.
