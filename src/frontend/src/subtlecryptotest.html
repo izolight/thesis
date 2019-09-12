@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>fööööööööööck!!</title>
+</head>
+<script>
+    function dataCallback(data) {
+        console.log("datacallback");
+        crypto.subtle.digest("SHA-256", data).then(hash => {
+            const hashStr = Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+            document.getElementById("end").innerText = time() + "          " + hashStr;
+        });
+    }
+
+    function processFileButtonHandler() {
+        const start = document.getElementById("start");
+        start.innerText = time();
+        console.log("button");
+        const file = document.getElementById("file").files[0];
+        const reader = new FileReader();
+        reader.onload = function() {
+            console.log("onload");
+            dataCallback(reader.result);
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function time() {
+        const date = new Date();
+        return date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + "." + date.getMilliseconds();
+    }
+
+</script>
+
+<body>
+<input type="file" id="file"/>
+<button id="process-file" onclick="processFileButtonHandler()">Process File</button>
+<div id="start"></div>
+<div id="end"></div>
+</body>
+</html>

@@ -35,6 +35,10 @@ parskip=half,			% set paragraph skip to half of a line
 \usepackage{booktabs}													% package for nicer tables
 \usepackage{tocvsec2}													% provides means of controlling the sectional numbering
 \usepackage{listings}
+%\usepackage{tikz}
+%\usepackage{pgf}
+%\usepackage{pgfplots}
+\pgfplotsset{width=7cm,compat=1.16}
 \usepackage{color}
 \definecolor{lightgray}{rgb}{.9,.9,.9}
 \definecolor{darkgray}{rgb}{.4,.4,.4}
@@ -178,7 +182,6 @@ footskip=15mm
     \setcounter{page}{1}
     \cleardoublepage
     \phantomsection
-    \include{leader/management_summary}
     \cleardoubleemptypage
     %---------------------------------------------------------------------------
 
@@ -194,10 +197,6 @@ footskip=15mm
 
     \include{chapters/objectives}
     \include{chapters/technologicalchoices}
-    \include{chapters/introduction}
-    \include{chapters/instructions}
-    \include{chapters/typeareatest}
-    \include{chapters/conclusions}
     %---------------------------------------------------------------------------
 
     % Selbständigkeitserklärung

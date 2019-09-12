@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="core.min.js"></script>
+    <script src="sha256.js"></script>
+    <meta charset="UTF-8">
+    <title>fubberblubber</title>
+</head>
+<script>
+    function dataCallback(data) {
+        console.log("datacallback");
+        const hasher = CryptoJS.algo.SHA256.create();
+        hasher.update(data);
+        const hash = hasher.finalize();
+        console.log("end");
+        const end = document.getElementById("end");
+        end.innerText = time() + "          " + hash;
+    }
+
+    function processFileButtonHandler() {
+        const start = document.getElementById("start");
+        start.innerText = time();
+        console.log("button");
+        const file = document.getElementById("file").files[0];
+        const reader = new FileReader();
+        reader.onload = function() {
+            console.log("onload");
+            dataCallback(reader.result);
+        };
+        reader.readAsArrayBuffer(file);
+
+    }
+
+    function time() {
+        const date = new Date();
+        return date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + "." + date.getMilliseconds();
+    }
+
+</script>
+
+<body>
+<input type="file" id="file"/>
+<button id="process-file" onclick="processFileButtonHandler()">Process File</button>
+<div id="start"></div>
+<div id="end"></div>
+</body>
+</html>
