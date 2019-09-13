@@ -95,31 +95,32 @@ And since JavaScript is an interpreted language, using it to calculate the check
 By using this virtual machine we should be able to, in theory, run code at near-native speed written in a statically-typed, compiled language such as Rust, C++ or Go.
 We expect significant speed gains over a JavaScript-based implementation due to the fact that JavaScript is interpreted and untyped\footnote{It's not really untyped, but its type system is so \textit{unique} it might as well not have types.}.
 
-\subsection{Performance Comparison of In-Browser Hashing Options}
+\subsection{Performance Comparison}
 \label{subsec:perfcomphashing}
 No one likes waiting for slow software to do its work, and neither do we.
 Thus we decided to compare the performance of the aforementioned options in a simple test:
-we measure the time it takes for the browser to calculate the checksum of 1GB of random data.
+we measure the time it takes for the browser to calculate the checksum of 1GB of random data using the three aforementioned methods.
 The code used for each example is in appendix TODO add test code and link here.
-Here are the results:
+The tests were run on Debian 10 using Firefox 69 on an Intel i7-8550U.
+The results can be seen in figure~\ref{fig:hashingperformance}.
+It is obvious we were mistaken: the WASM implementation is significantly slower than the JavaScript implementation.
+What really surprised us though was that the browser itself appears to be slower than CryptoJS too.
 
-%\begin{figure}
-%\begin{tikzpicture}
-%    \begin{axis}[
-%    xbar, xmin=0,
-%    width=12cm, height=3.5cm, enlarge y limits=0.5,
-%    xlabel={\#participants},
-%    symbolic y coords={no,yes},
-%    ytick=data,
-%    nodes near coords, nodes near coords align={horizontal},
-%    ]
-%        \addplot coordinates {(3,no) (7,yes)};
-%    \end{axis}
-%\end{tikzpicture}
-%    \caption{blubber}
-%\end{figure}
-%
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=0.7\linewidth]{images/hashingperformance.png}
+        \caption{Time in seconds for hashing 1GB of random data}
+        \label{fig:hashingperformance}
+    \end{center}
+\end{figure}
 
+
+\subsection{Deciding On The In-Browser Hashing Implementation}
+\label{subsec:deciding-on-the-in-browser-hashing-implementation}
+It is clear from figure~\ref{fig:hashingperformance} that CryptoJS is significantly faster than the other options we tried.
+Given that it supports piece-wise hashing as well,
+something we need for larger files (as discussed in section~\ref{subsec:browserhashing}), the choice is clear.
+We will use CryptoJS to hash the input files in the browser.
 
 
 
