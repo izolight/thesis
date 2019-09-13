@@ -94,6 +94,24 @@ And since JavaScript is an interpreted language, using it to calculate the check
 \gls{WASM} provides a low-level virtual machine running machine-independent binary code, comparable to the \gls{JVM} or the \gls{CLR}, albeit much simpler and much less sophisticated.
 By using this virtual machine we should be able to, in theory, run code at near-native speed written in a statically-typed, compiled language such as Rust, C++ or Go.
 We expect significant speed gains over a JavaScript-based implementation due to the fact that JavaScript is interpreted and untyped\footnote{It's not really untyped, but its type system is so \textit{unique} it might as well not have types.}.
+While developing the \gls{WASM}-based hashing program, we encountered some interesting challenges, as described in the following paragraphs.
+
+\paragraph{CORS Policy} While JavaScript can be executed simply by pointing the browser at a local \gls{HTML} file, the same doesn't work for \gls{WASM}.
+The browser's security policy forbids it due to its \gls{CORS} rule~\cite{cors}.
+We solved this by starting the \gls{HTTP} server built in to Go's standard library and having the browser load the \gls{WASM} binary through \gls{HTTP}.
+The code is in appendix TODO put code in appendix and link here.
+
+\paragraph{JavaScript/WASM Compatibility} The Golang project conveniently provides a file containing the necessary boilerplate code to load, start and interact with \gls{WASM} programmes called \texttt{wasm\_exec.js}.
+But there's a catch: for each version of Go, the version of the accompanying \texttt{wasm\_exec.js} file used must match precisely.
+If it doesn't, the code will crash with a segmentation fault.
+It took us quite some time to figure out why the code we'd written only a few days prior would segfault now with no changes made to it.
+
+\paragraph{Passing data} Functions written in Go intended to be used from the JavaScript side of things need to have a very specific signature:
+
+\begin{lstlisting}[caption={Golang WASM function signature}, captionpos=b, language=Go, label={lst:funcsignaturewasm}]
+    blubber
+\end{lstlisting}
+
 
 \subsection{Performance Comparison}
 \label{subsec:perfcomphashing}
