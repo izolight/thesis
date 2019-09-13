@@ -31,6 +31,7 @@ all: documentation.pdf images/hashingperformance.gplot
 
 documentation.pdf: documentation.tex images/hashingperformance.gplot glossaries
 		cd images; gnuplot hashingperformance.gplot
+		latexmk -bibtex -pdf -pdflatex="pdflatex -interaction=nonstopmode" -use-make documentation.tex
 
 clean:
 		latexmk -CA
