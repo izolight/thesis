@@ -35,6 +35,7 @@ parskip=half,			% set paragraph skip to half of a line
 \usepackage{booktabs}													% package for nicer tables
 \usepackage{tocvsec2}													% provides means of controlling the sectional numbering
 \usepackage{listings}
+\usepackage{inconsolata}
 %\usepackage{tikz}
 %\usepackage{pgf}
 %\usepackage{pgfplots}
@@ -43,20 +44,28 @@ parskip=half,			% set paragraph skip to half of a line
 \definecolor{lightgray}{rgb}{.9,.9,.9}
 \definecolor{darkgray}{rgb}{.4,.4,.4}
 \definecolor{purple}{rgb}{0.65, 0.12, 0.82}
+\definecolor{bluekeywords}{rgb}{0.13,0.13,1}
+\definecolor{greencomments}{rgb}{0,0.5,0}
+\definecolor{redstrings}{rgb}{0.9,0,0}
 
 \lstdefinelanguage{JavaScript}{
-  keywords={do, if, in, for, let, new, try, var, case, else, enum, eval, null, this, true, void, with, await, break, catch, class, const, false, super, throw, while, yield, delete, export, import, public, return, static, switch, typeof, default, extends, finally, package, private, continue, debugger, function, arguments, interface, protected, implements, instanceof},
-  keywordstyle=\color{blue}\bfseries,
-  ndkeywords={class, export, boolean, throw, implements, import, this},
-  ndkeywordstyle=\color{darkgray}\bfseries,
-  identifierstyle=\color{black},
-  sensitive=false,
-  comment=[l]{//},
-  morecomment=[s]{/*}{*/},
-  commentstyle=\color{purple}\ttfamily,
-  stringstyle=\color{red}\ttfamily,
-  morestring=[b]',
-  morestring=[b]"
+morekeywords={class, export, boolean, throw, implements, import, this, do, if, in, for, let, new, try, var, case, else, enum, eval, null, this, true, void, with, await, break, catch, class, const, false, super, throw, while, yield, delete, export, import, public, return, static, switch, typeof, default, extends, finally, package, private, continue, debugger, function, arguments, interface, protected, implements, instanceof},
+sensitive=false,
+comment=[l]{//},
+morecomment=[s]{/*}{*/},
+morestring=[b]{'},
+morestring=[b]{"},
+sensitive=true,
+showspaces=false,
+showtabs=false,
+breaklines=true,
+showstringspaces=false,
+breakatwhitespace=true,
+escapeinside={(*@}{@*)},
+commentstyle=\color{greencomments},
+keywordstyle=\color{bluekeywords},
+stringstyle=\color{redstrings},
+basicstyle=\ttfamily
 }
 
 \lstdefinelanguage{Go}{
@@ -77,9 +86,18 @@ morestring=[b]{`},
 comment=[l]{//},
 morecomment=[s]{/*}{*/},
 % Options
-sensitive=true
+sensitive=true,
+showspaces=false,
+showtabs=false,
+breaklines=true,
+showstringspaces=false,
+breakatwhitespace=true,
+escapeinside={(*@}{@*)},
+commentstyle=\color{greencomments},
+keywordstyle=\color{bluekeywords},
+stringstyle=\color{redstrings},
+basicstyle=\ttfamily
 }
-
 
 %---------------------------------------------------------------------------
 

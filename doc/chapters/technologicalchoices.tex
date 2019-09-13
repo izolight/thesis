@@ -106,10 +106,25 @@ But there's a catch: for each version of Go, the version of the accompanying \te
 If it doesn't, the code will crash with a segmentation fault.
 It took us quite some time to figure out why the code we'd written only a few days prior would segfault now with no changes made to it.
 
-\paragraph{Passing data} Functions written in Go intended to be used from the JavaScript side of things need to have a very specific signature:
+\paragraph{Passing data} Functions written in Go intended to be used from the JavaScript side of things need to have a very specific signature.
+As can be seen in listing~\ref{lst:funcsignaturewasm}, there is no typing: all arguments passed to the function are of type \texttt{js.Value} and the return value must be of type \texttt{interface\{\}}\footnote{This is Go's equivalend of Java's \texttt{Object}, it could be anything.}.
+This posed us with the challenge of detecting the types and casting the data passed accordingly.
 
 \begin{lstlisting}[caption={Golang WASM function signature}, captionpos=b, language=Go, label={lst:funcsignaturewasm}]
-    blubber
+    func f(this js.Value, arg js.Value) interface{} {}
+\end{lstlisting}
+
+We've worked for this on hours, producing ugly reflection-based hacks, until we decided to just agree on the types of the arguments and return values beforehand despite the open function signature.
+After that, just a little boilerplate was necessary to convert a JavaScript \texttt{Uint8Array} to a Golang \texttt{[]byte}, as seen in listing~\ref{lst:jscastingtogo}.
+
+
+\begin{lstlisting}[caption={Uint8Array to {[]}byte}, captionpos=b, language=Go, label={lst:jscastingtogo}, captionpos=b]
+func progressiveHash(this js.Value, in []js.Value) interface{} {
+    array := in[0]
+    buf := make([]byte, array.Get("length").Int())
+    js.CopyBytesToGo(buf, array)
+    return this
+}
 \end{lstlisting}
 
 
