@@ -99,7 +99,7 @@ While developing the \gls{WASM}-based hashing program, we encountered some inter
 \paragraph{CORS Policy} While JavaScript can be executed simply by pointing the browser at a local \gls{HTML} file, the same doesn't work for \gls{WASM}.
 The browser's security policy forbids it due to its \gls{CORS} rule~\cite{cors}.
 We solved this by starting the \gls{HTTP} server built in to Go's standard library and having the browser load the \gls{WASM} binary through \gls{HTTP}.
-The code is in appendix TODO put code in appendix and link here.
+The code is in appendix~\ref{chap:appendix_golangwebserver}.
 
 \paragraph{JavaScript/WASM Compatibility} The Golang project conveniently provides a file containing the necessary boilerplate code to load, start and interact with \gls{WASM} programmes called \texttt{wasm\_exec.js}.
 But there's a catch: for each version of Go, the version of the accompanying \texttt{wasm\_exec.js} file used must match precisely.
@@ -117,7 +117,6 @@ This posed us with the challenge of detecting the types and casting the data pas
 We've worked for this on hours, producing ugly reflection-based hacks, until we decided to just agree on the types of the arguments and return values beforehand despite the open function signature.
 After that, just a little boilerplate was necessary to convert a JavaScript \texttt{Uint8Array} to a Golang \texttt{[]byte}, as seen in listing~\ref{lst:jscastingtogo}.
 
-
 \begin{lstlisting}[caption={Uint8Array to {[]}byte}, captionpos=b, language=Go, label={lst:jscastingtogo}, captionpos=b]
 func progressiveHash(this js.Value, in []js.Value) interface{} {
     array := in[0]
@@ -126,6 +125,16 @@ func progressiveHash(this js.Value, in []js.Value) interface{} {
     return this
 }
 \end{lstlisting}
+
+\paragraph{Goroutines} Go features its own concurrency primitive called Goroutines.
+From a programmers' perspective, they can be used like threads, but they carry much less overhead.
+Communication between goroutines is achieved by using so-called channels, which remind of queues.
+Unfortunately, the \gls{WASM} specification wasn't drafted with this kind of concurrency in mind.
+Go is forced to unwind and restore the call stack when switching between goroutines, which is very expensive~\cite{lolnogoroutines}.
+We rewrote the Go programme to work without them, and we've seen a small performance improvement, as seen in figure~\ref{fig:hashingperformance}.
+
+
+
 
 
 \subsection{Performance Comparison}
