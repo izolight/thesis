@@ -31,7 +31,6 @@ all: documentation.pdf images/hashingperformance.gplot
 
 documentation.pdf: documentation.tex images/hashingperformance.gplot glossaries
 		cd images; gnuplot hashingperformance.gplot
-		latexmk -bibtex -pdf -pdflatex="pdflatex -interaction=nonstopmode" -use-make documentation.tex
 
 clean:
 		latexmk -CA
@@ -39,6 +38,9 @@ clean:
 
 glossaries:
 		makeglossaries documentation
+
+noglossaries:
+		latexmk -bibtex -pdf -pdflatex="pdflatex -interaction=nonstopmode" -use-make documentation.tex
 
 wordcount:
 		sed '/begin.*lstlisting/,/end.*lstlisting/d' documentation.tex | detex | wc -w
