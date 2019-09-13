@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <link rel="stylesheet" type="text/css" href="fileChunkTest.css">
-    <script type="application/javascript" src="../../lib/wasm_exec.js"></script>
+    <script type="text/javascript" src="core.min.js"></script>
+    <script type="text/javascript" src="sha256.js"></script>
     <script type="text/javascript" src="../../out/fileInChunkProcessor.js"></script>
-    <script src="../../lib/wasm_exec.js"></script>
     <meta charset="UTF-8">
     <title>Test Files in Chunks Processing</title>
 </head>
@@ -20,6 +20,7 @@
         <button id="process-file" onclick="processFileButtonHandler()">Process File</button>
     </div>
     <div id="errors" class="red-text"></div>
+    <div id="start"></div>
     <div id="result"></div>
 </body>
 </html>
