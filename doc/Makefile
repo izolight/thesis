@@ -29,14 +29,16 @@ all: documentation.pdf images/hashingperformance.gplot
 # -interaction=nonstopmode keeps the pdflatex backend from stopping at a
 # missing file reference and interactively asking you for an alternative.
 
-documentation.pdf: documentation.tex images/hashingperformance.gplot
+documentation.pdf: documentation.tex images/hashingperformance.gplot glossaries
 		cd images; gnuplot hashingperformance.gplot
-		makeglossaries documentation
 		latexmk -bibtex -pdf -pdflatex="pdflatex -interaction=nonstopmode" -use-make documentation.tex
 
 clean:
 		latexmk -CA
 		touch documentation.tex
+
+glossaries:
+		makeglossaries documentation
 
 wordcount:
 		sed '/begin.*lstlisting/,/end.*lstlisting/d' documentation.tex | detex | wc -w
