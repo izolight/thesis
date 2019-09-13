@@ -4,7 +4,7 @@ In this chapter, we outline the technologies we choose, and the reasoning for ch
 
 \section{Backend}
 \label{sec:techbackend}
-It is implemented using the Play Framework\cite{playframework} and the Scala\cite{scalalang} programming language.
+It is implemented using the Play Framework~\cite{playframework} and the Scala~\cite{scalalang} programming language.
 TODO explain why.
 
 \section{Frontend}
@@ -13,7 +13,7 @@ TODO explain why.
 Given that the frontend must support the three desktop operating systems Microsoft Windows, GNU/Linux as well as Apple MacOS,
 the technological choices available to us are limited.
 On the desktop, we could use the \gls{JVM} platform and the JavaFX \gls{GUI} library, whereas on the phones
-we could use Flutter\cite{flutterframework}.
+we could use Flutter~\cite{flutterframework}.
 However, developing three applications on five platforms using two new-to-us frameworks and programming languages
 would take a lot more time and resources than what is available to us in the scope of this thesis.
 
@@ -21,11 +21,12 @@ In order to reduce complexity we decide to implement the frontend as a web appli
 in any modern web browser regardless of platform, be it mobile or desktop.
 We're not happy about this, as we would much rather use mature, strongly-typed and well-designed languages and frameworks,
 but we're forced to make this compromise in order to meet our objectives in the time available.
+In order to reduce the pain, we will use TypeScript, which is a strongly typed superset of JavaScript~\cite{loltypes}.
 
 \subsection{Client-Side File Hashing in the Web Browser}
 \label{subsec:browserhashing}
-This choice presents us with a challenge: hashing the files to be signed client-side.
-If we had implemented "proper" client applications this would've been easy, but in a web browser and its
+This decision presents us with a challenge: hashing the files to be signed client-side in the web browser itself.
+If we had implemented "proper" client applications this would've been easy, but in a web browser and using its
 JavaScript language not so much: they weren't designed with file I/O and CPU-intensive cryptographic functions in mind.
 The easiest solution would be to upload the files to be signed to the server and hash them there,
 but this would be a clear violation of the least-information principle (the server doesn't need the file, only the hash)
@@ -37,19 +38,19 @@ It is clear we must find a way to hash files in the web browser itself.
 In order to achieve this we have found the following options:
 
 \begin{enumerate}
-    \item Using the browser-implemented \texttt{SubtleCrypto}\cite{subtlecrypto} \gls{API}
-    \item Using the \texttt{CryptoJS}\cite{cryptojs} JavaScript implementation
+    \item Using the browser-implemented \texttt{SubtleCrypto}~\cite{subtlecrypto} \gls{API}
+    \item Using the \texttt{CryptoJS}~\cite{cryptojs} JavaScript implementation
     \item Using a \gls{WASM}-based implementation
 \end{enumerate}
 
-Each of these options comes with a number of advantages and disadvantages, as shown in detail in the following sections.
+Each of these options comes with a number of advantages and disadvantages, as discussed in more detail in the following sections.
 
 \subsubsection{Using SubtleCrypto}
 \label{subsubsec:subtlecrypto}
-The \texttt{SubtleCrypto} class offers the \texttt{digest(algorithm, data)} method, which can be used to
-calculate the \gls{SHA-256} checksum of the given data.
+The \texttt{SubtleCrypto} class offers the \texttt{digest(algorithm, data)} method~\cite{subtlecrypto}, which can be used to
+calculate \gls{SHA-256} checksums.
 The advantage of using this implementation is that it is available in all modern browsers\footnote{Where modern browsers means Mozilla Firefox, Google Chrome/Chromium, and Microsoft Edge},
-and since it's executed with native code instead of JavaScript it's quite fast.
+and since it's executed with native code, being able to take advantage of \gls{AVX2} instructions, instead of JavaScript it should be quite fast.
 There's a major drawback though: hashing a large amount of data progressively is not supported, the data has to be
 passed to the function en bloc, as seen in listing~\ref{lst:subtlecrypto}.
 
@@ -69,10 +70,9 @@ If we assume the users will only ever select small files this should not pose a 
 
 \subsubsection{Using CryptoJS}
 \label{subsubsec:cryptojs}
-\texttt{CryptoJS} does not have the limitation of \texttt{SubtleCrypto} and supports progressive hashing,
+\texttt{CryptoJS} does not have the limitation of \texttt{SubtleCrypto} and supports progressive hashing\footnote{
+By progressive hashing we mean the ability to pass to the hash function the data piece by piece in order to avoid holding all of it in memory at once.},
 as seen in listing~\ref{lst:cryptojsprogressive}.
-Progressive hashing is the ability to pass to the hash function the data piece by piece in order to avoid holding all
-of it in memory at once.
 
 \begin{lstlisting}[caption={Progressive SHA-256 hashing using CryptoJS},captionpos=b,language=JavaScript,label={lst:cryptojsprogressive}]
 const sha256 = CryptoJS.algo.SHA256.create();
@@ -84,16 +84,16 @@ sha256.update("Message Part 3");
 const hash = sha256.finalize();
 \end{lstlisting}
 
-The advantage of using \texttt{CryptoJS} over \texttt{SubtleCrypto} is as mentioned the ability to hash piece-wise.
+The advantage of using \texttt{CryptoJS} over \texttt{SubtleCrypto} is, as mentioned, the ability to hash piece-wise.
 The disadvantage is that we need to load a third-party JavaScript library, using built-in functionality would be preferable.
-And since JavaScript is an interpreted language, using it to calculate the checksums would presumably result in slower speeds.
+And since JavaScript is an interpreted language, using it to calculate the checksums would presumably result in significantly lower performance.
 
 
 \subsubsection{Using a WASM-based implementation}
 \label{subsubsec:wasmhashing}
 \gls{WASM} provides a low-level virtual machine running machine-independent binary code, comparable to the \gls{JVM} or the \gls{CLR}, albeit much simpler and much less sophisticated.
 By using this virtual machine we should be able to, in theory, run code at near-native speed written in a statically-typed, compiled language such as Rust, C++ or Go.
-We expect significant speed gains over a JavaScript-based implementation due to the fact that JavaScript is interpreted and untyped\footnote{It's not really untyped, but its type system is so \textit{unique} it might as well not have types.}.
+We expect significant performance gains over a JavaScript-based implementation.
 While developing the \gls{WASM}-based hashing program, we encountered some interesting challenges, as described in the following paragraphs.
 
 \paragraph{CORS Policy} While JavaScript can be executed simply by pointing the browser at a local \gls{HTML} file, the same doesn't work for \gls{WASM}.
@@ -107,15 +107,15 @@ If it doesn't, the code will crash with a segmentation fault.
 It took us quite some time to figure out why the code we'd written only a few days prior would segfault now with no changes made to it.
 
 \paragraph{Passing data} Functions written in Go intended to be used from the JavaScript side of things need to have a very specific signature.
-As can be seen in listing~\ref{lst:funcsignaturewasm}, there is no typing: all arguments passed to the function are of type \texttt{js.Value} and the return value must be of type \texttt{interface\{\}}\footnote{This is Go's equivalend of Java's \texttt{Object}, it could be anything.}.
+As can be seen in listing~\ref{lst:funcsignaturewasm}, there is no typing: all arguments passed to the function are of type \texttt{js.Value} and the return value must be of type \texttt{interface\{\}}\footnote{This is Go's equivalent of Java's \texttt{Object}, it could be anything.}.
 This posed us with the challenge of detecting the types and casting the data passed accordingly.
 
 \begin{lstlisting}[caption={Golang WASM function signature}, captionpos=b, language=Go, label={lst:funcsignaturewasm}]
     func f(this js.Value, arg js.Value) interface{} {}
 \end{lstlisting}
 
-We've worked for this on hours, producing ugly reflection-based hacks, until we decided to just agree on the types of the arguments and return values beforehand despite the open function signature.
-After that, just a little boilerplate was necessary to convert a JavaScript \texttt{Uint8Array} to a Golang \texttt{[]byte}, as seen in listing~\ref{lst:jscastingtogo}.
+We've worked on this for hours, producing ugly reflection-based hacks, until we decided to just agree on the types of the arguments and return values beforehand despite the open function signature.
+Now all that's needed is a little boilerplate to convert a JavaScript \texttt{Uint8Array} to a Golang \texttt{[]byte}, as seen in listing~\ref{lst:jscastingtogo}.
 
 \begin{lstlisting}[caption={Uint8Array to {[]}byte}, captionpos=b, language=Go, label={lst:jscastingtogo}, captionpos=b]
 func progressiveHash(this js.Value, in []js.Value) interface{} {
@@ -128,7 +128,7 @@ func progressiveHash(this js.Value, in []js.Value) interface{} {
 
 \paragraph{Goroutines} Go features its own concurrency primitive called Goroutines.
 From a programmers' perspective, they can be used like threads, but they carry much less overhead.
-Communication between goroutines is achieved by using so-called channels, which remind of queues.
+Communication between goroutines is achieved by using so-called channels, which on a high level are comparable to queues.
 Unfortunately, the \gls{WASM} specification wasn't drafted with this kind of concurrency in mind.
 Go is forced to unwind and restore the call stack when switching between goroutines, which is very expensive~\cite{lolnogoroutines}.
 We rewrote the Go programme to work without them, and we've seen a small performance improvement, as seen in figure~\ref{fig:hashingperformance}.
@@ -140,18 +140,19 @@ We rewrote the Go programme to work without them, and we've seen a small perform
 \subsection{Performance Comparison}
 \label{subsec:perfcomphashing}
 No one likes waiting for slow software to do its work, and neither do we.
-Thus we decided to compare the performance of the aforementioned options in a simple test:
+This is why we decided to compare the performance of the aforementioned options in a simple test:
 we measure the time it takes for the browser to calculate the checksum of 1GB of random data using the three aforementioned methods.
 The code used for each example is in appendix TODO add test code and link here.
 The tests were run on Debian 10 using Firefox 69 on an Intel i7-8550U.
 The results can be seen in figure~\ref{fig:hashingperformance}.
-It is obvious we were mistaken: the WASM implementation is significantly slower than the JavaScript implementation.
-What really surprised us though was that the browser itself appears to be slower than CryptoJS too.
+As expected, the in-browser implementation is the fastest by far, followed by the \gls{WASM}-based implementation.
+JavaScript is so slow it's not even competing.
+In order to have a baseline reference we compare the hashing speeds to the \texttt{openssl} command-line programme.
 
 \begin{figure}
     \begin{center}
         \includegraphics[width=0.7\linewidth]{images/hashingperformance.png}
-        \caption{Time in seconds for hashing 1GB of random data}
+        \caption{Hashing speed in MB/s (higher is better). Please note that the scale is logarithmic.}
         \label{fig:hashingperformance}
     \end{center}
 \end{figure}

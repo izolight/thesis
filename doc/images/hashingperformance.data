@@ -1,4 +1,5 @@
-0 WASM/Go+Goroutines 32
-1 WASM/Go 30
-2 SubtleCrypto 11
-3 CryptoJS 3
+0 CryptoJS 9.2
+1 WASM+Goroutines 29
+2 WASM 31
+3 SubtleCrypto 100
+4 openssl 452
