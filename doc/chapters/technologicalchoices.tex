@@ -160,10 +160,8 @@ In order to have a baseline reference we compare the hashing speeds to the \text
 
 \subsection{Deciding On The In-Browser Hashing Implementation}
 \label{subsec:deciding-on-the-in-browser-hashing-implementation}
-It is clear from figure~\ref{fig:hashingperformance} that CryptoJS is significantly faster than the other options we tried.
-Given that it supports piece-wise hashing as well,
-something we need for larger files (as discussed in section~\ref{subsec:browserhashing}), the choice is clear.
-We will use CryptoJS to hash the input files in the browser.
+It is clear from figure~\ref{fig:hashingperformance} that \texttt{SubtleCrypto} is significantly faster than the other options we tried.
+Unfortunately, since it doesn't support piece-wise hashing we're forced to pick the next-fastest option, the \gls{WASM}-based implementation.
 
 
 
