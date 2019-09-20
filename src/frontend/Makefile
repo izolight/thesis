@@ -4,7 +4,7 @@ ts-files = out/fileInChunkProcessor.js out/validate.js out/webWorker.js
 all: $(rust-wasm-files) $(ts-files)
 
 clean:
-	rm out/*
+	rm -r out/*
 
 $(rust-wasm-files): rustwasm/hasher/src/lib.rs
 	wasm-pack build rustwasm/hasher/ -d ../../out
