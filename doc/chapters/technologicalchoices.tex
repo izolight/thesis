@@ -133,8 +133,12 @@ Unfortunately, the \gls{WASM} specification wasn't drafted with this kind of con
 Go is forced to unwind and restore the call stack when switching between goroutines, which is very expensive~\cite{lolnogoroutines}.
 We rewrote the Go programme to work without them, and we've seen a small performance improvement, as seen in figure~\ref{fig:hashingperformance}.
 
-
-
+\paragraph{Rust based WASM}
+As the Go implementation also includes the Go runtime, which makes the wasm file much larger, and starts a program that
+will run continuously in the background it isn't the optimal choice for creating a WebAssembly implementation.
+As neither of us knows any other choice of the languages that compile to WebAssembly well, we first excluded them.
+However with the drawbacks of the Go based implementation we decided to try also implement a Rust based version to see
+how they compare both in performance and ease of development.
 
 
 \subsection{Performance Comparison}
