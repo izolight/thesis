@@ -11,7 +11,7 @@ var hashes = make(map[string]hash.Hash)
 
 func registerCallbacks() {
 	js.Global().Set("progressiveHash", js.FuncOf(progressiveHash))
-	js.Global().Set("startHash", js.FuncOf(startHash))
+	js.Global().Set("start_hash", js.FuncOf(startHash))
 	js.Global().Set("getHash", js.FuncOf(getHash))
 }
 

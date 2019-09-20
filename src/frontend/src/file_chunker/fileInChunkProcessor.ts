@@ -1,3 +1,6 @@
+import {Validate} from "./validate";
+import {Sha256hasher} from "../wasm_hasher";
+
 interface FileChunkDataCallback {
     (data: Uint8Array): void
 }
@@ -14,27 +17,6 @@ interface ProcessingCompletedCallback {
     (): void
 }
 
-class Validate {
-    public static notNull<T>(obj: T): obj is Exclude<T, null> {
-        if (obj == null) {
-            throw new ReferenceError(`Error: Object ${obj} was null`);
-        }
-        return true;
-    }
-
-    public static notUndefined<T>(obj: T): obj is Exclude<T, undefined> {
-        if (obj === undefined) {
-            throw new ReferenceError(`Error: Object ${obj} was undefined`);
-        }
-        return true;
-    }
-
-    public static notNullNotUndefined<T>(obj: T): obj is NonNullable<T> {
-        return Validate.notNull(obj) && Validate.notUndefined(obj);
-    }
-}
-
- // TODO use SubtleCrypto for small files, wasm fuck for large files
 
 class FileInChunksProcessor {
     public readonly CHUNK_SIZE_IN_BYTES: number = 1024*1000*20;
@@ -102,7 +84,7 @@ class FileInChunksProcessor {
     }
 }
 
-function handleError(message: string) {
+function errorHandlingCallback(message: string) {
     const errorElement = document.getElementById("error");
     if (Validate.notNull(errorElement)) {
         errorElement.innerHTML = `${errorElement.innerHTML} <p>${message}</p>`;
@@ -114,16 +96,14 @@ function processFileButtonHandler() {
     if(Validate.notNull(startElement)) {
         startElement.innerText = "start " + time();
     }
-    // @ts-ignore
-    const hasher = CryptoJS.algo.SHA256.create();
+    const wasmHasher = new Sha256hasher();
     const processor = new FileInChunksProcessor((data) => {
-            console.log('hashing..');
-            // @ts-ignore
-            hasher.update(CryptoJS.lib.WordArray.create(data));
+            wasmHasher.update(new Uint8Array((data)));
         },
-        handleError, () => {
-            // @ts-ignore
-            const hashStr = hasher.finalize().toString(CryptoJS.enc.Hex);
+        errorHandlingCallback,
+        () => {
+            const hashStr = wasmHasher.hex_digest();
+            wasmHasher.free();
             const resultElement = document.getElementById("result");
             if (Validate.notNull(resultElement)) {
                 resultElement.innerHTML = `<p>${time()} Got: ${hashStr} </p>`;

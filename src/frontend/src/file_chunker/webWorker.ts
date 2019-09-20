@@ -1,3 +1,5 @@
+import {Validate} from "./validate";
+
 interface WebWorkerResponseCallback {
     (data: WebWorkerResponse): void // TODO type?
 }

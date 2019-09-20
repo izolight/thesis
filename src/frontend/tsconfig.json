@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "outDir": "out",
-    "module": "commonjs",
     "target": "es6",
     "sourceMap": true,
-    "strict": true
+    "strict": true,
+    "moduleResolution": "node"
   },
   "include": [
     "./src/file_chunker/*ts"

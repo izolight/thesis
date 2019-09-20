@@ -20,7 +20,7 @@ func consoleLog(this js.Value, in []js.Value) interface{} {
 func registerCallbacks() {
 	js.Global().Set("consoleLog", js.FuncOf(consoleLog))
 	js.Global().Set("progressiveHash", js.FuncOf(progressiveHash))
-	js.Global().Set("startHash", js.FuncOf(startHash))
+	js.Global().Set("start_hash", js.FuncOf(start_hash))
 	js.Global().Set("getHash", js.FuncOf(getHash))
 }
 
@@ -56,7 +56,7 @@ func progressiveHash(this js.Value, in []js.Value) interface{} {
 	return this
 }
 
-func startHash(this js.Value, in []js.Value) interface{} {
+func start_hash(this js.Value, in []js.Value) interface{} {
 	hasher.result = make(chan []byte)
 	hasher.input = make(chan []byte)
 	go hasher.sha256Hash()
