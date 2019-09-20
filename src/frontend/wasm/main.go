@@ -8,17 +8,7 @@ import (
 
 var hasher = sha256.New()
 
-func consoleLog(this js.Value, in []js.Value) interface{} {
-	println(js.Global().
-		Get("document").
-		Call("getElementById", "test").
-		Get("value").
-		String())
-	return this
-}
-
 func registerCallbacks() {
-	js.Global().Set("consoleLog", js.FuncOf(consoleLog))
 	js.Global().Set("progressiveHash", js.FuncOf(progressiveHash))
 	js.Global().Set("startHash", js.FuncOf(startHash))
 	js.Global().Set("getHash", js.FuncOf(getHash))
