@@ -1,5 +1,6 @@
-import {Validate} from "./validate";
-import {Sha256hasher} from "../wasm_hasher";
+import {Validate} from "./validate.js";
+// @ts-ignore
+import {Sha256hasher} from "./hasher.js";
 
 interface FileChunkDataCallback {
     (data: Uint8Array): void
