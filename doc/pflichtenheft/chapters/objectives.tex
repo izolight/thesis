@@ -24,3 +24,15 @@ The frontend must be cross-platform, where cross-platform means supporting the d
 GNU/Linux, Microsoft Windows and Apple MacOS as well as the mobile phone operating systems Google Android and Apple iOS.
 The frontend must support authentication, creating signatures as well as verifying them.
 Verification must be available online as well as offline, except for the mobile version, where offline verification is not required.
+
+\section{Comparison with existing solutions}
+\label{section:comparison}
+
+The Cloud Signature Consortium standardised a remote signing service with OIDC/oAuth. Adobe has made an implementation of this standard.
+The goal is to learn how this implementation works and compare it with our solution, with a focus on security.
+
+\section{Evaluate Yubikey HSM for Signing Service}
+\label{section:evaluateyubikey}
+
+In order to provide a secure solution for the signing keys, we will evaluate the Yubikey HSM 2.
+This would avoid having the signing keys on the filesystem and improve the security of our solution.
