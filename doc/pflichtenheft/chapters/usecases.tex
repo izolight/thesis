@@ -1,0 +1,23 @@
+\chapter{Use-Cases}
+\label{ch:usecases}
+
+\section{Document Signing}
+
+\subsection{Interactive Qualified Signatures}
+It should be possible to let the signature service sign documents with a qualified signature.
+In this case the person who wishes to sign the documents needs to authenticate with the IDP for each document that he wishes to have signed.
+
+\subsection{Bulk Advanced Signatures}
+It should also be possible to have a longer running session for bulk document signing.
+In this case the authentication will be cached for a certain duration without needing to re-authenticate for each document.
+In this mode only advanced signatures can be created.
+
+\section{Signature Validation}
+
+\subsection{Offline Validation}
+The signatures can be verified offline with just the document, the signature and the verification program.
+This mode will only be supported on desktops(Linux, Windows, MacOS X).
+
+\subsection{Semi-Online Validation}
+For mobile clients a website will be provided to validate the signature by providing the document and the signature.
+The validation will happen in the browser, but no files will be uploaded in the process.
