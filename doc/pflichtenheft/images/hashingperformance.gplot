@@ -1,0 +1,7 @@
+set term png
+set output "hashingperformance.png"
+set boxwidth 0.5
+set style fill solid
+set ylabel "MB/s"
+set logscale y 2
+plot "hashingperformance.data" using 1:3:xtic(2) with boxes notitle
