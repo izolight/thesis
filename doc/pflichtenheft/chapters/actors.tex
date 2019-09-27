@@ -1,0 +1,27 @@
+\chapter*{Actors}
+\label{ch:actors}
+
+Actors specify a role played by a user or a system for the purposes of defining our work more clearly.
+
+\section{The Signer}
+\label{sec:actorsigner}
+The Signer is the person who wishes to have the signing server sign a document in their name.
+For example, a medical professional issuing a prescription for medication to a patient.
+
+\section{The Verifier}
+\label{sec:actorverifier}
+The Verifier is the person who wishes to verify the integrity and authorship of a document.
+For example, the pharmacist whom the patient gives the prescription to (as previously authored and signed by The Signer as specified in section~\ref{sec:actorsigner}) in order to purchase the medication prescribed by the medical professional.
+
+\section{The Authenticator}
+\label{sec:actorauthenticator}
+The Authenticator is the system who asserts authenticates The Signer as specified in section~\ref{sec:actorsigner}.
+In \gls{NIST} terminology~\cite{nistdigitalidentityguidelines}, this is the entity establishing the \gls{IAL}.
+In order for The Authenticator to be able to authenticate The Signer,
+they must have been registered with The Authenticator by The Identifier as specified in~\ref{sec:authoridentifier}.
+
+\section{The Identifier}
+\label{sec:authoridentifier}
+The Identifier is the system or person who asserts the identity of The Signer.
+In order for the signing service to issue qualified signatures as defined by Swiss law~\cite{zertes} and regulations~\cite{vzertes},
+the identity must be proven in-person using a government-issued photographic identification document such as a passport.
