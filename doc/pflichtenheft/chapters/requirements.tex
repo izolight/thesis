@@ -1,0 +1,83 @@
+\chapter*{Functional Requirements}
+\label{ch:functionalrequirements}
+
+\section{Terminology}
+\subsection{Practically Impossible}
+"Practically impossible" means the probability of it being possible is not zero, but so small for it not to matter in practice.
+An example for this would be finding the prime factors of the product of two carefully chosen 1024 bit numbers within 24 hours.
+
+\subsection{Being made difficult}
+"Made difficult" means something far from impossible for someone with near-unlimited resources like a state actor,
+but extremely difficult if not impossible even for a highly skilled single person with the resources expected for a single person.
+
+\section{Signature Requirements}
+\label{sec:signaturerequirements}
+\subsection{Authenticity}
+It must be practically impossible for anyone to forge a signature without it being detected upon signature verification.
+
+\subsection{Integrity}
+It must be practically impossible for anyone to modify a signed document without being detected upon signature verification.
+A secure hash algorithm must be used for hashing the document.
+Secure means the algorithm to be pre-image as well as collision-resistant as validated by the \gls{NIST} Cryptographic Algorithm Validation Program~\cite{nistcavp}.
+
+\subsection{Verifiability}
+Anyone must be able to verify the authenticity of a signature and the integrity of the signed document.
+
+\subsection{Non-repudiation}
+It must be practically impossible for anyone to deny having signed a document.
+
+\subsection{Long-Term Validation}
+Signatures must be suitable for \gls{LTV} using an RFC3161~\cite{rfc3161} timestamp.
+
+\subsection{Secure Coupling of Authentication and Signature}
+It must be impossible for anyone to abuse a stolen \gls{OIDC} ID token to sign a document other than intended by The Signer.
+
+\subsection{Authentication Protocol}
+Standard \gls{OIDC} must be used for authenticating The Signer as specified in~\cite{oidc}.
+
+\subsection{Supported File Formats}
+It must be possible to sign any file, regardless of its format.
+
+\subsection{Bulk Signatures}
+For non-qualified signatures, it must be possible to sign several documents at once.
+
+\section{Signature Server Requiremenents}
+\label{sec:signatureserverrequirements}
+\subsection{CA Key Security}
+Technical measures must be taken to make it difficult for the private keys of the signing \gls{CA} to be stolen.
+
+\subsection{User Key Security}
+Technical measures must be taken to make it difficult to steal the private keys generated on behalf of the users.
+
+\subsection{No unauthorised identity delegation}
+It must be impossible for the signing server to create a signature without the authorisation of the user through authentication with the \gls{IDP}.
+
+\subsection{Random Number Generation}
+The \gls{RNG} used for generating signatures must be a cryptographically secure.
+
+\subsection{REST API}
+The Signature Server must offer a \gls{REST} \gls{API} that can be used by third parties to interface with the signing service,
+for example in order to implement custom frontends or to include it as part of their product,
+or for users that don't like \gls{GUI}s.
+
+\chapter*{Non-Functional Requirements}
+\label{ch:nonfunctionalrequirements}
+
+\subsection{Efficient Signature File Format}
+The file format for the signature file shall be based on our previous work~\cite{projekt2}.
+
+\subsection{Protection of Information}
+Information not strictly required by the party in order to fulfil their function must not be disclosed to the aforementioned party.
+In particular, the document to be signed must not be disclosed to the signing server nor to the \gls{IDP}.
+
+\subsection{Offline Validation}
+The Verifier must be enabled to verify signatures without an active internet connection using a desktop or laptop computer running GNU/Linux, MacOS or Windows.
+
+\section{IDP Requirements}
+\subsection{Support for OIDC}
+The \gls{IDP} must support standard \gls{OIDC} as specified in~\cite{oidc}.
+
+
+\subsection{Levels of Assurance}
+The \gls{IDP} must support \gls{AAL} 2 authentication for advanced signatures, and \gls{AAL} 3 authentication for qualified signatures as specified in~\cite{nistdigitalidentityguidelines}.
+

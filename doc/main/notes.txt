@@ -8,3 +8,4 @@
 - frontend design: UI and flow
 - backend design: API endpoints
 
+how to long term: https://security.stackexchange.com/questions/149099/digital-signatures-with-long-term-validation-ltv-how-is-revocation-verified

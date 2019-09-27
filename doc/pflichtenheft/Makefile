@@ -5,7 +5,7 @@
 
 # The first rule in a Makefile is the one executed by default ("make"). It
 # should always be the "all" rule, so that "make" and "make all" are identical.
-all: documentation.pdf images/hashingperformance.gplot
+all: documentation.pdf
 
 # CUSTOM BUILD RULES
 
@@ -29,8 +29,7 @@ all: documentation.pdf images/hashingperformance.gplot
 # -interaction=nonstopmode keeps the pdflatex backend from stopping at a
 # missing file reference and interactively asking you for an alternative.
 
-documentation.pdf: documentation.tex images/hashingperformance.gplot glossaries
-		cd images; gnuplot hashingperformance.gplot
+documentation.pdf: documentation.tex glossaries
 		latexmk -bibtex -pdf -pdflatex="pdflatex -interaction=nonstopmode" -use-make documentation.tex
 
 clean:
