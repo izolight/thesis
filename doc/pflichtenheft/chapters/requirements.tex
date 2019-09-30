@@ -2,6 +2,9 @@
 \label{ch:functionalrequirements}
 
 \section{Terminology}
+
+As always, the usual modal verbs are to be interpreted as in RFC 2119~\cite{rfc2119}.
+
 \subsection{Practically Impossible}
 "Practically impossible" means the probability of it being possible is not zero, but so small for it not to matter in practice.
 An example for this would be finding the prime factors of the product of two carefully chosen 1024 bit numbers within 24 hours.
@@ -9,6 +12,7 @@ An example for this would be finding the prime factors of the product of two car
 \subsection{Being made difficult}
 "Made difficult" means something far from impossible for someone with near-unlimited resources like a state actor,
 but extremely difficult if not impossible even for a highly skilled single person with the resources expected for a single person.
+For example, stealing a smart card from someone and misusing the contained private key.
 
 \section{Signature Requirements}
 \label{sec:signaturerequirements}
@@ -30,16 +34,18 @@ It must be practically impossible for anyone to deny having signed a document.
 Signatures must be suitable for \gls{LTV} using an RFC3161~\cite{rfc3161} timestamp.
 
 \subsection{Secure Coupling of Authentication and Signature}
-It must be impossible for anyone to abuse a stolen \gls{OIDC} ID token to sign a document other than intended by The Signer.
+It must be practically impossible for anyone to abuse a stolen \gls{OIDC} ID token to sign a document other than intended by The Signer.
 
 \subsection{Authentication Protocol}
-Standard \gls{OIDC} must be used for authenticating The Signer as specified in~\cite{oidc}.
+Standard \gls{OIDC} must be used for authenticating The Signer as specified in the standard~\cite{oidc}.
 
 \subsection{Supported File Formats}
 It must be possible to sign any file, regardless of its format.
 
 \subsection{Bulk Signatures}
-For non-qualified signatures, it must be possible to sign several documents at once.
+For qualified signatures, it must be possible to sign more than one document at once.
+
+For advanced signatures, it may be possible to sign several documents one after the other without requiring re-authentication.
 
 \section{Signature Server Requiremenents}
 \label{sec:signatureserverrequirements}
@@ -50,7 +56,7 @@ Technical measures must be taken to make it difficult for the private keys of th
 Technical measures must be taken to make it difficult to steal the private keys generated on behalf of the users.
 
 \subsection{No unauthorised identity delegation}
-It must be impossible for the signing server to create a signature without the authorisation of the user through authentication with the \gls{IDP}.
+It must be practically impossible for the signing server to create a signature on its own.
 
 \subsection{Random Number Generation}
 The \gls{RNG} used for generating signatures must be a cryptographically secure.
@@ -74,10 +80,13 @@ In particular, the document to be signed must not be disclosed to the signing se
 The Verifier must be enabled to verify signatures without an active internet connection using a desktop or laptop computer running GNU/Linux, MacOS or Windows.
 
 \section{IDP Requirements}
+Anything related to the \gls{IDP} is out of scope for our thesis, except for specifying what we require of the same.
+We assume to be using an existing, \gls{OIDC}-conforming \gls{IDP} providing the required registration and authentication levels.
+
 \subsection{Support for OIDC}
-The \gls{IDP} must support standard \gls{OIDC} as specified in~\cite{oidc}.
+The \gls{IDP} must support standard \gls{OIDC} as specified in the standard~\cite{oidc}.
 
 
 \subsection{Levels of Assurance}
-The \gls{IDP} must support \gls{AAL} 2 authentication for advanced signatures, and \gls{AAL} 3 authentication for qualified signatures as specified in~\cite{nistdigitalidentityguidelines}.
+The \gls{IDP} must support \gls{AAL} 2 authentication for advanced signatures, and \gls{AAL} 3 authentication for qualified signatures as specified in the \gls{NIST} publication~\cite{nistdigitalidentityguidelines}.
 
