@@ -23,8 +23,9 @@ parskip=half,			% set paragraph skip to half of a line
 % Load Standard Packages:
 %---------------------------------------------------------------------------
 \usepackage[standard-baselineskips]{cmbright}
-
-\usepackage[english]{babel}										% english hyphenation
+\usepackage[useregional]{datetime2}
+\usepackage[UKenglish]{babel}
+\DTMlangsetup[en-GB]{ord=raise,monthyearsep={,\space}}
 \usepackage{textcomp}													% additional symbols
 \usepackage{ae}																% better resolution of Type1-Fonts 
 \usepackage{fancyhdr}													% simple manipulation of header and footer 
@@ -192,7 +193,6 @@ urlcolor = {linkcolor},               % Color of URLs
     %---------------------------------------------------------------------------
 
     \input{leader/title}					% Titel der Arbeit aus Datei titel.tex lesen
-    \input{leader/version}				% Versionsnummer und -datum aus Datei version.tex lesen
 
     % Set up header and footer
     %---------------------------------------------------------------------------
@@ -204,7 +204,7 @@ urlcolor = {linkcolor},               % Color of URLs
     \fancyhf{}																		% clean all fields
     \fancypagestyle{plain}{												% new definition of plain style
     \fancyfoot[OR,EL]{\footnotesize \thepage} 	% footer right part --> page number
-    \fancyfoot[OL,ER]{\footnotesize \heading, Version \versionnumber, \versiondate}	% footer even page left part
+    \fancyfoot[OL,ER]{\footnotesize \heading }	% footer even page left part
     }
 
     \renewcommand{\chaptermark}[1]{\markboth{\thechapter.  #1}{}}
@@ -219,7 +219,6 @@ urlcolor = {linkcolor},               % Color of URLs
     %---------------------------------------------------------------------------
     \include{leader/frontpage_without_picture}		% activate for frontpage without picture
     %\include{leader/frontpage_with_picture}		% activate for frontpage with picture
-    \include{leader/versions}
     \cleardoubleemptypage
     \setcounter{page}{1}
     \cleardoublepage
