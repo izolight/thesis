@@ -6,7 +6,7 @@
 \subsection{Prerequisites}\label{subsec:prerequisites}
 The following prerequisites have to be fulfilled in order for the following use cases to work:
 \begin{enumerate}
-    \item The user has registered with the \gls{RA} and is known to the \gls{IDP}
+    \item The user (actor~\ref{sec:actorsigner}) has registered with the \gls{RA} (actor~\ref{sec:authoridentifier}) and is known to the \gls{IDP}~(actor~\ref{sec:actorauthenticator})
     \item The user has created and readied a document file to be signed
 \end{enumerate}
 
@@ -14,7 +14,7 @@ The following prerequisites have to be fulfilled in order for the following use 
 \subsubsection{Steps}
 The user performs the following steps:
 \begin{enumerate}
-    \item Opens the webinterface of the signing service on their device
+    \item Opens the webinterface of the signing service (actor~\ref{sec:actorsigningservice}) on their device
     \item Selects the document file to be hashed
     \item Selects the preferred \gls{IDP} out of a list of trusted \gls{IDP}s, if multiple \gls{IDP}s are configured
     \item Gets redirected to the \gls{IDP}s login page
@@ -75,6 +75,7 @@ For mobile clients a website will be provided to validate the signature by provi
 In addition to the prerequisites specified in subsection~\ref{subsec:prerequisites2},
 it is necessary for the user to have opened the signature services' verification web page in their browser beforehand
 so that it is available to the user without connecting to the server again.
+This is why we call it semi-online.
 For example, the user opens the web browser on their mobile phone and loads the verification page.
 Then they board an aeroplane and turn on aeroplane mode.
 After takeoff, they decide to validate a signature.
