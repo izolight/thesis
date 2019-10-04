@@ -12,6 +12,7 @@ a malicious signing service could still create a valid signature not authorised 
 
 As an additional safety mechanism we propose using a public append-only data structure, inspired by blockchain technologies.
 The signature service would be required to publish all signatures created by appending them to this data structure.
-Everyone would be able to follow the
-If the signing service
+Everyone would be able to follow the signatures the signing service issues.
+If the signing service were to create a signature without the users' consent, they would see this by inspecting the data structure.
+If the signing service were to create a signature without publishing it into the data structure, everyone could see this by inspecting the data structure.
 
