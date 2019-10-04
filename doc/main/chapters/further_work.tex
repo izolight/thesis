@@ -3,30 +3,46 @@ Due to time constraints given by the timeboxed bachelor thesis, we weren't able 
 We document these aspects and our thoughts on them here for future works.
 
 \section{Public Append-Only Data Structure}\label{sec:public-append-only-data-structure}
-The main defence against malicious signature services - signing document files without the users' consent - is the integration of the authentication token signed by the \gls{IDP} into the signature file.
+The main defence against malicious signature services - signing document files without the users' consent - is the integration of the authentication token signed by the \gls{IDP} into the signature file TODO link to section where this is explained in more detail.
 If the signing server were to create a signature file on their own they'd be unable to get such a token from the \gls{IDP}, and this would be detected upon signature verification.
+
 However, if the \gls{IDP} were under the control of the same organisation as the signing service,
 or if the \gls{IDP} were compromised as well,
 or if the user were to be tricked into authenticating with the \gls{IDP} not knowing what they were doing,
 a malicious signing service could still create a valid signature not authorised by the user.
 
-As an additional safety mechanism we propose using a public append-only data structure, inspired by blockchain technologies.
-The signature service would be required to publish all signatures created by appending them to this data structure.
-Everyone would be able to follow the signatures the signing service issues.
-If the signing service were to create a signature without the users' consent, they would see this by inspecting the data structure.
-If the signing service were to create a signature without publishing it into the data structure, everyone could see this by inspecting the data structure.
+In order to defend against this, as an additional safety mechanism, we propose using a public append-only data structure,
+inspired by blockchain technologies.
+The signature service would be required to publish all signatures it creates by appending them to this data structure.
+This would allow everybody and anybody to see the signatures the signing server issues.
+
+If the signing service were to create a signature without the users' consent,
+the signer could see this by inspecting the data structure,
+as there would be an entry for a signature there the signer doesn't remember creating.
+
+If the signing service were to create a signature without publishing it into the data structure,
+everyone could see this by inspecting the data structure,
+because the signature file would not be published in it.
+
 
 \section{Multi-Party Signatures}\label{sec:multi-party-signatures}
-In order to facilitate signatures with multiple parties we need to design a mechanism for generating and validating this signature.
+In order to facilitate signatures with multiple parties (for example, a standard apartent rental contract) we need to design a mechanism for generating and validating such signature schemes.
+There are many possibilities to implement this.
 
 \subsection{Nested Signatures}
-One possibility is that the next signer signs the signature of the document instead of the document.
-The signing service will then generate a signature for the original signature.
-The new signature replaces the original one as it also embeds it.
-This can be repeated as many times as one wishes.
+One possibility is that the next signer signs the previously created signature file of the document instead of the document itself.
+The signing service will then generate another signature for the previous signature.
+The new signature would replace the original one, as it embeds it.
+This can be repeated as many times as necessary, creating a chain of signatures.
+This method would allow not only for an arbitrary number of signatures on the same document,
+but it would also embed ordering of the signatures.
+This could be useful, as some organisation's processes may require their documents to be signed in a specific order.
 
-For the validation process one needs just the final signature (containing all other signatures) and the document and then the whole signature chain will be validated and with the innermost signature the document can be validated.
+For the validation process just the final signature is needed (as it embeds all previous signatures) and the document itself,
+and then the whole signature chain can be validated recursively,
+with the innermost signature validating the document integrity.
 
-\subsection{Pairing based Signatures}
-With Pairing based Cryptography like \gls{BLS} we could implement n-of-n or m-of-n multi signatures.
-This wouldn't require any order in the signing process, but would complicate the cryptographic aspect and could introduce errors as we don't have a lot experience with pairing based cryptography.
+\subsection{Pairing-based Signatures}
+With pairing-based Cryptography like \gls{BLS}~\cite{bls} we could implement n-of-n or m-of-n multi signatures.
+This wouldn't provide nor require any ordering in the signing process, and while much more elegant,
+would complicate the cryptographic aspect and could introduce errors as we don't have a lot experience with pairing based cryptography.
