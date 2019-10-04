@@ -1,0 +1,17 @@
+\chapter{Further Work}\label{ch:further-work}
+Due to time constraints given by the timeboxed bachelor thesis, we weren't able to explore all aspects of the remote signing service.
+We document these aspects and our thoughts on them here for future works.
+
+\section{Public Append-Only Data Structure}\label{sec:public-append-only-data-structure}
+The main defence against malicious signature services - signing document files without the users' consent - is the integration of the authentication token signed by the \gls{IDP} into the signature file.
+If the signing server were to create a signature file on their own they'd be unable to get such a token from the \gls{IDP}, and this would be detected upon signature verification.
+However, if the \gls{IDP} were under the control of the same organisation as the signing service,
+or if the \gls{IDP} were compromised as well,
+or if the user were to be tricked into authenticating with the \gls{IDP} not knowing what they were doing,
+a malicious signing service could still create a valid signature not authorised by the user.
+
+As an additional safety mechanism we propose using a public append-only data structure, inspired by blockchain technologies.
+The signature service would be required to publish all signatures created by appending them to this data structure.
+Everyone would be able to follow the
+If the signing service
+
