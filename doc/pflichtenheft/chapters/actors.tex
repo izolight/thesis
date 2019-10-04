@@ -4,6 +4,44 @@
 Actors specify a role played by a user or a system for the purposes of a clearer definition.
 In this chapter, we will outline the actors in our system.
 
+\begin{landscape}
+	\topskip0pt
+	\vspace*{\fill}
+	\section{Big Picture}
+	\begin{figure}[H]
+		\begin{center}
+			\includegraphics[scale=0.6]{images/BigPicture.png}
+			\caption{Big Picture}
+			\label{fig:bigpicture}
+		\end{center}
+	\end{figure}
+	\vspace*{\fill}
+\end{landscape}
+
+\subsubsection{Steps}
+\begin{enumerate}
+	\item Registration of identity with RA (Authenticator)
+	\item Propagate identity to IDP (Identifier)
+	\item Generate document hash
+	\item Send hash to signing service
+	\item Receive OIDC redirect to IDP
+	\item Login to IDP
+	\item Receive ID token
+	\item Send ID token to signing service
+	\item Verify ID token
+	\item Request signing key CSR from HSM
+	\item Receive CSR
+	\item Send CSR to CA
+	\item Receive signed Certificate
+	\item Request signature from HSM
+	\item Receive signature
+	\item Request timestamp from TSS
+	\item Receive timestamp
+	\item Send signature to signer
+	\item Send document and signature to Verifier/Receiver
+	\item Verify document and signature
+\end{enumerate}
+
 
 \section{The Signer}
 \label{sec:actorsigner}
