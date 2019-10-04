@@ -1,0 +1,6 @@
+\chapter{Yubikey HSM}
+
+In a first look at the yubikey hsm and the required packages we found that the access for the developer always happens via the yubikey-connector which provides a http server.
+The protocol however is not documented and is binary. The developer always has to go through libyubihsm to connect with the server.
+From this we can conclude that the intended use is to have the yubikey hsm on a device with just the connector running and nothing else and the application interfacing with the hsm on another server.
+This scenario would improve security as the application doesn't have direct hardware access to the hsm.
