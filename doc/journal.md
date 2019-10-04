@@ -1,0 +1,22 @@
+## Arbeitsjournal
+
+#### 16.09.19
+- Diskutieren der zu verwendenden Sprachen, Frameworks, Technologien
+- Ausprobieren in-browser hashing
+- Entwickeln Go+WASM in-browser hashing
+- Anpassen BFH LaTeX template
+
+#### 20.09.19
+- Entwickeln Rust+WASM in-browser hashing
+- Beginn Dokumentation
+- Erstes Gespräch mit Betreuenden
+
+#### 27.09.19
+- Pflichtenheft erstellen
+
+#### 30.09.19
+- Weiterarbeiten am Pflichtenheft
+- Zweites Gespräch mit Betreuenden
+
+#### 04.10.19
+- Weiterarbeiten am Pflichtenheft und der Dokumentation
