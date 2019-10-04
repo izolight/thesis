@@ -23,7 +23,11 @@ The archive timestamp establishes the date in which the information collected wa
 Provided the archive timestamp is valid,
 we can trust the revocation information was issued at that time and check the validity of the signing certificate and the \gls{CA} certificate chain,
 and be sure that it was not revoked at the point in time the document was signed.
-However, there is still an expiration time for the signature: the expiration time of the timestamp certificate.
-When the timestamp certificate is close to expiration, the signature expiration time has to be extended by adding another timestamp signed by a certificate not close to expiration.
-This process has to be repeated periodically.
+This allows us to extend the validity of the signature past the expiration time of the \cls{CA}.
+
+However, this does not extend the validity of the signature indefinitely,
+it merely extends the expiration until the expiration time of the timestamp certificate.
+When the timestamp certificate is close to expiration,
+the signature expiration time has to be extended by adding another timestamp signed by a certificate not close to expiration.
+This process has to be repeated periodically in order to keep the signature valid and verifiable.
 
