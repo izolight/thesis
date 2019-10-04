@@ -16,3 +16,17 @@ Everyone would be able to follow the signatures the signing service issues.
 If the signing service were to create a signature without the users' consent, they would see this by inspecting the data structure.
 If the signing service were to create a signature without publishing it into the data structure, everyone could see this by inspecting the data structure.
 
+\section{Multi-Party Signatures}\label{sec:multi-party-signatures}
+In order to facilitate signatures with multiple parties we need to design a mechanism for generating and validating this signature.
+
+\subsection{Nested Signatures}
+One possibility is that the next signer signs the signature of the document instead of the document.
+The signing service will then generate a signature for the original signature.
+The new signature replaces the original one as it also embeds it.
+This can be repeated as many times as one wishes.
+
+For the validation process one needs just the final signature (containing all other signatures) and the document and then the whole signature chain will be validated and with the innermost signature the document can be validated.
+
+\subsection{Pairing based Signatures}
+With Pairing based Cryptography like \gls{BLS} we could implement n-of-n or m-of-n multi signatures.
+This wouldn't require any order in the signing process, but would complicate the cryptographic aspect and could introduce errors as we don't have a lot experience with pairing based cryptography.
