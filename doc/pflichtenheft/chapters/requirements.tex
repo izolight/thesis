@@ -48,6 +48,11 @@ For qualified signatures, it must be possible to sign more than one document at 
 
 For advanced signatures, it may be possible to sign several documents one after the other without requiring re-authentication.
 
+\subsection{Device-local Hashing of Documents}\label{subsec:local-hashing-of-documents}
+In order to ensure privacy and protection of information as required by~\ref{subsec:protection-of-information},
+documents to be signed must not leave the users' device.
+For webinterfaces, this means that the document must be hashed in the browser itself.
+
 \section{Signature Server Requiremenents}
 \label{sec:signatureserverrequirements}
 \subsection{CA Key Security}\label{subsec:ca-key-security}
@@ -107,8 +112,9 @@ The \gls{IDP} must support \gls{AAL} 2 authentication for advanced signatures, a
     No unauthorised identity delegation~(\ref{subsec:no-unauthorised-identity-delegation}) & Must\\
     Random number generation~(\ref{subsec:random-number-generation}) & Must\\
     \gls{REST} \gls{API}~(\ref{subsec:rest-api}) & Must\\
-    Protection of information~(\ref{subsec:protection-of-information}) & Must\\
     Offline validation~(\ref{subsec:offline-validation}) & Must\\
+    Protection of information~(\ref{subsec:protection-of-information}) & Optional\\
+    Device-local hashing of documents~(\ref{subsec:local-hashing-of-documents}) & Optional\\
     Efficient signature file format~(\ref{subsec:efficient-signature-file-format}) & Optional\\
     \gls{CA} key security~(\ref{subsec:ca-key-security}) & Optional\\
     Bulk signatures~(\ref{subsec:secure-coupling-of-authentication-and-signature}) & Optional\\
