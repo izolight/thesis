@@ -16,30 +16,102 @@ In this chapter, we will outline the actors in our system.
 	\end{figure}
 \end{landscape}
 
-\subsubsection{Steps}
+\subsection{Registration}
 \begin{enumerate}
-	\item Registration of identity with RA (Authenticator)
-	\item Propagate identity to IDP (Identifier)
-	\item Generate document hash
-	\item Send hash to signing service
-	\item Receive OIDC redirect to IDP
-	\item Login to IDP
-	\item Receive ID token
-	\item Send ID token to signing service
-	\item Verify ID token
-	\item Request signing key CSR from HSM
-	\item Receive CSR
-	\item Send CSR to CA
-	\item Receive signed Certificate
-	\item Request signature from HSM
-	\item Receive signature
-	\item Request timestamp from TSS
-	\item Receive timestamp
-	\item Send signature to signer
-	\item Send document and signature to Verifier/Receiver
-	\item Verify document and signature
+	\item Registration of identity with \gls{RA} (Authenticator)
+	
+	A Pre-requisite for using our signing service is that the user(Verifier) is registered with an \gls{IDP}.
+	The user registers at the \gls{RA} which proves its identity.
+	
+	\item Propagate identity to \gls{IDP} (Identifier)
+	
+	After the identity has been registered, the \gls{RA} propagates it to the \gls{IDP}.
+	The \gls{RA} and \gls{IDP} may be the same entity.
 \end{enumerate}
 
+\subsection{Identification}
+\begin{enumerate}[resume]
+	\item Generate document hash
+	
+	The user(Verifier) generates the hashes of the document(s) it wishes to sign.
+	This is needed before the identification step in order to prevent signing of arbitrary documents.
+	
+	\item Send hash to signing service
+	
+	The sends the hashes to the signing service.
+	
+	\item Receive \gls{OIDC} redirect to \gls{IDP}
+	
+	The signing service computes a nonce from the hashes and a random value which will be used as the nonce in the \gls{OIDC} request.
+	Then it sends the redirect to the \gls{IDP} to the user.
+	
+	\item Login to \gls{IDP}
+	
+	The user follows the redirect and logs in to the \gls{IDP} in order to confirm its identity.
+	
+	\item Receive ID token
+	
+	After successful login the user receives an ID token from the \gls{IDP} which will contain the nonce in addition to the identity information.
+	
+	\item Send ID token to signing service
+	
+	The user sends the ID token to the signing service.
+	
+	\item Verify ID token
+	
+	The signing service validates the ID token (\gls{JWT}) and checks if the nonce matches too.
+\end{enumerate}
+
+	
+\subsection{Signature Generation}
+\begin{enumerate}[resume]
+	\item Request signing key \gls{CSR} from \gls{HSM}
+	
+	The signing service requests a new key to be generated from the \gls{HSM}.
+	
+	\item Receive \gls{CSR}
+	
+	The HSM generates a new key and returns the \gls{CSR}.
+	
+	\item Send \gls{CSR} to \gls{CA}
+	
+	The signing service sends the \gls{CSR} to the \gls{CA} in order to be signed.
+	
+	\item Receive signed Certificate
+	
+	The \gls{CA} signs the \gls{CSR} and returns the signed certificate.
+	
+	\item Request signature from \gls{HSM}
+	
+	The signing service sends the hash to the \gls{HSM} in order to be signed.
+	
+	\item Receive signature
+	
+	The \gls{HSM} sends the signed hash to the signing service.
+	
+	\item Request timestamp from \gls{TSS}
+	
+	The signing service sends the signature of the hash to the \gls{TSS}.
+	
+	\item Receive timestamp
+	
+	The \gls{TSS} adds a timestamp to the signature and signs it.
+
+	\item Send signature to signer
+	
+	The signing service constructs the final signature containing the signed hash, the timestamp, the ID token and the chains of all used certificates to the user.
+\end{enumerate}
+	
+\subsection{Signature Verification}
+\begin{enumerate}[resume]
+	\item Send document and signature to receiver(Verifier)
+	
+	The user sends the document and the signature to the intended receiver.
+	
+	\item Verify document and signature
+	
+	The receiver uses the validation tool to validate the document and signature.
+\end{enumerate}
 
 \section{The Signer}
 \label{sec:actorsigner}
