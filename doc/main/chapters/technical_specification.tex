@@ -1,0 +1,29 @@
+\chapter{Technical Specification}
+\section{REST API}
+TODO
+\section{Signature File Format}
+TODO
+\subsection{Long-Term Verification}
+Long-term signature validation allows for validation of signatures long after the document was signed~\cite{etsipades}.
+In order for us to achieve this, all required elements for signature validation must be embedded into the signature file.
+Without the addition of these elements, a signature can only be validated for a limited time.
+This limitation occurs because the \gls{CA}s eventually expire or are revoked.
+Once the \cls{CA} certificate has expired, the issuing authority is no longer responsible for confirming the revocation status on that certificate.
+Without the confirmed revocation status information, the signature cannot be validated.
+
+To overcome this limitation, the following information has to be embedded into the signature:
+\begin{enumerate}
+    \item The signing certificate
+    \item A timestamp on the signature
+    \item The certificates used and their revocation status (\gls{OCSP} and \gls{CRL})
+    \item An archive timestamp of the previous content
+\end{enumerate}
+
+The archive timestamp establishes the date in which the information collected was issued.
+Provided the archive timestamp is valid,
+we can trust the revocation information was issued at that time and check the validity of the signing certificate and the \gls{CA} certificate chain,
+and be sure that it was not revoked at the point in time the document was signed.
+However, there is still an expiration time for the signature: the expiration time of the timestamp certificate.
+When the timestamp certificate is close to expiration, the signature expiration time has to be extended by adding another timestamp signed by a certificate not close to expiration.
+This process has to be repeated periodically.
+
