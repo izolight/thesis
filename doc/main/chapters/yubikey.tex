@@ -1,52 +1,73 @@
 \chapter{Yubikey HSM2}
 
-\section{Intro}
+\section{Introduction}\label{sec:introduction}
 As we want to make our service as secure as possible we want to eliminate saving of the signing keys on disk.
-For this most commonly a \gls{HSM} is used.
+To this end commonly a \gls{HSM} is used.
 Unfortunately most commercial \gls{HSM} are financially out of reach for use in this thesis.
-However Yubico offers a relatively inexpensive (\$650) usb powered solution the yubihsm-2\footnote{\url{https://www.yubico.com/product/yubihsm-2/}}.
-We were offered one from Gerhard Hassenstein to investigate whether it could be used in our work.
+Thankfully, Yubico offers a relatively inexpensive (\$650) \gls{USB} powered solution: the YubiHSM-2~\cite{yubihsm}.
+We were offered one from G. Hassenstein to investigate whether it could be used in our work.
 
-\section{Technical Specification}
-The yubihsm-2 allows us to store or generate the signing keys on the device and perform the cryptographic operations there without the keys ever leaving the device.
-Another capability is the remote management and operation.
-In addition to use the device on the host where it is attached via the a standard \gls{PKCS}#11 interface, it is possible to connect to it over the network, which would enable us to really have a dedicated signing server.
-It supports modern standars like \gls{SHA-256} for Hashing, up to 4096 Bit \gls{RSA} in \gls{PSS} mode for signing and also \gls{ECC} based Signatures in \gls{ECDSA} with many different curves and \gls{EdDSA} using curve25519.
-The full specifications can be found on the homepage\footnote{\url{https://www.yubico.com/product/yubihsm-2/}}.
+\section{Main Features}\label{sec:technical-specification}
+The yubihsm-2 allows us to generate and store the signing keys on the device and perform the cryptographic operations there without the keys ever leaving the device.
+Another capability of the yubihsm-2 is remote management and operation.
+In addition of using the device on the host where it is attached via a standard \gls{PKCS}\#11 interface,
+it is possible to connect to it over the network as well,
+which would enable us to really have a dedicated signing server.
 
-\section{SDK}
-Yubico offers a \gls{SDK}\url{https://www.yubico.com/product/yubihsm-2/} for Windows, Mac and Linux(Fedora, Debian, CentOS, Ubuntu).
-The \gls{SDK} consists of a C and python library, a shell for configuring the \gls{HSM}, a \gls{PKCS}#11 module, a connector for accesing it over the network, a setup tool and code examples with documentation.
-In the windows version a key storage provider is also provided.
+It supports modern standards like \gls{SHA-256} for hashing, up to 4096 Bit \gls{RSA} in \gls{PSS} mode for signing,
+and \gls{ECC}-based signatures in \gls{ECDSA} with many different curves and \gls{EdDSA} using curve25519 as well.
+The full specifications can be found on the website~\cite{yubihsm}.
 
-\subsection{Connector}
-The yubihsm-connector provides an interface to the yubikey via \gls{HTTP} as transport medium. The protocol however isn't \gls{REST}ful and seems to be binary.
-It needs to have access to the usb device, but connections to the connector don't need to come from the same host.
-The sessions between the application (not the connector) and the YubiHSM 2 will be using a symmetric authenticated encryption\cite{yubihsm-connector}.
+\section{SDK}\label{sec:sdk}
+Yubico offers a \gls{SDK}~\cite{yubihsm} for Linux (Fedora, Debian, CentOS, Ubuntu), macOS and Windows.
+The \gls{SDK} consists of a C and Python library, a shell for configuring the \gls{HSM},
+a \gls{PKCS}\#11 module,
+a connector for accessing it over the network as well as a setup tool and code examples with documentation.
 
-\subsection{Shell}
+In the Windows version a key storage provider is also included.
+
+\subsection{Connector}\label{subsec:connector}
+The yubihsm-connector provides an interface to the yubikey via \gls{HTTP} as the transport protocol.
+Upon inspecting it, we found that the protocol isn't \gls{REST}ful, and the payload seems to be binary.
+The connector needs to have access to the \gls{USB} device, but incoming connections to the connector don't need to originate from the same host.
+The sessions between the application (not the connector) and the YubiHSM 2 are using symmetric, authenticated encryption~\cite{yubihsm}.
+
+\subsection{Shell}\label{subsec:shell}
 The yubihsm-shell is used for configuration of the the device.
-The full command reference can be found on the yubico website\cite{yubihsm-shell}.
+The full command reference can be found on the yubico website~\cite{yubihsm-shell}.
 
-\subsection{libyubihsm}
-This is the C library used for communication with the \gls{HSM}.
-This can be both over the network via the connector or directly to the device over usb.
-The device only allows one application to access it directly as exclusive access\cite{libyubihsm} is needed.
+\subsection{libyubihsm}\label{subsec:libyubihsm}
+\texttt{libyubihsm} is the C library used for communication with the \gls{HSM}.
+It's possible to communicate with the device using a network or directly over \gls{USB}.
+The device only allows one application to access it directly as exclusive access~\cite{libyubihsm} is required.
 
-This means, that even if one wants to have the signing application run directly on the server where to yubihsm is attached it is probably better to use the http connector as then multiple instances of the application could access it.
+This means,
+that even if we want to have the signing application run on the same server as the YubiHSM is attached to,
+it is probably better to use the \gls{HTTP} connector as this enables multiple instances of the application to access it concurrently.
 
-\subsection{python-yubihsm}
-The python library either needs to have a connector already running or direct access via usb.
+\subsection{python-yubihsm}\label{subsec:python-yubihsm}
+The Python library either needs to have a connector already running or direct access via \gls{USB}.
+Otherwise it seems to offer the same features as the C library, but we haven't verified this exhaustively.
 
-\subsection{\gls{PKCS}#11 module}
-With the \gls{PKCS}#11 module yubico provides a standardized interface to the \gls{HSM}.
-The module needs a running connector and doesn't allow usb access.
-Not everything in the standard directly translates to the capabilities of the \gls{HSM}, so some values are fixed\cite{yubihsm-pkcs11}.
+\subsection{\gls{PKCS}\#11 module}\label{subsec:gls11-module}
+With the \gls{PKCS}\#11 module yubico provides a standardised interface to the \gls{HSM}.
+The module needs a running connector and doesn't allow \gls{USB} access.
+Not everything in the standard directly translates to the capabilities of the \gls{HSM},
+so some values are fixed~\cite{yubihsm-pkcs11}.
 
-\section{Conclusion}
+\section{Conclusion}\label{sec:conclusion}
+TODO insert programming language.
 Using a \gls{HSM} would definitively make our application more secure.
-Unfortunately the sdk only provides libraries for C and python and not for #insertprogramminglanguage.
-As the \gls{HTTP} is also not \gls{REST}ful we would need to reverse engineer it for use with #insertprogramminglanguage, which would probably take too much time for use in this thesis.
-However we could make use of the \gls{PKCS}#11 module and access the yubihsm that way.
-In conclusion we can say that we probably can make use of the yubihsm, but due to time constraints we will make it an optional goal.
-We will however try to make the signing part of our application pluggable so that we can later easily add support for the yubihsm.
+Unfortunately the \gls{SDK} only provides libraries for C and Python and not for \#insertprogramminglanguage.
+
+As the \gls{HTTP} interface isn't documented and most likely not intended to be used directly,
+we would be forced to reverse engineer it for use with \#insertprogramminglanguage,
+which would probably take too much time for use in this thesis.
+The long-term stability of such an approach would be questionable,
+as yubico could change the protocol without warning (and they probably will, as they won't expect people to be using it directly).
+However, we could make use of the \gls{PKCS}\#11 module and access the YubiHSM that way.
+
+In conclusion, using the YubiHSM would improve security, but due to time constraints we will make it an optional goal.
+We will however try to make the signing part of our application pluggable (standardised interface allowing for differing implementations,
+for example by using a factory pattern) so that we can easily add support for a \gls{HSM} later,
+be it Yubicos' or another manufacturers'.

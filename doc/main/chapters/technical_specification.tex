@@ -35,8 +35,8 @@ This allows us to extend the validity of the signature past the expiration time 
 However, this does not extend the validity of the signature indefinitely,
 it merely extends the expiration until the expiration time of the timestamping authority's certificate.
 
-For many cases this may be enough, but it doesn't quite yet allow for long-time archival.
-When the timestamping certificate's expiration is impending,
+For many cases this may be enough, but it doesn't quite allow for long-time archival yet.
+When the timestamping certificates' expiration is impending,
 the signature expiration time has to be extended by adding another timestamp signed by a \gls{CA} not yet close to expiration.
 This re-stamping has to be repeated periodically in order to keep the signature valid and verifiable.
 This allows for near-indefinite archival.
