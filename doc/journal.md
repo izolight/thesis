@@ -20,3 +20,11 @@
 
 #### 04.10.19
 - Weiterarbeiten am Pflichtenheft und der Dokumentation
+
+#### 11.10.19
+- Weiterarbeiten an der Dokumentation
+- Evaluieren YubiHSM 2
+
+#### 12.10.19
+- Weiterarbeiten an der Dokumentation
+
