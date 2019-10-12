@@ -1,0 +1,50 @@
+\chapter{Introduction}
+\label{sec:introduction}
+
+Today, we use a number of computing devices interchangeably on a daily basis: a desktop workstation at the office,
+a laptop computer on the move, a tablet in the living room and of course, always by our side, the smartphone.
+In an increasingly cloudified and mobile world our expectation is to be able to do our work all the same,
+regardless of the computing device we use, or where we are.
+
+We start editing a text document in Google Docs on our desktop workstation at the office,
+work on it a bit more on our laptop while travelling by train,
+and proofread it later on the smartphone.
+This device- and location-independent way of working has become the standard in recent years,
+and users have started to expect it from their IT devices.
+
+It's difficult to meet this expectation with the way electronic signatures are usually created today,
+using certificates stored on on smartcards,
+plugged into a laptop,
+using a specialised card reader and accompanying software.
+It's annoying and inconvenient having to carry around cables and adaptors, and a lot can go wrong:
+a random operating system update breaking driver compatibility with the card reader, for example,
+leaving us dead in the water.
+If we want to make this easier on the user and to drive usage of electronic signatures and even make them mainstream,
+we have to do better.
+
+At the root of this inconvenience is the requirement that the user keep their private key physically with them,
+stored in a manner making it difficult for anyone to steal it: on a smartcard.
+Any IT professional knows full well this demand isn't made from users in order to annoy them but because it is
+- more or less - the only practical \textit{and} secure way to have users store their private key.
+
+So-called Remote Signing Services aim to eliminate the need for people to carry their private key with them,
+and to locally create signatures,
+in the hope for improved ease of use, and eventually, greater adoption of digitally signing documents.
+However, allowing someone (the signing service, in this case) to be able to sign documents in place of the user introduces a number of serious security and confidentiality problems.
+
+
+In this thesis, we analyse and address these problems,
+and we implement the proposed solutions in a fully functional Remote Signing Service,
+thereby showing that they work in the real world and not just on paper.
+
+We will allow people to create electronic signatures,
+no matter where they are, or what device they're using,
+in a secure manner.
+Building on our previous work of Project 2~\cite{projekt2}, we show how it is possible to securely integrate \gls{OIDC} authentication with remote digital signatures.
+We expand upon this previous work and show how it is possible to have a remote signing service with the capability of signing on the users' behalf without the need for completely trusting that service.
+Furthermore, we compare our solutions to those proposed by an industrial consortium led by Adobe Inc.,
+and we show in which ways we believe our approach to be superior.
+
+\subsection{Purpose of this document}\label{subsec:purpose-of-this-document}
+
+In this specification document we will outline the objectives, scope and methodologies for our thesis as well as provide a project timeline.

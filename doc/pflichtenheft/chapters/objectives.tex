@@ -1,45 +1,7 @@
 \chapter{Objectives}
 \label{ch:objectives}
 
-
-\section{Introduction}
-\label{sec:introduction}
-
-Today, we use a number of computing devices interchangeably on a daily basis: a desktop workstation at the office,
-a laptop computer on the move, a tablet in the living room and of course, always by our side, the smartphone.
-In an increasingly cloudified and mobile world our expectation is to be able to do our work all the same,
-regardless of the computing device we use, or where we are.
-It's difficult to meet this expectation with the way electronic signatures were created in the past,
-using certificates on smartcards, plugged into a laptop, using a specialised card reader and accompanying software.
-It's annoying and inconvenient, and a lot can go wrong:
-a random operating system update breaking driver compatibility with the card reader, for example,
-leaving us dead in the water.
-
-
-At the root of this inconvenience is the requirement that the user keep their private key physically with them,
-stored in a manner making it difficult for anyone to steal it: for example, on a smartcard.
-Remote Signing Services aim to eliminate the need for people to carry their private key with them,
-and to locally create signatures,
-in the hope for improved ease of use, and eventually, greater adoption of digitally signing documents.
-Having someone else (the signing service, in this case) be able to sign documents in lieu of the user introduces a number of serious security and confidentiality problems.
-
-
-In this thesis, we analyse and address these problems.
-We implement our solutions in the form of such a remote signing service,
-thereby not only producing paper but actually showing our solutions in action.
-We allow people to create electronic signatures,
-no matter where they are, or what device they're using,
-in a secure manner.
-Building on our previous work of Project 2~\cite{projekt2}, we show how it is possible to securely integrate \gls{OIDC} authentication with remote digital signatures.
-We expand on it and show how it is possible to have a remote signing service with the capability of signing on the users' behalf without the need for completely trusting that service.
-Furthermore, we compare our solutions to those proposed by an industrial consortium led by Adobe Inc.,
-and we show in which ways we believe our approach to be superior.
-
-\subsection{Purpose of this document}
-
-In this specification document we will outline the objectives, scope and methodologies for our thesis as well as provide a project timeline.
-
-\subsection{Main Objective}
+\subsection{Main Objective}\label{subsec:main-objective}
 The implementation consists of the remote signing service itself in the form of a \gls{REST} \gls{API},
 and a cross-platform frontend authenticating the users through a trusted \gls{OIDC} \gls{IDP}.
 This frontend uses the \gls{REST} \gls{API} for signing the users' files.
