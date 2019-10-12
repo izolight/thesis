@@ -23,8 +23,11 @@
 
 #### 11.10.19
 - Weiterarbeiten an der Dokumentation
-- Evaluieren YubiHSM 2
+- Evaluieren YubiHSM 2 und dokumentation
 
 #### 12.10.19
 - Weiterarbeiten an der Dokumentation
+- Einleitung überarbeitet
+- Weitere Requirements dokumentiert
+- Einführung in die Kryptographie geschrieben
 
