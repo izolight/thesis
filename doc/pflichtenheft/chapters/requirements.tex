@@ -98,6 +98,23 @@ The \gls{IDP} must support standard \gls{OIDC} as specified in the standard~\cit
 \subsection{Levels of Assurance}\label{subsec:levels-of-assurance}
 The \gls{IDP} must support \gls{AAL} 2 authentication for advanced signatures, and \gls{AAL} 3 authentication for qualified signatures as specified in the \gls{NIST} publication~\cite{nistdigitalidentityguidelines}.
 
+\subsection{Code Quality}\label{subsec:code-quality}
+The code produced should be, wherever possible:
+\begin{itemize}
+    \item Readable
+    \item Well-formatted according to the recommended community standards of the language
+    \item Compileable without any errors nor warnings with the compiler at its strictest setting
+    \item Covered by unit tests
+\end{itemize}
+Public \gls{API}s should be documented.
+
+\subsection{Ease of Use}\label{subsec:ease-of-use}
+In order to ensure usability conforms to a minimum standard, the following requirements should be fulfilled:
+\begin{itemize}
+    \item Unneccessary steps or clicks should be minimised. The minimal amount of user interaction should be strived for for any given user-facing action or use case.
+    \item The user interface should be so simple that non-IT people can use it. Specialised jargon should be avoided.
+\end{itemize}
+
 \section{Prioritisation of Requirements}
 \label{sec:prioritisation}
 \begin{longtable}{p{12cm}|p{2.5cm}}
@@ -121,5 +138,7 @@ The \gls{IDP} must support \gls{AAL} 2 authentication for advanced signatures, a
     \gls{CA} key security~(\ref{subsec:ca-key-security}) & Optional\\
     Bulk signatures~(\ref{subsec:secure-coupling-of-authentication-and-signature}) & Optional\\
     Long-term validation~(\ref{subsec:long-term-validation}) & Optional\\
+    Code Quality~(\ref{subsec:code-quality}) & Optional\\
+    Ease of Use~(\ref{subsec:ease-of-use}) & Optional\\
     \caption{Prioritisation of Requirements}
 \end{longtable}
