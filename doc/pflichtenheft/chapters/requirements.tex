@@ -115,6 +115,12 @@ In order to ensure usability conforms to a minimum standard, the following requi
     \item The user interface should be so simple that non-IT people can use it. Specialised jargon should be avoided.
 \end{itemize}
 
+\subsection{Reactive Design}\label{subsec:reactive-design}
+The user interface should be useable both on mobile devices (smartphones) as well as desktop devices (laptops).
+Useable means that the user isn't required to zoom around on a mobile device because the \gls{UI} is layouted with desktop operating systems in mind alone,
+nor should a desktop user be presented with a tiny rectangle because the \gls{UI} was designed for smartphones only.
+This requirement isn't about the \gls{UI} looking pretty but about it being useable without being annoying on both form factors.
+
 \section{Prioritisation of Requirements}
 \label{sec:prioritisation}
 \begin{longtable}{p{12cm}|p{2.5cm}}
@@ -127,11 +133,11 @@ In order to ensure usability conforms to a minimum standard, the following requi
     Secure coupling of authentication and signature~(\ref{subsec:secure-coupling-of-authentication-and-signature}) & Must\\
     Authentication protocol~(\ref{subsec:authentication-protocol}) & Must\\
     Supported file formats~(\ref{subsec:supported-file-formats}) & Must\\
-    Signing key security~(\ref{subsec:signing-key-security}) & Must\\
     No unauthorised identity delegation~(\ref{subsec:no-unauthorised-identity-delegation}) & Must\\
     Random number generation~(\ref{subsec:random-number-generation}) & Must\\
     \gls{REST} \gls{API}~(\ref{subsec:rest-api}) & Must\\
     Offline validation~(\ref{subsec:offline-validation}) & Must\\
+    Signing key security~(\ref{subsec:signing-key-security}) & Optional\\
     Protection of information~(\ref{subsec:protection-of-information}) & Optional\\
     Device-local hashing of documents~(\ref{subsec:local-hashing-of-documents}) & Optional\\
     Efficient signature file format~(\ref{subsec:efficient-signature-file-format}) & Optional\\
@@ -140,5 +146,6 @@ In order to ensure usability conforms to a minimum standard, the following requi
     Long-term validation~(\ref{subsec:long-term-validation}) & Optional\\
     Code Quality~(\ref{subsec:code-quality}) & Optional\\
     Ease of Use~(\ref{subsec:ease-of-use}) & Optional\\
+    Reactive Design~(\ref{subsec:reactive-design}) & Optional\\
     \caption{Prioritisation of Requirements}
 \end{longtable}
