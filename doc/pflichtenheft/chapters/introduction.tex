@@ -47,4 +47,64 @@ and we show in which ways we believe our approach to be superior.
 
 \subsection{Purpose of this document}\label{subsec:purpose-of-this-document}
 
-In this specification document we will outline the objectives, scope and methodologies for our thesis as well as provide a project timeline.
+In this document we will outline the objectives, scope and methodologies for our thesis as well as provide a project timeline.
+The implementation will be documented separately.
+
+\section{A cryptographic primer}\label{sec:a-cryptographic-primer}
+In this section we well very briefly introduce the most important IT security and cryptography building blocks we use to make remote digital signing possible.
+Readers with a basic knowledge of IT security topics such as hash functions, X.509, \gls{PKI} and \gls{DSA} can safely skip it.
+The descriptions given are as brief as possible in order to introduce the topics, they're not meant to be complete nor excruciatingly precise.
+
+\subsection{Hash Function}\label{subsec:hash-function}
+A hash function in cryptography is an one-way function which is able to map data of arbitrary length to fixed-size values~\cite{hashing}.
+One-way means that for a given hash value, it is infeasible to find the corresponding input data.
+Ideally, the only way for someone to invert such a hash function is to do an exhaustive brute-force search.
+This is called pre-image resistance.
+Furthermore, a cryptographic hash function needs to fulfil the following properties:
+\begin{enumerate}
+    \item For a given input value, it must always produce the same hash value (it must be deterministic)
+    \item It must be infeasible to find to different input values that produce the same hash value (this is called collision resistance)
+    \item For a given input value, it must be infeasible to find another input value that produces the same hash value (second pre-image resistance)
+    \item A minimal change in the input value must result in a completely different output value (avalanche effect)
+\end{enumerate}
+
+Hash functions fulfilling these properties are fundamental to our work (and to much of cryptography in general).
+Without them we would be completely powerless.
+An example for such a hash function is \gls{SHA-2}~\cite{sha2patent}.
+
+\subsection{Asymmetric cryptography}\label{subsec:asymmetric-cryptography}
+Asymmetric cryptography, sometimes called public-key cryptography, is a type of encryption which uses pairs of keys.
+This is in contrast to symmetric encryption which uses only one key (for example, a passphrase encrypting a file).
+With symmetric encryption the passphrase must me known both to encrypt and to decrypt the message,
+but with public-key cryptography, the public key can be used to encrypt a message and the private key to decrypt it.
+
+This might sound simple on the surface but opens up a world of possibilities.
+Only the private key has to be kept secret, the public key can be freely published~\cite{stallings}.
+
+The classical example for such an encryption system is the \gls{RSA} scheme~\cite{rsa}.
+
+\subsection{Digital Signatures}\label{subsec:digital-signatures}
+Having briefly explained Hash Functions in~\ref{subsec:hash-function} and Asymmetric Encryption in~\ref{subsec:asymmetric-cryptography} we can now move on to introducing digital signatures.
+A digital signature is a way for verifying the integrity and authenticity of a message, that is,
+to know who signed the message and to guarantee that it wasn't tampered with since being signed~\cite{digitalsignature}.
+
+In order to create a digital signature, perform the following steps:
+\begin{enumerate}
+    \item We take our message and run it through a cryptographic hash function, thus obtaining the hash value.
+    \item Then, we encrypt the hash value using our private key.
+    \item Then we transmit the message and the encrypted hash value to the recipient.
+\end{enumerate}
+
+In order to verify the authenticity and integrity of the message, the recipient performs the following steps:
+\begin{enumerate}
+    \item They run the message through the same cryptographic hash function we did and obtain its hash value.
+    \item They decrypt the encrypted hash value we sent them using our public key and compare it to the one they obtained themselves.
+    \item If the values match, the recipient can be confident that a) the message wasn't tampered with and b) we authored and signed it.
+\end{enumerate}
+
+\subsection{Public-Key Infrastructure and Certificate Authorities}\label{subsec:public-key-infrastructure-and-certificate-authorities}
+TODO explain public key distribution problem and X.509 CAs
+
+\subsection{Timestamps}\label{subsec:timestamps}
+TODO explain timestamping services
+
