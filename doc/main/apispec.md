@@ -24,6 +24,8 @@ Sending the list of hashes something like
     - The OIDC nonce
     - Return-to endpoint
     - Whatever else is required for OIDC to werk
+    
+Something like ```the.idp.ch/authorize?response_type=code&client_id=asdfsdf&redirect_uri=the.signingservice.ch/api/v1/callback&state=abcdef123```
 
 #### Return-to endpoint after auth
 This is where the user gets redirected back to after
