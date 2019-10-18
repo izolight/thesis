@@ -104,6 +104,14 @@ Having briefly explained Hash Functions in~\ref{subsec:hash-function} and Asymme
 A digital signature is a way for verifying the integrity and authenticity of a message, that is,
 to know who the message author is and to guarantee that it wasn't tampered with~\cite{digitalsignature}.
 
+\paragraph{Digital Signatures are not Electronic Signatures}
+Please note that the Digital Signatures we describe here are distinct from Electronic Signatures.
+Electronic signatures provide the same legal standing as a hand-written signature on paper,
+and as such are defined in laws such as ZertES~\cite{zertes}.
+Digital signatures on the other hand merely refer to a mathematical scheme for providing message integrity and authenticity.
+Digital signatures are used to implement electronic signatures, but they're not equivalent.
+
+
 If we want to create a digital signature on a message, we perform the following steps:
 \begin{enumerate}\label{enum:digitalsignaturecreation}
     \item We take our message and run it through a cryptographic hash function, thus obtaining the hash value.
@@ -127,7 +135,7 @@ Fortunately, we can solve this problem by using digital signatures.
 
 Before Alice encrypts her message to Bob using his public key,
 she creates an digital signature by using a hash function and her private key as described above.
-Then she encrypts both the message and the signature using Bobs public key and sends it to him.
+Then she encrypts both the message and the signature using Bobs public key and sends the two to him.
 
 Bob then decrypts the message and verifies the digital signature as described above.
 
@@ -135,6 +143,7 @@ However, there is a serious problem still: an evil actor with the ability to int
 between Alice and Bob could not only read their messages,
 but change them at will, effectively impersonating Bob as seen from Alice,
 and Alice as seen from Bob.
+For a solution to this problem please see section~\ref{subsec:digital-signatures}.
 
 Figure~\ref{fig:pubkeymidm} expands upon figure~\ref{fig:simplepubkeycomm} to illustrate this attack.
 
@@ -145,13 +154,6 @@ Figure~\ref{fig:pubkeymidm} expands upon figure~\ref{fig:simplepubkeycomm} to il
     \label{fig:pubkeymidm}
 \end{figure}
 
-\subsubsection{Digital Signatures are not Electronic Signatures}
-Please note that the Digital Signatures we describe here are distinct from Electronic Signatures.
-Electronic signatures provide the same legal standing as a hand-written signature on paper,
-and as such are defined in laws such as ZertES~\cite{zertes}.
-Digital signatures on the other hand merely refer to a mathematical scheme for providing message integrity and authenticity.
-Digital signatures are used to implement electronic signatures, but they're not equivalent.
-
 
 \subsection{Public-Key Infrastructure and Certificate Authorities}\label{subsec:public-key-infrastructure-and-certificate-authorities}
 Public-key encrypted and authenticated communication as described in chapter~\ref{subsec:digital-signatures}
@@ -159,14 +161,14 @@ is vulnerable to man-in-the-middle attacks as illustrated in figure~\ref{fig:pub
 This attack works because Malroy is able to mislead Bob and Alice to use his keys instead of theirs
 by intercepting their public keys in the initial key exchange.
 
-This could trivially be solved if Alice and Bob exchanged their keys in a secure manner,
+This could be solved trivially if Alice and Bob exchanged their keys in a secure manner,
 for example by meeting face-to-face,
 thus ensuring Malroy can't sit in the middle.
 However, this negates the main advantage of using public-key cryptography:
 if they're forced to meet they could just as well exchange a symmetric key and use that for encrypting
 their messages.
 
-This is where a \gls{PKI} comes in.
+This one of the problems a \gls{PKI} solves.
 On an abstract level, a \gls{PKI} is a mechanism that couples a public key with an identity~\cite{whatispki}.
 What this means for the attack shown in figure~\ref{fig:pubkeymidm} is that it provides Alice and Bob
 a way to make sure they're using each others' keys and not Malroys',
@@ -206,4 +208,12 @@ For an illustration of this process, see figure~\ref{fig:timestamping}
     \label{fig:timestamping}
 \end{figure}
 
-
+\subsection{Summary}
+In a nutshell, the main ideas to take away from this chapter are:
+\begin{itemize}
+    \item Hash functions are one-way functions, mapping data of arbitrary length to fixed-length values
+    \item Asymmetric cryptography allows for advertising the public portion of the key, and can be used to encrypt messages
+    \item Digital signatures provide a means of verifying the integrity and authorship of a message
+    \item Public Key Infrastructures provide a way to pair a public key with an identity
+    \item Trusted Digital Timestamping is a means to proving the existence of a piece of information at a given point in time
+\end{itemize}
