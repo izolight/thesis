@@ -146,7 +146,7 @@ Figure~\ref{fig:pubkeymidm} expands upon figure~\ref{fig:simplepubkeycomm} to il
 \end{figure}
 
 \subsubsection{Digital Signatures are not Electronic Signatures}
-Please not that the Digital Signatures we describe here are distinct from Electronic Signatures.
+Please note that the Digital Signatures we describe here are distinct from Electronic Signatures.
 Electronic signatures provide the same legal standing as a hand-written signature on paper,
 and as such are defined in laws such as ZertES~\cite{zertes}.
 Digital signatures on the other hand merely refer to a mathematical scheme for providing message integrity and authenticity.
@@ -178,6 +178,32 @@ A well-known and widely-used example for such a \gls{PKI} is X.509~\cite{x509}.
 In practice such \gls{PKI}s are complex,
 and because this section's already become longer than we like we'll forego explaining how X.509 works.
 
-\subsection{Timestamps}\label{subsec:timestamps}
-TODO explain timestamping services
+\subsection{Trusted Digital Timestamping}\label{subsec:timestamps}
+Trusted digital timestamping is a scheme for proving the existence of a piece of information at a certain point in time.
+There are several such schemes, such as X9.95 or ISO/IEC 18014.
+In this section we will focus on \gls{PKI}-based timestamping as defined in RFC 3161~\cite{rfc3161}.
+
+In RFC 3161, timestamps are issued by a trusted third party, the \acrfull{TSA}.
+
+Trusted timestamps are created by using digital signatures (see~\ref{subsec:digital-signatures}) and hash functions (see~\ref{subsec:hash-function}).
+In order to create a timestamp, the following steps are performed:
+\begin{enumerate}
+    \item We feed the information to be timestamped to a hash function and obtain its the hash value
+    \item We send the hash value to the \gls{TSA}
+    \item The \gls{TSA} concatenates the hash value with a timestamp
+    \item The \gls{TSA} feeds the concatenation of our hash value with the timestamp to a hash function, in turn obtains the hash value of the concatenation
+    \item The \gls{TSA} digitally signs the hash value from the previous step
+    \item The \gls{TSA} sends the signed hash as well as the timestamp back to us
+    \item We store the signed hash, the timestamp and the original information
+\end{enumerate}
+For an illustration of this process, see figure~\ref{fig:timestamping}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/timestamping.png}
+    \caption{Process of obtaining a timestamp from a \acrfull{TSA}.
+    Source: \url{https://en.wikipedia.org/wiki/File:Trusted_timestamping.svg}}
+    \label{fig:timestamping}
+\end{figure}
+
 
