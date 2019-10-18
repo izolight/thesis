@@ -1,0 +1,43 @@
+actor Alice
+actor Malroy
+actor Bob
+
+note over Malroy:Able to intercept and change messages
+
+Alice->Malroy:Send public key of Alice
+activate Malroy
+Malroy->Malroy:Generates key pair\nin the name of Alice
+
+Malroy->Bob:Sends newly generated\npublic key
+deactivate Malroy
+Bob->Malroy:Send public key of Bob
+activate Malroy
+Malroy->Malroy:Generates key pair\nin the name of Bob
+Malroy->Alice:Sends newly generated pubic key
+deactivate Malroy
+activate Alice
+
+Alice->Alice:Encrypts message using\nMalroy's fake Bob public key
+Alice->Malroy:Sends encrypted message
+deactivate Alice
+
+activate Malroy
+Malroy->Malroy:Decrypts message,\nreads contents,\ncreates new response,\nencrypted with Bobs public key
+Malroy->Bob:Sends new\nencrypted message
+deactivate Malroy
+
+activate Bob
+Bob->Bob:Decrypts message\nusing his private key
+Bob->Bob:Encrypts response using\nMalroys fake Alice public key
+Bob->Malroy:Sends encrypted response
+deactivate Bob
+
+activate Malroy
+Malroy->Malroy:Decrypts message,\nreads contents,\ncreates new response,\nencrypted with Alices public key
+Malroy->Alice:Sends new\nencrypted message
+deactivate Malroy
+
+
+activate Alice
+Alice->Alice:Decrypts response using her private key
+deactivate Alice
