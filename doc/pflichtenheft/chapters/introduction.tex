@@ -75,6 +75,7 @@ An example for such a hash function is \gls{SHA-2}~\cite{sha2patent}.
 \subsection{Asymmetric cryptography}\label{subsec:asymmetric-cryptography}
 Asymmetric cryptography, sometimes called public-key cryptography, is a type of encryption which uses pairs of keys.
 This is in contrast to symmetric encryption which uses only one key (for example, a passphrase encrypting a file).
+
 With symmetric encryption the passphrase must me known both to encrypt and to decrypt the message,
 but with public-key cryptography, the public key can be used to encrypt a message and the private key to decrypt it.
 
@@ -82,6 +83,21 @@ This might sound simple on the surface but opens up a world of possibilities.
 Only the private key has to be kept secret, the public key can be freely published~\cite{stallings}.
 
 The classical example for such an encryption system is the \gls{RSA} scheme~\cite{rsa}.
+
+For a simplified example how public-key-based encrypted communication between two parties could work,~\footnote{
+We're well aware of the major security problems in this example,
+like the fact that both the key exchange and the message exchange happen unauthenticated and without integrity protection,
+but we intentionally chose to keep the example as simple as possible in order to keep it easily comprehensible by a wide audience.
+}
+see figure~\ref{fig:simplepubkeycomm}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{images/simplistic_pubkey_communication.png}
+    \caption{Simplified example of two Actors, Alice and Bob, exchanging encrypted messages using public-key cryptography}
+    \label{fig:simplepubkeycomm}
+\end{figure}
+
 
 \subsection{Digital Signatures}\label{subsec:digital-signatures}
 Having briefly explained Hash Functions in~\ref{subsec:hash-function} and Asymmetric Encryption in~\ref{subsec:asymmetric-cryptography} we can now move on to introducing digital signatures.
@@ -103,6 +119,9 @@ In order to verify the authenticity and integrity of the message, the recipient 
 \end{enumerate}
 
 \subsection{Public-Key Infrastructure and Certificate Authorities}\label{subsec:public-key-infrastructure-and-certificate-authorities}
+Asymmetric cryptography as described in~\ref{subsec:asymmetric-cryptography} looks like the perfect solution for private communication of any kind,
+but unfortunately it presents us with a big challenge: key distribution.
+
 TODO explain public key distribution problem and X.509 CAs
 
 \subsection{Timestamps}\label{subsec:timestamps}

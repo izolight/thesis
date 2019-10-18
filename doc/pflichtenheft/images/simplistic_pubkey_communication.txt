@@ -1,0 +1,18 @@
+actor Alice
+actor Bob
+
+Alice->Bob:Send public key of Alice
+Bob->Alice:Send public key of Bob
+activate Alice
+
+Alice->Alice:Encrypts message using Bob's public key
+Alice->Bob:Sends encrypted message
+deactivate Alice
+activate Bob
+Bob->Bob:Decrypts message using his private key
+Bob->Bob:Encrypts response using Alice's public key
+Bob->Alice:Sends encrypted response
+deactivate Bob
+activate Alice
+Alice->Alice:Decrypts response using her private key
+deactivate Alice
