@@ -31,3 +31,12 @@
 - Weitere Requirements dokumentiert
 - Einführung in die Kryptographie geschrieben
 
+#### 14.10.19
+- Drittes Gespräch mit Betreuenden
+
+#### 18.10.19
+- Weiterarbeiten an der Dokumentation
+- Diverse UML Sequenzdiagramme erstellen
+- Einführung in Krypto fertigstellen (Signaturen, PKIs, MITM)
+- CSC Standard gelesen und Vergleich dokumentiert
+- REST API Spezifikation erstellt
