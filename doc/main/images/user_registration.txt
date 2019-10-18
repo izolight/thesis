@@ -1,0 +1,6 @@
+title User registration
+
+Signer->RA: register identity
+RA->RA: validate identity
+RA->IDP: propagate identity
+IDP->Signer: confirm registration
