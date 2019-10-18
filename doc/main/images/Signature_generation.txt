@@ -1,0 +1,29 @@
+title Signature Generation
+
+Signer->Signer: generate hash
+Signer->SigningService: send hash
+SigningService->SigningService: generate nonce
+SigningService->Signer: send IDP choice
+Signer->Signer: choose IDP
+Signer->IDP: follow redirect
+IDP->Signer: ask credentials
+Signer->IDP: send credentials
+IDP->IDP: validate credentials
+IDP->Signer: send ID token
+Signer->SigningService: send ID token
+SigningService->SigningService: verify ID token
+SigningService->HSM: request new signing key
+HSM->HSM: generate key and CSR
+HSM->SigningService: send CSR
+SigningService->CA: send CSR
+CA->CA: sign CSR and generate certificate
+CA->SigningService: send certificate
+SigningService->HSM: send hash
+HSM->HSM: sign hash
+HSM->SigningService: send signed hash
+SigningService->SigningService: create intermediate signature
+SigningService->TSS: send intermediate signature
+TSS->TSS: add timestamp and signature
+TSS->SigningService: send timestamped signature
+SigningService->SigningService: add ID token, timestamp and all chains to the signature
+SigningService->Signer: return final signature
