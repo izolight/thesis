@@ -7,10 +7,9 @@ Endpoints:
 	Endpoint & Method & Description \\ \hline
 	/api/v1/hashes & POST & send hashes to generate nonce \\ \hline
 	/api/v1/login & GET & get oidc providers \\ \hline
-	/api/v1/authorize & POST & send ID token \\ \hline
 	/api/v1/sign & POST & sign hashes \\ \hline
 	/api/v1/signatures & GET & retrieve list of all signatures for current session \\ \hline
-	/api/v1/signatures/:ID & GET & retrieve signature \\ \hline
+	/api/v1/signatures/:hash & GET & retrieve signature \\ \hline
 \end{tabular}
 
 \subsection{hashes}
@@ -19,6 +18,7 @@ Input:
 \begin{tabular}{|l|l|l|l|}
 	\hline
 	Parameter & Presence & Type & Description \\ \hline
+	hashes & MANDATORY & list(string) & Hashes of the documents to be signed \\ \hline
 \end{tabular}
 
 Output:
@@ -26,6 +26,7 @@ Output:
 \begin{tabular}{|l|l|l|l|}
 	\hline
 	Parameter & Presence & Type & Description \\ \hline
+	nonce & MANDATORY & string & Nonce to use for generating to OIDC nonce in the token \\ \hline
 \end{tabular}
 
 \subsection{login}
@@ -34,6 +35,7 @@ Input:
 \begin{tabular}{|l|l|l|l|}
 	\hline
 	Parameter & Presence & Type & Description \\ \hline
+	nonce & MANDATORY & string & Nonce to use for retrieving the OIDC token \\ \hline
 \end{tabular}
 
 Output:
@@ -41,21 +43,7 @@ Output:
 \begin{tabular}{|l|l|l|l|}
 	\hline
 	Parameter & Presence & Type & Description \\ \hline
-\end{tabular}
-
-\subsection{authorize}
-Input:
-
-\begin{tabular}{|l|l|l|l|}
-	\hline
-	Parameter & Presence & Type & Description \\ \hline
-\end{tabular}
-
-Output:
-
-\begin{tabular}{|l|l|l|l|}
-	\hline
-	Parameter & Presence & Type & Description \\ \hline
+	providers & MANDATORY & dictionary[string]url & List of providers with the redirect url \\ \hline
 \end{tabular}
 
 \subsection{sign}
@@ -64,6 +52,9 @@ Input:
 \begin{tabular}{|l|l|l|l|}
 	\hline
 	Parameter & Presence & Type & Description \\ \hline
+	idtoken & MANDATORY & string & OIDC ID token \\ \hline
+	nonce & MANDATORY & string & Nonce to use for generating to OIDC nonce in the token \\ \hline
+	hashes & MANDATORY & list(string) & Hashes of the documents to be signed \\ \hline
 \end{tabular}
 
 Output:
@@ -71,14 +62,25 @@ Output:
 \begin{tabular}{|l|l|l|l|}
 	\hline
 	Parameter & Presence & Type & Description \\ \hline
+	result & MANDATORY & bool & Status of the signing (true = success, false = failure) \\ \hline
 \end{tabular}
 
 \subsection{signatures}
+Output:
+
+\begin{tabular}{|l|l|l|l|}
+	\hline
+	Parameter & Presence & Type & Description \\ \hline
+	hashes & MANDATORY & list(string) & hashes that were signed \\ \hline
+\end{tabular}
+
+\subsection{signatures/:hash}
 Input:
 
 \begin{tabular}{|l|l|l|l|}
 	\hline
 	Parameter & Presence & Type & Description \\ \hline
+	hash & MANDATORY & string & hash that was signed \\ \hline
 \end{tabular}
 
 Output:
@@ -86,6 +88,7 @@ Output:
 \begin{tabular}{|l|l|l|l|}
 	\hline
 	Parameter & Presence & Type & Description \\ \hline
+	signature & MANDATORY & binary & signature for the requested hash \\ \hline
 \end{tabular}
 
 \section{Signature File Format}
