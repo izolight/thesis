@@ -1,14 +1,27 @@
-\chapter{Comparison with the CSC Standard}
+\chapter{\gls{CSC} Standard}\label{ch:glsstandard}
 
-\section{CSC Specification}
+\section{CSC Specification}\label{sec:csc-specification}
 
 The \gls{CSC} has been formed to standardise cloud-based digital signatures, while meeting the \gls{EU}'s regulation for signatures (\gls{eIDAS}).
-The consortium consists of of all kind of members from different industries: Software companies like Adobe, the german Bundesdruckerei, certificate authorities like QuoVadis, but also academic institutions like TU Graz.
-The result of this consortium is an \gls{API} specification for remote electronic signatures and remote electronic seals with a PDF describing it and an openAPI and \gls{JSON} schema as well\cite{csc-spec}.
-One main difference is that in the \gls{CSC} specification the \gls{IDP} also gets to know the hash that will be signed, and how many documents will be signed through the numSignatures and hash parameters in the credential authorization, which has a slight impact on privacy.
-It also allows the identity provider and signing service to be the same and isn't restricted to \gls{OIDC} with support for \gls{HTTP} Basic or Digest authentication.
-Another difference is that a \gls{SAD} is returned, which has a certain validity and allows further signatures without going through the whole authorisation process again.
+The consortium consists of of all kind of members from different industries: Software companies like Adobe,
+the German Bundesdruckerei, Certificate Authorities (\gls{CA}) like QuoVadis,
+but also academic institutions like the Technische Universit\"at Graz.
 
-\section{Adobe Remote Signing}
-Adobe allows remote siging through it's document cloud, for this it allows users authenticated by its own \gls{AATL} and the \gls{EUTL}, which contain over 200 providers\cite{adobe-cloud-sign}.
+The result of this consortium is an \gls{API} specification for remote electronic signatures and remote electronic seals.
+The specification is published as a \gls{PDF} document, as well as an \gls{OpenAPI} specification, and a \gls{JSON} schema~\cite{csc-spec}.
+
+\subsection{Comparison}\label{subsec:comparison}
+One main difference is that in the \gls{CSC} specification,
+the \gls{IDP} gets to know the hash that will be signed,
+and how many documents will be signed through the \texttt{numSignatures} and hash parameters in the credential authorisation,
+which has a slight impact on privacy and is a violation of the least information principle.
+Furthermore it allows for the identity provider and the signing service to be the same system and doesn't use standard \gls{OIDC} with support for \gls{HTTP} Basic or Digest authentication.
+This means that standard \gls{OIDC} \gls{IDP}s can't be used with the signing service, which is a disadvantage: before the \gls{ID} can be used, it has to implement the extensions specified by the \gls{CDC} standard.
+Another difference is that a \gls{SAD} is returned, which has a defined validity period and allows for further signatures to be created without re-authorisation,
+which means that an attacker who is able to steal the \gls{SAD} could sign arbitrary documents.
+In our solution, this isn't possible.
+
+\section{Adobe Remote Signing}\label{sec:adobe-remote-signing}
+Adobe allows remote signing through its document cloud.
+To this end Adobe allows users to be authenticated by its own \gls{AATL} and the \gls{EUTL}, which contain over 200 providers~\cite{adobe-cloud-sign}.
 The solution claims to comply with \gls{eIDAS} to provides \gls{AES} and \gls{QES} with \gls{LTV}.
