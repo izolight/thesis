@@ -1,6 +1,93 @@
 \chapter{Technical Specification}
 \section{REST API}
-TODO
+Endpoints:
+
+\begin{tabular}{|l|l|l|}
+	\hline
+	Endpoint & Method & Description \\ \hline
+	/api/v1/hashes & POST & send hashes to generate nonce \\ \hline
+	/api/v1/login & GET & get oidc providers \\ \hline
+	/api/v1/authorize & POST & send ID token \\ \hline
+	/api/v1/sign & POST & sign hashes \\ \hline
+	/api/v1/signatures & GET & retrieve list of all signatures for current session \\ \hline
+	/api/v1/signatures/:ID & GET & retrieve signature \\ \hline
+\end{tabular}
+
+\subsection{hashes}
+Input:
+
+\begin{tabular}{|l|l|l|l|}
+	\hline
+	Parameter & Presence & Type & Description \\ \hline
+\end{tabular}
+
+Output:
+
+\begin{tabular}{|l|l|l|l|}
+	\hline
+	Parameter & Presence & Type & Description \\ \hline
+\end{tabular}
+
+\subsection{login}
+Input:
+
+\begin{tabular}{|l|l|l|l|}
+	\hline
+	Parameter & Presence & Type & Description \\ \hline
+\end{tabular}
+
+Output:
+
+\begin{tabular}{|l|l|l|l|}
+	\hline
+	Parameter & Presence & Type & Description \\ \hline
+\end{tabular}
+
+\subsection{authorize}
+Input:
+
+\begin{tabular}{|l|l|l|l|}
+	\hline
+	Parameter & Presence & Type & Description \\ \hline
+\end{tabular}
+
+Output:
+
+\begin{tabular}{|l|l|l|l|}
+	\hline
+	Parameter & Presence & Type & Description \\ \hline
+\end{tabular}
+
+\subsection{sign}
+Input:
+
+\begin{tabular}{|l|l|l|l|}
+	\hline
+	Parameter & Presence & Type & Description \\ \hline
+\end{tabular}
+
+Output:
+
+\begin{tabular}{|l|l|l|l|}
+	\hline
+	Parameter & Presence & Type & Description \\ \hline
+\end{tabular}
+
+\subsection{signatures}
+Input:
+
+\begin{tabular}{|l|l|l|l|}
+	\hline
+	Parameter & Presence & Type & Description \\ \hline
+\end{tabular}
+
+Output:
+
+\begin{tabular}{|l|l|l|l|}
+	\hline
+	Parameter & Presence & Type & Description \\ \hline
+\end{tabular}
+
 \section{Signature File Format}
 TODO
 \subsection{Long-Term Validation}
