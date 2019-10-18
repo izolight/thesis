@@ -1,0 +1,14 @@
+\chapter{Comparison with the CSC Standard}
+
+\section{CSC Specification}
+
+The \gls{CSC} has been formed to standardise cloud-based digital signatures, while meeting the \gls{EU}'s regulation for signatures (\gls{eIDAS}).
+The consortium consists of of all kind of members from different industries: Software companies like Adobe, the german Bundesdruckerei, certificate authorities like QuoVadis, but also academic institutions like TU Graz.
+The result of this consortium is an \gls{API} specification for remote electronic signatures and remote electronic seals with a PDF describing it and an openAPI and \gls{JSON} schema as well\cite{csc-spec}.
+One main difference is that in the \gls{CSC} specification the \gls{IDP} also gets to know the hash that will be signed, and how many documents will be signed through the numSignatures and hash parameters in the credential authorization, which has a slight impact on privacy.
+It also allows the identity provider and signing service to be the same and isn't restricted to \gls{OIDC} with support for \gls{HTTP} Basic or Digest authentication.
+Another difference is that a \gls{SAD} is returned, which has a certain validity and allows further signatures without going through the whole authorisation process again.
+
+\section{Adobe Remote Signing}
+Adobe allows remote siging through it's document cloud, for this it allows users authenticated by its own \gls{AATL} and the \gls{EUTL}, which contain over 200 providers\cite{adobe-cloud-sign}.
+The solution claims to comply with \gls{eIDAS} to provides \gls{AES} and \gls{QES} with \gls{LTV}.
