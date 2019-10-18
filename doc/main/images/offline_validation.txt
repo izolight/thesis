@@ -1,0 +1,8 @@
+title Signature validation (offline)
+
+Signer->Verifier: send document and signature
+Verifier->SigningService: request validation tool download
+SigningService->Verifier: send validation tool
+Verifier->Tool: load document and signature into tool
+Tool->Tool: validate signature and chain
+Tool->Verifier: send signature status

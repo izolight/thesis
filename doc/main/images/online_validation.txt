@@ -1,0 +1,6 @@
+title Signature validation (online)
+
+Signer->Verifier: send document and signature
+Verifier->SigningService: send document and signature
+SigningService->SigningService: validate signature and chain
+SigningService->Verifier: send signature status
