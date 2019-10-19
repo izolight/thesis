@@ -9,4 +9,4 @@ activate Identifier(RA)
 Identifier(RA)->Identifier(RA): validate identity
 Identifier(RA)->Authenticator(IDP): propagate identity
 deactivate Identifier(RA)
-Authenticator(IDP)->Signer: confirm registration
+Signer<--Authenticator(IDP): confirm registration

@@ -6,9 +6,9 @@ actor Signing Service
 
 Signer->Verifier: send document and signature
 Verifier->Signing Service: request validation tool download
-Signing Service->Verifier: send validation tool
+Verifier<--Signing Service: send validation tool
 Verifier->Tool: load document and signature into tool
 activate Tool
 Tool->Tool: validate signature and chain
-Tool->Verifier: send signature status
+Verifier<--Tool: send signature status
 deactivate Tool
