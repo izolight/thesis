@@ -1,6 +1,12 @@
 title User registration
 
-Signer->RA: register identity
-RA->RA: validate identity
-RA->IDP: propagate identity
-IDP->Signer: confirm registration
+actor Signer
+actor Identifier(RA)
+actor Authenticator(IDP)
+
+Signer->Identifier(RA): register identity
+activate Identifier(RA)
+Identifier(RA)->Identifier(RA): validate identity
+Identifier(RA)->Authenticator(IDP): propagate identity
+deactivate Identifier(RA)
+Authenticator(IDP)->Signer: confirm registration

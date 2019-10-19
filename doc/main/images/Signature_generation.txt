@@ -1,29 +1,58 @@
 title Signature Generation
 
+actor Signer
+actor Signing Service
+actor Authenticator(IDP)
+participant HSM
+actor Certificate Authority
+participant TSS
+
+activate Signer
 Signer->Signer: generate hash
-Signer->SigningService: send hash
-SigningService->SigningService: generate nonce
-SigningService->Signer: send IDP choice
+deactivate Signer
+Signer->Signing Service: send hash
+activate Signing Service
+Signing Service->Signing Service: generate nonce
+Signing Service->Signer: send IDP choice
+deactivate Signing Service
+activate Signer
 Signer->Signer: choose IDP
-Signer->IDP: follow redirect
-IDP->Signer: ask credentials
-Signer->IDP: send credentials
-IDP->IDP: validate credentials
-IDP->Signer: send ID token
-Signer->SigningService: send ID token
-SigningService->SigningService: verify ID token
-SigningService->HSM: request new signing key
+Signer->Authenticator(IDP): follow redirect
+deactivate Signer
+Authenticator(IDP)->Signer: ask credentials
+Signer->Authenticator(IDP): send credentials
+activate Authenticator(IDP)
+Authenticator(IDP)->Authenticator(IDP): validate credentials
+Authenticator(IDP)->Signer: send ID token
+deactivate Authenticator(IDP)
+Signer->Signing Service: send ID token
+activate Signing Service
+Signing Service->Signing Service: verify ID token
+Signing Service->HSM: request new signing key
+deactivate Signing Service
+activate HSM
 HSM->HSM: generate key and CSR
-HSM->SigningService: send CSR
-SigningService->CA: send CSR
-CA->CA: sign CSR and generate certificate
-CA->SigningService: send certificate
-SigningService->HSM: send hash
+HSM->Signing Service: send CSR
+deactivate HSM
+Signing Service->Certificate Authority: send CSR
+activate Certificate Authority
+Certificate Authority->Certificate Authority: sign CSR and generate certificate
+Certificate Authority->Signing Service: send certificate
+deactivate Certificate Authority
+Signing Service->HSM: send hash
+activate HSM
 HSM->HSM: sign hash
-HSM->SigningService: send signed hash
-SigningService->SigningService: create intermediate signature
-SigningService->TSS: send intermediate signature
+HSM->Signing Service: send signed hash
+deactivate HSM
+activate Signing Service
+Signing Service->Signing Service: create intermediate signature
+Signing Service->TSS: send intermediate signature
+deactivate Signing Service
+activate TSS
 TSS->TSS: add timestamp and signature
-TSS->SigningService: send timestamped signature
-SigningService->SigningService: add ID token, timestamp and all chains to the signature
-SigningService->Signer: return final signature
+TSS->Signing Service: send timestamped signature
+deactivate TSS
+activate Signing Service
+Signing Service->Signing Service: add ID token, timestamp and all chains to the signature
+Signing Service->Signer: return final signature
+deactivate Signing Service
