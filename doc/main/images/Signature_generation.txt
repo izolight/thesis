@@ -8,12 +8,24 @@ actor Certificate Authority
 participant TSS
 
 activate Signer
-Signer->Signer: generate hash
+Signer->Signer: generate hash(es)
+opt local nonce
+Signer->Signer: generate intermediate nonce
+end
 deactivate Signer
-Signer->Signing Service: send hash
+note right of Signer: either a local or a remote nonce must be chosen
+Signer->Signing Service: send hash(es)
 activate Signing Service
-Signing Service->Signing Service: generate nonce
-Signer<--Signing Service: send IDP choice
+opt local nonce
+Signer->Signing Service: send nonce
+end
+opt remote nonce
+Signing Service->Signing Service: generate intermediate nonce
+end
+note right of Signing Service: the intermediate nonce is random.\nThe OIDC nonce is\nhash(hash(es) + intermediate nonce).
+Signing Service->Signing Service: generate OIDC nonce
+Signing Service->Signing Service: generate IDP redirects
+Signer<--Signing Service: return IDP choices and intermediate nonce
 deactivate Signing Service
 activate Signer
 Signer->Signer: choose IDP
@@ -23,10 +35,12 @@ Authenticator(IDP)->Signer: ask credentials
 Signer->Authenticator(IDP): send credentials
 activate Authenticator(IDP)
 Authenticator(IDP)->Authenticator(IDP): validate credentials
-Signer<--Authenticator(IDP): send ID token
+Signer<--Authenticator(IDP): return ID token
 deactivate Authenticator(IDP)
-Signer->Signing Service: send ID token
+Signer->Signing Service: send ID token and hash(es) and intermediate nonce
 activate Signing Service
+Signing Service->Signing Service: construct OIDC nonce from hashes\nand intermediate nonce
+Signing Service->Signing Service: check if OIDC nonce in ID token matches
 Signing Service->Signing Service: verify ID token
 Signing Service->HSM: request new signing key
 deactivate Signing Service
@@ -46,6 +60,7 @@ Signing Service<--HSM: send signed hash
 deactivate HSM
 activate Signing Service
 Signing Service->Signing Service: create intermediate signature
+note right of Signing Service: The intermediate signature consists of:\nSigned hash(es), ID token, intermediate nonce.
 Signing Service->TSS: send intermediate signature
 deactivate Signing Service
 activate TSS
@@ -53,6 +68,6 @@ TSS->TSS: add timestamp and signature
 Signing Service<--TSS: send timestamped signature
 deactivate TSS
 activate Signing Service
-Signing Service->Signing Service: add ID token, timestamp and all chains to the signature
+Signing Service->Signing Service: add timestamp and all chains to the signature
 Signer<--Signing Service: return final signature
 deactivate Signing Service
