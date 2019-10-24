@@ -1,32 +1,103 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis
 
-import io.ktor.application.*
-import io.ktor.response.*
-import io.ktor.request.*
-import io.ktor.routing.*
-import io.ktor.http.*
-import io.ktor.content.*
-import io.ktor.http.content.*
-import io.ktor.locations.*
-import io.ktor.features.*
-import org.slf4j.event.*
-import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.features.json.*
-import io.ktor.client.request.*
-import kotlinx.coroutines.*
-import io.ktor.client.features.logging.*
-import kotlin.test.*
-import io.ktor.server.testing.*
+import com.beust.klaxon.Klaxon
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.locations.KtorExperimentalLocationsAPI
+import io.ktor.server.testing.handleRequest
+import io.ktor.server.testing.setBody
+import io.ktor.server.testing.withTestApplication
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
+@KtorExperimentalLocationsAPI
 class ApplicationTest {
     @Test
     fun testRoot() {
-        withTestApplication({ module(testing = true) }) {
+        withTestApplication({ module() }) {
             handleRequest(HttpMethod.Get, "/").apply {
                 assertEquals(HttpStatusCode.OK, response.status())
-                assertEquals("HELLO WORLD!", response.content)
+                assertEquals("lol generics", response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testSubmitHashes() {
+        data class TestSubmitHashesPostBody(val hashes: List<String>)
+        data class ExpectedNonceResponse(val nonce: String)
+
+        val klaxon = Klaxon()
+        withTestApplication({ module() }) {
+            with(handleRequest(HttpMethod.Post, "/api/v1/hashes") {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+
+                setBody(
+                    klaxon.toJsonString(
+                        TestSubmitHashesPostBody(
+                            listOf(
+                                "06180c7ede6c6936334501f94ccfc5d0ff828e57a4d8f6dc03f049eaad5fb308",
+                                "8f33ddf44093ee0cc72c7123f878a8926feab6cedf885e148d45ae30213cd443"
+                            )
+                        )
+                    )
+                )
+            }) {
+                assertEquals(HttpStatusCode.Created, response.status())
+                val responseText = response.content.toString()
+                assertTrue("nonce" in responseText, responseText)
+                val response = klaxon.parse<ExpectedNonceResponse>(responseText)
+                assertNotNull(response)
+                assertTrue(response.nonce.length == 64)
+            }
+
+            with(handleRequest(HttpMethod.Post, "/api/v1/hashes") {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+
+                setBody(
+                    klaxon.toJsonString(
+                        TestSubmitHashesPostBody(
+                            listOf(
+                                "06180c7ede6c6936334501f94ccfc5d0ff828e57a4d8f6dc03f049eaad5fb308",
+                                "8f33ddf43ee0cc72c7123f878a8926feab6cedf885e148d45ae30213cd443"
+                            )
+                        )
+                    )
+                )
+            }) {
+                assertEquals(
+                    HttpStatusCode.BadRequest,
+                    response.status(),
+                    "Status: ${response.status().toString()}, body: ${response.content}"
+                )
+                val responseText = response.content.toString()
+                assertTrue("not a valid" in responseText, responseText)
+            }
+
+            with(handleRequest(HttpMethod.Post, "/api/v1/hashes") {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+
+                setBody(
+                    klaxon.toJsonString(
+                        TestSubmitHashesPostBody(
+                            listOf(
+                            )
+                        )
+                    )
+                )
+            }) {
+                assertEquals(HttpStatusCode.BadRequest, response.status())
+                val responseText = response.content.toString()
+                assertTrue("No values" in responseText, responseText)
             }
         }
     }
 }
+

@@ -1,27 +1,36 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis
 
-import io.ktor.application.*
-import io.ktor.response.*
-import io.ktor.request.*
-import io.ktor.routing.*
-import io.ktor.http.*
-import io.ktor.content.*
-import io.ktor.http.content.*
-import io.ktor.locations.*
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.ApiError
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.InvalidJSONException
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.views.postHashes
+import io.ktor.application.Application
+import io.ktor.application.call
+import io.ktor.application.install
 import io.ktor.features.*
-import org.slf4j.event.*
-import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.features.json.*
-import io.ktor.client.request.*
-import kotlinx.coroutines.*
-import io.ktor.client.features.logging.*
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.resources
+import io.ktor.http.content.static
+import io.ktor.locations.KtorExperimentalLocationsAPI
+import io.ktor.locations.Location
+import io.ktor.locations.Locations
+import io.ktor.locations.get
+import io.ktor.request.path
+import io.ktor.response.respond
+import io.ktor.response.respondText
+import io.ktor.routing.Routing
+import io.ktor.routing.get
+import io.ktor.routing.routing
+import io.ktor.serialization.DefaultJsonConfiguration
+import io.ktor.serialization.serialization
+import kotlinx.serialization.json.Json
+import org.slf4j.event.Level
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
+@KtorExperimentalLocationsAPI
 @Suppress("unused") // Referenced in application.conf
-@kotlin.jvm.JvmOverloads
-fun Application.module(testing: Boolean = false) {
+fun Application.module() {
     install(Locations) {
     }
 
@@ -44,58 +53,84 @@ fun Application.module(testing: Boolean = false) {
         header("X-Engine", "Ktor") // will send this header with each response
     }
 
-    val client = HttpClient(CIO) {
-        install(JsonFeature) {
-            serializer = GsonSerializer()
+    install(ContentNegotiation) {
+        //        jackson {
+//            configure(SerializationFeature.INDENT_OUTPUT, true)
+//            setDefaultPrettyPrinter(DefaultPrettyPrinter().apply {
+//                indentArraysWith(DefaultPrettyPrinter.FixedSpaceIndenter.instance)
+//                indentObjectsWith(DefaultIndenter("  ", "\n"))
+//            })
+//            registerModule(KotlinModule())
+//        }
+        serialization(
+            contentType = ContentType.Application.Json,
+            json = Json(
+                DefaultJsonConfiguration.copy(
+                    prettyPrint = true
+                )
+            )
+
+        )
+    }
+
+    install(StatusPages) {
+        exception<InvalidJSONException> { exception ->
+            call.respond(
+                HttpStatusCode.BadRequest,
+                ApiError("Invalid JSON: ${exception.message}")
+            )
         }
-        install(Logging) {
-            level = LogLevel.HEADERS
+
+        exception<Throwable> { exception ->
+            call.respond(
+                HttpStatusCode.InternalServerError,
+                ApiError("Unexpected error: ${exception.message ?: "Unknown"}")
+            )
         }
     }
-    runBlocking {
-        // Sample for making a HTTP Client request
-        /*
-        val message = client.post<JsonSampleClass> {
-            url("http://127.0.0.1:8080/path/to/endpoint")
-            contentType(ContentType.Application.Json)
-            body = JsonSampleClass(hello = "world")
-        }
-        */
+
+//    val client = HttpClient(CIO) {
+//        install(JsonFeature) {
+//            serializer = GsonSerializer()
+//        }
+//        install(Logging) {
+//            level = LogLevel.HEADERS
+//        }
+//    }
+//    runBlocking {
+    // Sample for making a HTTP Client request
+    /*
+    val message = client.post<JsonSampleClass> {
+        url("http://127.0.0.1:8080/path/to/endpoint")
+        contentType(ContentType.Application.Json)
+        body = JsonSampleClass(hello = "world")
     }
+    */
+//    }
 
     routing {
-        get("/") {
-            call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
-        }
-
         // Static feature. Try to access `/static/ktor_logo.svg`
         static("/static") {
             resources("static")
         }
 
+        root()
+        postHashes()
+
         get<MyLocation> {
             call.respondText("Location: name=${it.name}, arg1=${it.arg1}, arg2=${it.arg2}")
-        }
-        // Register nested routes
-        get<Type.Edit> {
-            call.respondText("Inside $it")
-        }
-        get<Type.List> {
-            call.respondText("Inside $it")
         }
     }
 }
 
-@Location("/location/{name}")
-class MyLocation(val name: String, val arg1: Int = 42, val arg2: String = "default")
-
-@Location("/type/{name}") data class Type(val name: String) {
-    @Location("/edit")
-    data class Edit(val type: Type)
-
-    @Location("/list/{page}")
-    data class List(val type: Type, val page: Int)
+fun Routing.root() {
+    get("/") {
+        call.respondText("lol generics", contentType = ContentType.Text.Plain)
+    }
 }
 
-data class JsonSampleClass(val hello: String)
+
+@KtorExperimentalLocationsAPI
+@Location("/location/{name}")
+class MyLocation(val name: String, val arg1: Int = 42, val arg2: String = "default")
 
