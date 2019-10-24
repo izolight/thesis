@@ -11,6 +11,7 @@
         <ktor_version>1.2.4</ktor_version>
         <kotlin.code.style>official</kotlin.code.style>
         <serialization.version>0.13.0</serialization.version>
+        <koin.version>2.0.1</koin.version>
         <logback_version>1.2.1</logback_version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
@@ -148,6 +149,22 @@
             <groupId>com.beust</groupId>
             <artifactId>klaxon</artifactId>
             <version>5.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.koin</groupId>
+            <artifactId>koin-core</artifactId>
+            <version>${koin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.koin</groupId>
+            <artifactId>koin-ktor</artifactId>
+            <version>${koin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.koin</groupId>
+            <artifactId>koin-test</artifactId>
+            <version>${koin.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>

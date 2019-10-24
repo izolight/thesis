@@ -2,10 +2,14 @@ package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
 
 import java.security.SecureRandom
 
-object NonceGeneratorService {
+interface INonceGeneratorService {
+    fun getNonce(): String
+}
+
+class NonceGeneratorServiceDefaultImpl : INonceGeneratorService {
     private val secureRandom = SecureRandom()
 
-    fun getNonce(): String {
+    override fun getNonce(): String {
         return secureRandom.nextLong().toString(16)
     }
 }

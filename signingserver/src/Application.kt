@@ -24,6 +24,7 @@ import io.ktor.routing.routing
 import io.ktor.serialization.DefaultJsonConfiguration
 import io.ktor.serialization.serialization
 import kotlinx.serialization.json.Json
+import org.koin.ktor.ext.Koin
 import org.slf4j.event.Level
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -47,6 +48,10 @@ fun Application.module() {
     install(CallLogging) {
         level = Level.INFO
         filter { call -> call.request.path().startsWith("/") }
+    }
+
+    install(Koin) {
+        modules(DIModule)
     }
 
     install(DefaultHeaders) {
