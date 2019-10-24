@@ -40,3 +40,11 @@
 - Einführung in Krypto fertigstellen (Signaturen, PKIs, MITM)
 - CSC Standard gelesen und Vergleich dokumentiert
 - REST API Spezifikation erstellt
+
+#### 23.10.19
+- Lernen und Ausprobieren Ktor
+
+#### 24.10.19
+- Implementieren Beispiel-REST-Endpoint in Ktor
+
+
