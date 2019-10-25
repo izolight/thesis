@@ -1,0 +1,34 @@
+title Login
+
+actor Signer
+actor Signing Service
+actor Authenticator(IDP)
+
+activate Signer
+Signer->Signer: generate hash(es)
+deactivate Signer
+Signer->Signing Service: send hash(es)
+activate Signing Service
+Signing Service->Signing Service: generate initial nonce
+Signing Service->Signing Service: calculate intermediate nonce
+note right of Signing Service: intermediate nonce:\nthe intermediate nonce is random\nhash(hash(es) + initial nonce + server secret)
+Signing Service->Signing Service: generate OIDC nonce
+note right of Signing Service:OIDC nonce:\nhash(hash(es) + intermediate nonce).
+Signing Service->Signing Service: generate IDP redirects
+Signer<--Signing Service: return IDP choices, intial nonce, intermediate nonce
+deactivate Signing Service
+activate Signer
+Signer->Signer: choose IDP
+Signer->Authenticator(IDP): follow redirect
+deactivate Signer
+Authenticator(IDP)->Signer: ask credentials
+Signer->Authenticator(IDP): send credentials
+activate Authenticator(IDP)
+Authenticator(IDP)->Authenticator(IDP): validate credentials
+Signer<--Authenticator(IDP): return ID token
+deactivate Authenticator(IDP)
+Signer->Signing Service: send ID token, hash(es), initial nonce, intermediate nonce
+activate Signing Service
+Signing Service->Signing Service: verify intermediate nonce
+Signing Service->Signing Service: verify OIDC nonce
+Signing Service->Signing Service: verify ID token locally
