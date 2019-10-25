@@ -9,23 +9,16 @@ participant TSS
 
 activate Signer
 Signer->Signer: generate hash(es)
-opt local nonce
-Signer->Signer: generate intermediate nonce
-end
 deactivate Signer
-note right of Signer: either a local or a remote nonce must be chosen
 Signer->Signing Service: send hash(es)
 activate Signing Service
-opt local nonce
-Signer->Signing Service: send nonce
-end
-opt remote nonce
-Signing Service->Signing Service: generate intermediate nonce
-end
-note right of Signing Service: the intermediate nonce is random.\nThe OIDC nonce is\nhash(hash(es) + intermediate nonce).
+Signing Service->Signing Service: generate initial nonce
+Signing Service->Signing Service: calculate intermediate nonce
+note right of Signing Service: intermediate nonce:\nthe intermediate nonce is random\nhash(hash(es) + initial nonce + server secret)
 Signing Service->Signing Service: generate OIDC nonce
+note right of Signing Service:OIDC nonce:\nhash(hash(es) + intermediate nonce).
 Signing Service->Signing Service: generate IDP redirects
-Signer<--Signing Service: return IDP choices and intermediate nonce
+Signer<--Signing Service: return IDP choices, intial nonce, intermediate nonce
 deactivate Signing Service
 activate Signer
 Signer->Signer: choose IDP
@@ -37,11 +30,18 @@ activate Authenticator(IDP)
 Authenticator(IDP)->Authenticator(IDP): validate credentials
 Signer<--Authenticator(IDP): return ID token
 deactivate Authenticator(IDP)
-Signer->Signing Service: send ID token and hash(es) and intermediate nonce
+Signer->Signing Service: send ID token, hash(es), initial nonce, intermediate nonce
 activate Signing Service
-Signing Service->Signing Service: construct OIDC nonce from hashes\nand intermediate nonce
-Signing Service->Signing Service: check if OIDC nonce in ID token matches
-Signing Service->Signing Service: verify ID token
+Signing Service->Signing Service: verify intermediate nonce
+Signing Service->Signing Service: verify OIDC nonce
+Signing Service->Signing Service: verify ID token locally
+opt remote verification
+Signing Service->Authenticator(IDP): send ID token
+activate Authenticator(IDP)
+Authenticator(IDP)->Authenticator(IDP): verify ID token
+Signing Service<--Authenticator(IDP): send signed response
+deactivate Authenticator(IDP)
+end
 Signing Service->HSM: request new signing key
 deactivate Signing Service
 activate HSM
