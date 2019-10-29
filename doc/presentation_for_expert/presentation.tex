@@ -15,15 +15,6 @@
 \usepackage{adjustbox}
 \usepackage{listings}
 
-\usepackage{tikz}
-\usetikzlibrary{shapes.geometric, arrows, arrows.meta}
-\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text centered, draw=black, fill=red!30]
-\tikzstyle{io} = [trapezium, trapezium left angle=70, trapezium right angle=110, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=blue!30]
-\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=orange!30]
-\tikzstyle{decision} = [diamond, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=green!30]
-\tikzstyle{arrow} = [thick,->,>=stealth]
-
-
 
 \newcommand{\Subitem}[1]{
 {\setlength\itemindent{15pt} \item[-] #1}
@@ -41,7 +32,6 @@
             \item Problemstellung
             \item Auftrag
             \item Lösungsansatz
-            \item Stand
         \end{enumerate}
     \end{frame}
 
@@ -60,33 +50,43 @@
     \begin{frame}
         \frametitle{Auftrag}
         \begin{itemize}
-            \item Spezifikation, Konzeption und Aufbau eines Remote Signing Services basierend auf OIDC
+            \item Spezifikation, Konzeption und Aufbau eines Remote Signing Services mit OIDC
             \item Aufbauend auf unserer Arbeit im Projekt 2
+            \item Implementation bestehend aus:
+            \Subitem{Signing Server mit REST API}
+            \Subitem{Integration mit CA, TSA, HSM}
+            \Subitem{Plattformunabhängiges GUI für Desktop- sowie Mobilgeräte}
+            \Subitem{Offline-Verifikation auf Desktop-Betriebssystemen}
         \end{itemize}
     \end{frame}
 
     \begin{frame}
-        \frametitle{Technologien}
-        \begin{columns}[T]
-            \begin{column}{0.5\textwidth}
-                \begin{itemize}
-                    \item Protobuf
-                    \Subitem{Serialisierungsformat}
-                    \Subitem{einfaches Schema}
-                    \Subitem{extrem kompakt}
-                    \Subitem{sehr schnell}
-                \end{itemize}
-            \end{column}
-            \begin{column}{0.5\textwidth}
-                \begin{itemize}
-                    \item OIDC
-                    \Subitem{Basierend auf OAuth 2}
-                    \Subitem{ID Token als JWT}
-                    \Subitem{Flows für verschiedene Anwendungszwecke}
-                \end{itemize}
-            \end{column}
-        \end{columns}
+        \frametitle{Komponenten}
+        \includegraphics[width=\textwidth]{images/BigPicture.png}
     \end{frame}
+
+    %    \begin{frame}
+    %        \frametitle{Technologien}
+    %        \begin{columns}[T]
+    %            \begin{column}{0.5\textwidth}
+    %                \begin{itemize}
+    %                    \item Protobuf
+    %                    \Subitem{Serialisierungsformat}
+    %                    \Subitem{einfaches Schema}
+    %                    \Subitem{extrem kompakt}
+    %                    \Subitem{sehr schnell}
+    %                \end{itemize}
+    %            \end{column}
+    %            \begin{column}{0.5\textwidth}
+    %                \begin{itemize}
+    %                    \item OIDC
+    %                    \Subitem{Basierend auf OAuth 2}
+    %                    \Subitem{ID Token als JWT}
+    %                    \Subitem{Flows für verschiedene Anwendungszwecke}
+    %                \end{itemize}
+    %            \end{column}
+    %        \end{columns}
+    %    \end{frame}
 
     \begin{frame}
         \frametitle{Grobkonzept}
@@ -97,7 +97,6 @@
             \item Signing Service generiert Zertifikate im Namen des Users
         \end{itemize}
     \end{frame}
-
 
     \begin{frame}
         \frametitle{Prozess für qualifizierte Signaturen (1/2)}
