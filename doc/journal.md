@@ -47,4 +47,12 @@
 #### 24.10.19
 - Implementieren Beispiel-REST-Endpoint in Ktor
 
+#### 27.10.19
+- Implementieren Beispiel-REST-Endpoint in Golang
 
+#### 28.10.19
+- Rust WASM Hashing neu implementieren mit Rust 1.38.0
+
+#### 29.10.19
+- Vortrag für Experten vorbereiten
+- Besprechung mit Betreuenden und Experten
