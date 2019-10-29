@@ -1,12 +1,14 @@
-use wasm_bindgen::prelude::*;
-
 extern crate digest;
 extern crate hex;
 extern crate sha2;
+extern crate wasm_bindgen;
+
+use std::cell::Cell;
+use std::string::String;
 
 use digest::Digest;
-use std::cell::Cell;
 use sha2::Sha256;
+use wasm_bindgen::prelude::*;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
