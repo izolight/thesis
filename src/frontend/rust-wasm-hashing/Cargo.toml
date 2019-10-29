@@ -3,7 +3,6 @@
 name = "rust-wasm-hashing"
 version = "0.1.0"
 authors = ["Patrick Hirt <patrick.hirt@gmail.com>"]
-categories = ["wasm"]
 
 [lib]
 crate-type = ["cdylib"]
@@ -20,7 +19,10 @@ lto = true
 [dependencies]
 # The `wasm-bindgen` crate provides the bare minimum functionality needed
 # to interact with JavaScript.
-wasm-bindgen = "0.2.45"
+wasm-bindgen = "0.2.50"
+digest = "0.8.1"
+hex = "0.4.0"
+sha2 = "0.8.0"
 
 # `wee_alloc` is a tiny allocator for wasm that is only ~1K in code size
 # compared to the default allocator's ~10K. However, it is slower than the default

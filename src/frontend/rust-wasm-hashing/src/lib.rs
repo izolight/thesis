@@ -36,6 +36,7 @@ impl Sha256hasher {
     pub fn hex_digest(&mut self) -> String {
         let hasher = self.hasher.take();
         let output = hasher.result();
+        self.hasher = Cell::new(Sha256::default());
         return format!("{:x}", output);
     }
 }
