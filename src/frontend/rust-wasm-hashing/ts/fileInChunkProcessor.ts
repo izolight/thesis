@@ -126,7 +126,6 @@ export function processFileButtonHandler(wasmHasher: Sha256hasher) {
     );
     const file = processor.getFileFromElement("file");
     if (Validate.notNullNotUndefined(file)) {
-        console.log(`Started at ${new Date().toLocaleTimeString()}`);
         processor.processChunks(file);
     }
 }
