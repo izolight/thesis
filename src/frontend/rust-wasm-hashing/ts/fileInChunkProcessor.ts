@@ -1,5 +1,6 @@
 import {Validate} from "./validate";
 import {Sha256hasher} from "../pkg";
+import {q} from "./tsQuery";
 
 interface FileChunkDataCallback {
     (data: Uint8Array): void
@@ -54,9 +55,9 @@ class FileInChunksProcessor {
     }
 
     public getFileFromElement(elementId: string): File | undefined {
-        const filesElement = document.getElementById(elementId) as HTMLInputElement;
-        if (Validate.notNull(filesElement) &&
-            Validate.notNull(filesElement.files)) {
+        const filesElement = q(elementId) as HTMLInputElement;
+
+        if (Validate.notNull(filesElement.files)) {
             if (filesElement.files.length < 0) {
                 this.errorCallback("Too few files specified. Please select one file.")
             } else if (filesElement.files.length > 1) {
@@ -93,30 +94,23 @@ class FileInChunksProcessor {
 }
 
 function errorHandlingCallback(message: string) {
-    const errorElement = document.getElementById("error");
-    if (Validate.notNull(errorElement)) {
-        errorElement.innerHTML = `${errorElement.innerHTML} <p>${message}</p>`;
-    }
+    const errorElement = q("error");
+    errorElement.innerHTML = `${errorElement.innerHTML} <p>${message}</p>`;
 }
 
 function progressCallback(percentCompleted: number) {
-    const progressElement = document.getElementById("progress");
-    if (Validate.notNull(progressElement)) {
-        if (percentCompleted == 100) {
-            progressElement.innerText = `Completed!`
-        } else {
-            progressElement.innerText = `Hashing: ${percentCompleted}%`
-        }
+    if (percentCompleted == 100) {
+        q("progress").innerText = `Completed!`
+    } else {
+        q("progress").innerText = `Hashing: ${percentCompleted}%`
     }
 }
 
 export function processFileButtonHandler(wasmHasher: Sha256hasher) {
-    const startElement = document.getElementById("start");
+    const startElement = q("start");
     const startTime = new Date();
-    if (Validate.notNull(startElement)) {
+    startElement.innerText = "started at " + dateObjectToTimeString(startTime);
 
-        startElement.innerText = "started at " + dateObjectToTimeString(startTime);
-    }
     const processor = new FileInChunksProcessor((data) => {
             wasmHasher.update(new Uint8Array((data)));
         },
@@ -125,12 +119,9 @@ export function processFileButtonHandler(wasmHasher: Sha256hasher) {
         () => {
             const hashStr = wasmHasher.hex_digest();
             wasmHasher.free();
-            const resultElement = document.getElementById("result");
             const endTime = new Date();
-            if (Validate.notNull(resultElement)) {
-                const duration = (endTime.getTime() - startTime.getTime()) / 1000;
-                resultElement.innerHTML = `<p>Ended at ${dateObjectToTimeString(endTime)} <br>Got: ${hashStr} <br>${duration} seconds elapsed</p>`;
-            }
+            const duration = (endTime.getTime() - startTime.getTime()) / 1000;
+            q("result").innerHTML = `<p>Ended at ${dateObjectToTimeString(endTime)} <br>Got: ${hashStr} <br>${duration} seconds elapsed</p>`;
         }
     );
     const file = processor.getFileFromElement("file");
