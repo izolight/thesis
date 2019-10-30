@@ -55,7 +55,7 @@ class FileInChunksProcessor {
         this.processingCompletedCallback = processingCompletedCallback;
         console.log("startHash()");
         // @ts-ignore
-        startHash();
+        wasm.exports.startHash();
     }
 
     public processChunks(inputFile: File) {
@@ -113,7 +113,7 @@ function handleData(data: ArrayBuffer) {
     const str: string = `progressiveHash() len: ${data.byteLength} value: ${data.slice(0, 5).toString()}...`;
     console.log(str);
     // @ts-ignore
-    progressiveHash(data);
+    wasm.exports.progressiveHash(data);
 }
 
 function handleError(message: string) {
@@ -134,7 +134,7 @@ function processFileButtonHandler() {
 
 function processingCompleted() {
     // @ts-ignore
-    const result = getHash();
+    const result = wasm.exports.getHash();
     console.log(`getHash() -> ${result}`);
     const resultElement = document.getElementById("result");
     if (Validate.notNull(resultElement)) {
@@ -146,23 +146,24 @@ function processingCompleted() {
 
 (function() {
     // @ts-ignore
-    if (!WebAssembly.instantiateStreaming) {
-        // @ts-ignore
-        WebAssembly.instantiateStreaming = async (resp, importObject) => {
-            const source = await (await resp).arrayBuffer();
-            return await WebAssembly.instantiate(source, importObject);
-        }
-    }
+    var wasm;
     // @ts-ignore
     const go = new Go();
-    let mod, inst;
-    // @ts-ignore
-    WebAssembly.instantiateStreaming(fetch("./out/test.wasm"), go.importObject).then(
+    const WASM_URL = './out/test.wasm';
+    if ('instantiateStreaming' in WebAssembly) {
         // @ts-ignore
-        async result => {
-            mod = result.module;
-            inst = result.instance;
-            await go.run(inst);
-        }
-    );
+        WebAssembly.instantiateStreaming(fetch(WASM_URL), go.importObject).then(function (obj) {
+            wasm = obj.instance;
+            go.run(wasm); // Initial setup
+        })
+    } else {
+        fetch(WASM_URL).then(resp =>
+            resp.arrayBuffer()
+        ).then(bytes =>
+            WebAssembly.instantiate(bytes, go.importObject).then(function (obj) {
+                wasm = obj.instance;
+                go.run(wasm);
+            })
+        )
+    }
 })();

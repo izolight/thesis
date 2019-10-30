@@ -1,38 +1,34 @@
-package _go
+package main
 
 import (
+	"crypto/sha1"
 	"crypto/sha256"
 	"fmt"
 	"hash"
+	"syscall/js"
 )
 
 var hasher hash.Hash
 
+func main() {
+	hasher = sha256.New()
+}
+
 //go:export progressiveHash
 func progressiveHash(in []byte) {
-	fmt.Printf("Writing %d bytes to hash\n")
 	hasher.Write(in)
 }
 
 //go:export startHash
 func startHash() {
-	hasher = sha256.New()
+	hasher = sha1.New()
 }
 
 //go:export getHash
-func getHash() string {
+func getHash() interface{} {
 	h := hasher.Sum(nil)
 	hashStr := fmt.Sprintf("%x", h)
 	fmt.Printf("Hash: %s\n", hashStr)
-	return hashStr
-}
 
-func waitForever() {
-	c := make(chan struct{}, 0)
-	<-c
-}
-
-func main() {
-	fmt.Println("WASM Go Initialized")
-	waitForever()
+	return js.ValueOf(hashStr)
 }
