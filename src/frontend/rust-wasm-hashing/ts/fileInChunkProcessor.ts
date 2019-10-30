@@ -13,6 +13,10 @@ interface FileReaderOnLoadCallback {
     (event: ProgressEvent): void
 }
 
+interface ProgressCallback {
+    (percentCompleted: number): void
+}
+
 interface ProcessingCompletedCallback {
     (): void
 }
@@ -24,22 +28,28 @@ class FileInChunksProcessor {
     private readonly dataCallback: FileChunkDataCallback;
     private readonly errorCallback: ErrorCallback;
     private readonly processingCompletedCallback: ProcessingCompletedCallback;
+    private readonly progressCallback: ProgressCallback;
     private start: number = 0;
     private end: number = this.start + this.CHUNK_SIZE_IN_BYTES;
+    private numChunks: number = 0;
+    private chunkCounter: number = 0;
     private inputFile: File | null = null;
 
     constructor(dataCallback: FileChunkDataCallback,
                 errorCallback: ErrorCallback,
+                progressCallback: ProgressCallback,
                 processingCompletedCallback: ProcessingCompletedCallback) {
         this.fileReader = new FileReader();
         this.fileReader.onload = this.getFileReadOnLoadHandler();
         this.dataCallback = dataCallback;
         this.errorCallback = errorCallback;
         this.processingCompletedCallback = processingCompletedCallback;
+        this.progressCallback = progressCallback;
     }
 
     public processChunks(inputFile: File) {
         this.inputFile = inputFile;
+        this.numChunks = Math.round(this.inputFile.size / this.CHUNK_SIZE_IN_BYTES);
         this.read(this.start, this.end);
     }
 
@@ -64,11 +74,9 @@ class FileInChunksProcessor {
 
                 this.start = this.end;
                 if (this.end < this.inputFile.size) {
+                    this.chunkCounter++;
                     this.end = this.start + this.CHUNK_SIZE_IN_BYTES;
-                    // if(this.end > this.inputFile.size) {
-                    //     this.end = this.inputFile.size;
-                    // }
-                    console.log(`loading ${this.start}...${this.end}`);
+                    this.progressCallback(Math.round((this.chunkCounter / this.numChunks) * 100));
                     this.read(this.start, this.end);
                 } else {
                     this.processingCompletedCallback();
@@ -91,21 +99,37 @@ function errorHandlingCallback(message: string) {
     }
 }
 
+function progressCallback(percentCompleted: number) {
+    const progressElement = document.getElementById("progress");
+    if (Validate.notNull(progressElement)) {
+        if (percentCompleted == 100) {
+            progressElement.innerText = `Completed!`
+        } else {
+            progressElement.innerText = `Hashing: ${percentCompleted}%`
+        }
+    }
+}
+
 export function processFileButtonHandler(wasmHasher: Sha256hasher) {
     const startElement = document.getElementById("start");
+    const startTime = new Date();
     if (Validate.notNull(startElement)) {
-        startElement.innerText = "start " + time();
+
+        startElement.innerText = "started at " + dateObjectToTimeString(startTime);
     }
     const processor = new FileInChunksProcessor((data) => {
             wasmHasher.update(new Uint8Array((data)));
         },
         errorHandlingCallback,
+        progressCallback,
         () => {
             const hashStr = wasmHasher.hex_digest();
             wasmHasher.free();
             const resultElement = document.getElementById("result");
+            const endTime = new Date();
             if (Validate.notNull(resultElement)) {
-                resultElement.innerHTML = `<p>${time()} Got: ${hashStr} </p>`;
+                const duration = (endTime.getTime() - startTime.getTime()) / 1000;
+                resultElement.innerHTML = `<p>Ended at ${dateObjectToTimeString(endTime)} <br>Got: ${hashStr} <br>${duration} seconds elapsed</p>`;
             }
         }
     );
@@ -116,7 +140,6 @@ export function processFileButtonHandler(wasmHasher: Sha256hasher) {
     }
 }
 
-function time() {
-    const date = new Date();
+function dateObjectToTimeString(date: Date): string {
     return date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + "." + date.getMilliseconds();
 }

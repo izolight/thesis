@@ -2,7 +2,6 @@ import {Validate} from "./validate";
 import {processFileButtonHandler} from "./fileInChunkProcessor"
 
 function start(Sha256hasher: typeof import('../pkg')) {
-    console.log("loaded wasm workaround aids");
     const button = document.getElementById("process-file");
     if (Validate.notNull(button)) {
         button.onclick = function () {
