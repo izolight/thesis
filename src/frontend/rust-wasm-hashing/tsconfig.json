@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "target": "es5",
+    "module": "esnext",
+    "sourceMap": true,
+    "strict": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true
+  },
+  //  "include": [
+  //    "./src/file_chunker/*ts",
+  //    "./src/wasm_hasher/*ts"
+  //  ],
+  "exclude": [
+    "node_modules",
+    "**/*.wasm"
+  ]
+}

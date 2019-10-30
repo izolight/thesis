@@ -1,12 +1,10 @@
-extern crate digest;
-extern crate hex;
 extern crate sha2;
 extern crate wasm_bindgen;
 
 use std::cell::Cell;
 use std::string::String;
 
-use digest::Digest;
+use sha2::Digest;
 use sha2::Sha256;
 use wasm_bindgen::prelude::*;
 
