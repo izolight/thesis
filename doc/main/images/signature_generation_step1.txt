@@ -12,12 +12,12 @@ activate Signing Service
 Signing Service->Signing Service: generate initial nonce
 Signing Service->Signing Service: calculate intermediate nonce
 note right of Signing Service: intermediate nonce:\nthe intermediate nonce is random\nhash(hash(es) + initial nonce + server secret)
-Signing Service->Signing Service: generate OIDC nonce
-note right of Signing Service:OIDC nonce:\nhash(hash(es) + intermediate nonce).
 Signing Service->Signing Service: generate IDP redirects
 Signer<--Signing Service: return IDP choices, intial nonce, intermediate nonce
 deactivate Signing Service
 activate Signer
+Signer->Signer: generate OIDC nonce
+note right of Signer:OIDC nonce:\nhash(hash(es) + intermediate nonce).
 Signer->Signer: choose IDP
 Signer->Authenticator(IDP): follow redirect
 deactivate Signer
