@@ -110,8 +110,6 @@ function handleData(data: ArrayBuffer) {
     // if (Validate.notNull(resultElement)) {
     //     resultElement.innerHTML = `${resultElement.innerHTML} <p>Got ${data.byteLength} bytes: ${data.slice(0, 10).toString()}...</p>`;
     // }
-    const str: string = `progressiveHash() len: ${data.byteLength} value: ${data.slice(0, 5).toString()}...`;
-    console.log(str);
     // @ts-ignore
     progressiveHash(data);
 }
@@ -127,7 +125,6 @@ function processFileButtonHandler() {
     const processor = new FileInChunksProcessor(handleData, handleError, processingCompleted);
     const file = processor.getFileFromElement("file");
     if (Validate.notNullNotUndefined(file)) {
-        console.log(`Started at ${new Date().toLocaleTimeString()}`)
         processor.processChunks(file);
     }
 }
@@ -135,11 +132,9 @@ function processFileButtonHandler() {
 function processingCompleted() {
     // @ts-ignore
     const result = getHash();
-    console.log(`getHash() -> ${result}`);
     const resultElement = document.getElementById("result");
     if (Validate.notNull(resultElement)) {
         resultElement.innerHTML = `<p>Got: ${result} </p>`;
-        console.log(`Ended at ${new Date().toLocaleTimeString()}`)
     }
 
 }
