@@ -1,7 +1,5 @@
 syntax = "proto3";
 
-option go_package = "gitlab.ti.bfh.ch/hirtp1/thesis/proto";
-
 enum HashAlgorithm  {
     SHA2_256 = 0;
     SHA2_512 = 1;
@@ -9,24 +7,37 @@ enum HashAlgorithm  {
     SHA3_512 = 3;
 }
 
-message Subject {
-    HashAlgorithm hash_algorithm = 1;
-    string x509_public_key = 2;
-    string x509_authority = 3;
-    string hash_value = 4;
-    uint64 valid_from = 5;
-    uint64 valid_to = 6;
+enum SignatureLevel {
+    ADVANCED = 0;
+    QUALIFIED = 1;
 }
 
-message Signature {
-    enum SignatureFormat {
-        RSA_PSS = 0;
-        ECDSA_ED25519 = 1;
-    }
+message SignatureData {
+    bytes hash = 1;
+    repeated bytes salted_hashes = 2;
+    HashAlgorithm hash_algorithm = 3;
+    bytes salt = 4;
+    SignatureLevel signature_level = 5;
+    bytes x509 = 6;
+    bytes x509_ca = 7;
+    bytes ocsp = 8;
+    bytes crl = 9;
+    bytes id_token = 10;
+    bytes x509_idp = 11;
+    bytes x509_idp_ca = 12;
+    bytes ocsp_idp = 13;
+    bytes crl_idp = 14;
+}
 
-    SignatureFormat signature_format = 1;
-    HashAlgorithm hash_algorithm = 2;
-    bytes rfc3161_timestamp = 3;
-    string signature_value = 4;
-    bytes subject = 5;
+message Timestamped {
+    bytes rfc3161_timestamp = 1;
+    bytes x509_tsa = 2;
+    bytes x509_tsa_ca = 3;
+    bytes ocsp = 4;
+    bytes crl = 5;
+}
+
+message SignatureFile {
+    SignatureData signature_data = 1;
+    repeated Timestamped timestamps = 2;
 }
