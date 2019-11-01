@@ -1,4 +1,51 @@
 \chapter{Technical Specification}
+\section{Protocol}
+
+The protocol of our signing service consists of five main phases:
+
+\begin{itemize}
+	\item Pre-Login
+	\item Login
+	\item Post-Login
+	\item Signature Generation
+	\item Signature Verification
+\end{itemize}
+
+\subsection{Pre-Login}
+In this phase the signer provides a list of hashes to signing service. 
+
+Afterwards the signing service generates a random seed value. This seed and a secret only known to the server will be used to calculate the key that will be used to generate a \gls{HMAC} of the sorted list of hashes. The \gls{HMAC} will be used as a salt to the hashes in the \gls{OIDC} nonce. The key consists simply of appending the secret to the seed.
+
+Purpose of the salt:
+The salt is used to protect the hashes in the \gls{OIDC} nonce both from the \gls{IDP}, so that it doesn't know if two people sign the same document(s) and the receiver of the signature as it needs a list of all hashes that have been signed together to verify the signature.
+
+Purpose of the seed:
+The seed is used as a \gls{CSRF} protection mechanism without keeping any state on the server.
+If no seed is used for generating the salt, the signing server needs to keep it in memory and attach it to the users session in order to verify if the hashes or the salt weren't replaced while generating the \gls{OIDC} nonce.
+If the signing server doesn't verify this it would enable clients/attackers to skip the Pre-Login step.
+
+The server than returns a list of \gls{IDP} choices, the seed and the salt to the client.
+
+\subsection{Login}
+The client generates the nonce used for the \gls{OIDC} request which consists of the Hash of the sorted list of \gls{HMAC}s of the Hashes with the returned salt used as key. 
+Next the client chooses an \gls{IDP} and adds the nonce to the request parameters and then follows the link. At the \gls{IDP} the client signs in and gets an ID token back.
+
+\subsection{Post-Login}
+The client sends the ID token, the list of hashes, the seed and the salt to the signing service. The signing service then proceeds to verify the salt, OIDC nonce and ID token.
+After verifying the salt, the seed is not used anymore.
+
+\subsection{Signature Generation}
+The signing server requests a new signing key from the hsm, which will generate a private key and return a \gls{CSR}.
+The \gls{CSR} is sent to the \gls{CA} where it will be signed and the signed certificate is returned.
+Each hash is then submitted to the \gls{HSM} in order to be signed by the generated key.
+
+For each hash an intermediate signature file consisting of the signed hash, the ID token, the salt and a sorted list of all other salted hashes.
+The hash of this file is sent to a \gls{TSA} where a signed timestamp will be created and returned.
+The signed timestamp and all the certificate chains and ocsp responses of the involved parties will be added to signature file, which is then returned to the user.
+
+\subsection{Signature Verification}
+To verify a signature 
+
 \section{REST API}
 Endpoints:
 
