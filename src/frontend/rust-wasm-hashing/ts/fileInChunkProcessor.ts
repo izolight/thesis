@@ -19,7 +19,7 @@ interface ProgressCallback {
 }
 
 interface ProcessingCompletedCallback {
-    (): void
+    (startTime: Date, endTime: Date, fileSize: number): void
 }
 
 
@@ -32,6 +32,7 @@ class FileInChunksProcessor {
     private readonly progressCallback: ProgressCallback;
     private start: number = 0;
     private end: number = this.start + this.CHUNK_SIZE_IN_BYTES;
+    private startTime?: Date;
     private numChunks: number = 0;
     private chunkCounter: number = 0;
     private inputFile: File | null = null;
@@ -50,6 +51,7 @@ class FileInChunksProcessor {
 
     public processChunks(inputFile: File) {
         this.inputFile = inputFile;
+        this.startTime = new Date();
         this.numChunks = Math.round(this.inputFile.size / this.CHUNK_SIZE_IN_BYTES);
         this.read(this.start, this.end);
     }
@@ -80,7 +82,10 @@ class FileInChunksProcessor {
                     this.progressCallback(Math.round((this.chunkCounter / this.numChunks) * 100));
                     this.read(this.start, this.end);
                 } else {
-                    this.processingCompletedCallback();
+                    if (Validate.notNullNotUndefined(this.startTime)) {
+                        this.processingCompletedCallback(this.startTime, new Date(), this.inputFile.size);
+                    }
+                    this.progressCallback(100);
                 }
             }
         }
@@ -116,12 +121,13 @@ export function processFileButtonHandler(wasmHasher: Sha256hasher) {
         },
         errorHandlingCallback,
         progressCallback,
-        () => {
+        (startTime, endTime, sizeInBytes) => {
             const hashStr = wasmHasher.hex_digest();
             wasmHasher.free();
-            const endTime = new Date();
             const duration = (endTime.getTime() - startTime.getTime()) / 1000;
-            q("result").innerHTML = `<p>Ended at ${dateObjectToTimeString(endTime)} <br>Got: ${hashStr} <br>${duration} seconds elapsed</p>`;
+            const sizeInMegabytes = sizeInBytes / 1024 / 1024;
+            const megasProSecond = sizeInMegabytes / duration;
+            q("result").innerHTML = `<p>Ended at ${dateObjectToTimeString(endTime)} <br>Got: ${hashStr} <br>${duration} seconds elapsed<br>${megasProSecond.toFixed(2)} MB/s hashing speed</p>`;
         }
     );
     const file = processor.getFileFromElement("file");
