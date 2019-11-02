@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package = "verifier";
+
 enum HashAlgorithm  {
     SHA2_256 = 0;
     SHA2_512 = 1;
