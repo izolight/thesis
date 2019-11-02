@@ -44,7 +44,14 @@ The hash of this file is sent to a \gls{TSA} where a signed timestamp will be cr
 The signed timestamp and all the certificate chains and ocsp responses of the involved parties will be added to signature file, which is then returned to the user.
 
 \subsection{Signature Verification}
-To verify a signature 
+To verify a signature the verifier first needs to verify the signed timestamp(s) and their respective ca chains.
+The signature then can be verified.
+Next the certificate chain for the signing certificate needs to be verified.
+Then the certificate chain for the ID token needs to be verified.
+The ID token itself also needs to be verified.
+The included hash needs to be salted and then together with the sorted list of salted hashes hashed.
+The result must be the same as the nonce in the ID token.
+At last the hash of the document MUST match the included hash.
 
 \section{REST API}
 Endpoints:
