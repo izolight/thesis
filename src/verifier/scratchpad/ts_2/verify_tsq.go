@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/mozilla-services/pkcs7"
+	"go.mozilla.org/pkcs7"
 	"io/ioutil"
 	"log"
 	"os"

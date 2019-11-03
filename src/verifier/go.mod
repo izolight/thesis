@@ -6,5 +6,5 @@ require (
 	github.com/golang/protobuf v1.3.2
 	github.com/gorilla/mux v1.7.3
 	github.com/izolight/go_S-MIME v0.1.1
-	github.com/mozilla-services/pkcs7 v0.0.0-20180702141046-401d3877331b
+	go.mozilla.org/pkcs7 v0.0.0-20180702141046-401d3877331b
 )
