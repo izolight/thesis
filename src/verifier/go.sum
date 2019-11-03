@@ -4,8 +4,12 @@ github.com/golang/protobuf v1.3.2 h1:6nsPYzhq5kReh6QImI3k5qWzO4PEbvbIW2cwSfR/6xs
 github.com/golang/protobuf v1.3.2/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/gorilla/mux v1.7.3 h1:gnP5JzjVOuiZD07fKKToCAOjS0yOpj/qPETTXCCS6hw=
 github.com/gorilla/mux v1.7.3/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
-github.com/izolight/go_S-MIME v0.1.0 h1:Jmvy8pfl9hT4S8npwjIBYOQzXulncY2FB+M3pW87fkk=
-github.com/izolight/go_S-MIME v0.1.0/go.mod h1:yK4ZhPh0paOR/eu2B/Au2yDQNyfFmks+IGBS7yJrYgQ=
+github.com/izolight/go_S-MIME v0.1.1 h1:XnvEkWtacm4/0rpg0i6ybAyV5ccELHtL0CYFFE05pCk=
+github.com/izolight/go_S-MIME v0.1.1/go.mod h1:mDu5PuCqP4BoSYgA34N2X7gegP6lPsq947gwYuGe1/Q=
+github.com/mozilla-services/pkcs7 v0.0.0-20180702141046-401d3877331b h1:2wq56vxHEucHtfQ5tgnQQbzrdAZTRqDJMOyt/fOWlus=
+github.com/mozilla-services/pkcs7 v0.0.0-20180702141046-401d3877331b/go.mod h1:6QGmIL+cu5Oqi6IAREwiDuwNbk0dbupiOghMk7YjglM=
+github.com/mozilla-services/pkcs7 v0.0.0-20181213175627-3cffc6fbfe83 h1:FW1J7CW+TKVQBA2UyoctoYsVXJB2VqrFvHGn7hT8PoE=
+github.com/mozilla-services/pkcs7 v0.0.0-20181213175627-3cffc6fbfe83/go.mod h1:6QGmIL+cu5Oqi6IAREwiDuwNbk0dbupiOghMk7YjglM=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20191029031824-8986dd9e96cf h1:fnPsqIDRbCSgumaMCRpoIoF2s4qxv0xSSS0BVZUE/ss=
 golang.org/x/crypto v0.0.0-20191029031824-8986dd9e96cf/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=

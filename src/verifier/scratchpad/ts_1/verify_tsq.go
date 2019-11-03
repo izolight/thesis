@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/InfiniteLoopSpace/go_S-MIME/timestamp"
+	"github.com/izolight/go_S-MIME/timestamp"
 	"io/ioutil"
 	"log"
 	"os"
