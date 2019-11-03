@@ -33,8 +33,6 @@ message SignatureData {
 
 message Timestamped {
     bytes rfc3161_timestamp = 1;
-    bytes x509_tsa = 2;
-    bytes x509_tsa_ca = 3;
     bytes ocsp = 4;
     bytes crl = 5;
 }

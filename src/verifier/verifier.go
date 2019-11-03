@@ -26,5 +26,6 @@ func verifyTimestamps(timestamps []*Timestamped) error {
 	if timestamps == nil {
 		return errors.New("No timestamps included")
 	}
+
 	return nil
 }
