@@ -8,24 +8,62 @@ import (
 	"go.mozilla.org/pkcs7"
 )
 
-func verifySignature(in verifyRequest) (bool, error) {
+func verifySignatureFile(in verifyRequest) error {
 	signatureBytes, err := base64.StdEncoding.DecodeString(in.Signature)
 	if err != nil {
-		return false, fmt.Errorf("could not decode signature: %w", err)
+		return fmt.Errorf("could not decode signature: %w", err)
 	}
 	signatureFile := &SignatureFile{}
 	if err := proto.Unmarshal(signatureBytes, signatureFile); err != nil {
-		return false, fmt.Errorf("could not unmarshal signature to protobuf: %w", err)
+		return fmt.Errorf("could not unmarshal signature to protobuf: %w", err)
 	}
 	var data []byte
-	_, err = signatureFile.SignatureData.XXX_Marshal(data, true)
+	_, err = signatureFile.SignatureContainer.XXX_Marshal(data, true)
 	if err != nil {
-		return false, fmt.Errorf("could not marshal signature data: %w", err)
+		return fmt.Errorf("could not marshal signature data: %w", err)
 	}
 	if err := verifyTimestamps(data, signatureFile.GetTimestamps()); err != nil {
-		return false, fmt.Errorf("could not verify timestamps: %w", err)
+		return fmt.Errorf("could not verify timestamps: %w", err)
 	}
-	return true, nil
+	// TODO: verifySignature -> pkcs#7
+	signatureData, err := verifySignature(signatureFile.SignatureContainer)
+	if err != nil {
+		return fmt.Errorf("could not verify signature: %w", err)
+	}
+	// TODO: verify id token
+	if err := verifyIDToken(signatureData); err != nil {
+		return fmt.Errorf("could not verify id token: %w", err)
+	}
+	// TODO: verify hashes
+	if err := verifyHashes(signatureData, in.Hash); err != nil {
+		return fmt.Errorf("could not verify hashes: %w", err)
+	}
+
+	return nil
+}
+
+func verifyHashes(data *SignatureData, hash string) error {
+	// TODO: HMAC(salt, hash)
+	// TODO: append HMAC to saltedHashes and sort
+	// TODO: hash sorted list
+	// TODO: compare computed hash with OIDC nonce
+	// TODO: compare input hash with signature hash
+	return nil
+}
+
+func verifyIDToken(data *SignatureData) error {
+	// TODO: verify chain and id token
+	return nil
+}
+
+func verifySignature(container *SignatureContainer) (*SignatureData, error) {
+	// TODO: extract data from pkcs7 enveloped data
+	var buf []byte
+	signatureData := &SignatureData{}
+	if err := proto.Unmarshal(buf, signatureData); err != nil {
+		return nil, err
+	}
+	return signatureData, nil
 }
 
 func verifyTimestamps(data []byte, timestamps []*Timestamped) error {
@@ -39,6 +77,7 @@ func verifyTimestamps(data []byte, timestamps []*Timestamped) error {
 		if err != nil {
 			return fmt.Errorf("could not parse timestamp response: %w", err)
 		}
+		// TODO: verify ocsp and crl for each timestamp
 		hashData := previousBytes
 		if i == 0 {
 			hashData = data
