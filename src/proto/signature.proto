@@ -20,24 +20,28 @@ message SignatureData {
     HashAlgorithm hash_algorithm = 3;
     bytes salt = 4;
     SignatureLevel signature_level = 5;
-    bytes x509 = 6;
-    bytes x509_ca = 7;
-    bytes ocsp = 8;
-    bytes crl = 9;
     bytes id_token = 10;
     bytes x509_idp = 11;
     bytes x509_idp_ca = 12;
-    bytes ocsp_idp = 13;
-    bytes crl_idp = 14;
+    LTV idp_ltv = 13;
 }
 
 message Timestamped {
     bytes rfc3161_timestamp = 1;
-    bytes ocsp = 4;
-    bytes crl = 5;
+    LTV ltv = 2;
+}
+
+message SignatureContainer {
+    bytes envelopedSignatureData = 1; // pkcs#7 DER encoded bytes
+    LTV ltv = 2;
+}
+
+message LTV {
+    bytes ocsp = 1;
+    bytes crl = 2;
 }
 
 message SignatureFile {
-    SignatureData signature_data = 1;
+    SignatureContainer signatureContainer = 1;
     repeated Timestamped timestamps = 2; // this is for renewal of the signature, new timestamps, timestamp the old one
 }
