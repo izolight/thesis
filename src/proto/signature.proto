@@ -39,5 +39,5 @@ message Timestamped {
 
 message SignatureFile {
     SignatureData signature_data = 1;
-    repeated Timestamped timestamps = 2;
+    repeated Timestamped timestamps = 2; // this is for renewal of the signature, new timestamps, timestamp the old one
 }
