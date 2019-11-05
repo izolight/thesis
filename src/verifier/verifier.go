@@ -17,8 +17,7 @@ func verifySignatureFile(in verifyRequest) error {
 	if err := proto.Unmarshal(signatureBytes, signatureFile); err != nil {
 		return fmt.Errorf("could not unmarshal signature to protobuf: %w", err)
 	}
-	var data []byte
-	_, err = signatureFile.SignatureContainer.XXX_Marshal(data, true)
+	data, err := proto.Marshal(signatureFile.SignatureContainer)
 	if err != nil {
 		return fmt.Errorf("could not marshal signature data: %w", err)
 	}
@@ -89,7 +88,10 @@ func verifyTimestamps(data []byte, timestamps []*Timestamped) error {
 		if hash != tsHash {
 			return fmt.Errorf("timestamped hashes didn't match: %s != %s", hash, tsHash)
 		}
-		previousBytes = timestamped.Rfc3161Timestamp
+		previousBytes, err = proto.Marshal(timestamped)
+		if err != nil {
+			return fmt.Errorf("could not marshal timestamp: %w", err)
+		}
 	}
 
 	return nil

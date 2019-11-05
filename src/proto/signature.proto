@@ -27,7 +27,7 @@ message SignatureData {
 }
 
 message Timestamped {
-    bytes rfc3161_timestamp = 1;
+    bytes rfc3161_timestamp = 1; // pkcs#7 wrapped
     LTV ltv = 2;
 }
 
