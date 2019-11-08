@@ -1,7 +1,9 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis.api.views
 
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.Invalid
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.NonceResponse
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.SubmittedHashes
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.Valid
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.IHashesCachingService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.INonceGeneratorService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.sha256
@@ -25,10 +27,15 @@ fun Routing.postHashes() {
     val hashesCache by inject<IHashesCachingService>()
 
     post<HashesRoute> {
-        val hashes = call.receive<SubmittedHashes>()
-        val randomValue = nonceGenerator.getNonce()
-        val nonce = sha256(hashes.hashes + randomValue)
-        hashesCache.set(nonce, hashes)
-        call.respond(HttpStatusCode.Created, NonceResponse(nonce))
+        val input = call.receive<SubmittedHashes>().validate()
+        when (input) {
+            is Valid -> {
+                val randomValue = nonceGenerator.getNonce()
+                val nonce = sha256(input.value.hashes + randomValue)
+                hashesCache.set(nonce, input)
+                call.respond(HttpStatusCode.Created, NonceResponse(nonce))
+            }
+            is Invalid -> throw input.error
+        }
     }
 }
