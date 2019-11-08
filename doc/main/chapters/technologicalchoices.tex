@@ -5,16 +5,17 @@ In this chapter, we outline the technologies we choose, and the reasoning for ch
 \section{Backend}
 \label{sec:techbackend}
 The backend is divided into two parts, the signing server and the verification service.
-We chose to split it in two because signature verification has to be available both online and offline.
-The verification service being separate allows us to ship a smaller program,
-and since Go binaries are always statically linked we don't have to worry about handling dependencies.
-
 
 The signing service is implemented in the Kotlin programming language~\cite{kotlin} using the Ktor framework~\cite{ktor}.
 The verification servie is implemented in the Go programming language~\cite{golang}.
 
+We chose to split it in two because signature verification has to be available both online and offline.
+The verification service being separate allows us to ship a smaller program,
+and since Go binaries are always statically linked we don't have to worry about handling dependencies.
 
-
+We chose Kotlin because it is a modern and concise programming language,
+providing guaranteed null safety, coroutines for asynchronous programming, higher-order functions and more.
+It's like Java done right.
 
 \section{Frontend}
 \label{sec:techfrontend}
