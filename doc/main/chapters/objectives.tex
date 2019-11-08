@@ -3,12 +3,13 @@
 
 Building on our work in Project 2~\cite{projekt2},
 where we showed how a digital signature and an \gls{OIDC}-based authentication can be securely linked,
-we will implement a Digital Signature Service.
+we will implement a Digital Signing Service.
 
-The implementation consists of the remote signing service itself in the form of a \gls{REST} \gls{API},
+The implementation consists of the remote signing service itself exposing a \gls{REST} \gls{API},
 and a cross-platform frontend authenticating the users through a trusted \gls{OIDC} \gls{IDP}.
 This frontend uses the \gls{REST} \gls{API} for signing the users' files.
-On top of that, it offers offline verification of existing signatures on desktop operating systems.
+On top of that, we implement offline verification of existing signatures on desktop operating systems.
+For a detailed specification of the objectives, please see appendix TODO include spec doc and link here.
 
 \section{Previous Works}
 \label{section:previousworks}
@@ -16,4 +17,6 @@ On top of that, it offers offline verification of existing signatures on desktop
 We build upon our previous work of Project 2\cite{projekt2}, where we specified the authentication process
 for qualified signatures, non-qualified batch signatures, the signature file format,
 as well as - to our knowledge - pioneering the secure integration of a digital signature with an \gls{OIDC} ID token without requiring any change to the \gls{IDP}.
+We expand upon the previous work substantially both functionally and conceptually.
+This work is not just an implementation of an existing concept, not even one we wrote ourselves.
 
