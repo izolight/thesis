@@ -4,8 +4,8 @@ In this chapter, we outline the technologies we choose, and the reasoning for ch
 
 \section{Backend}
 \label{sec:techbackend}
-It is implemented using the Play Framework~\cite{playframework} and the Scala~\cite{scalalang} programming language.
-TODO explain why.
+The backend is divided into two parts, the signing server and the verification service.
+The signing service is implemented in the Kotlin programming language~\cite{kotlin} using the Ktor framework~\cite{ktor}.
 
 \section{Frontend}
 \label{sec:techfrontend}
@@ -55,14 +55,14 @@ There's a major drawback though: hashing a large amount of data progressively is
 passed to the function en bloc, as seen in listing~\ref{lst:subtlecrypto}.
 
 \begin{lstlisting}[caption={Using SubtleCrypto for calculating SHA-256 checksums}, captionpos=b, language=JavaScript, label={lst:subtlecrypto}]
-crypto.subtle.digest("SHA-256", data).then(hash => {
+    crypto.subtle.digest("SHA-256", data).then(hash => {
     console.log(
-        // convert ArrayBuffer to hex string
-        Array.from(new Uint8Array(hash)).map(
-            b => b.toString(16).padStart(2, '0')
-        ).join('')
+    // convert ArrayBuffer to hex string
+    Array.from(new Uint8Array(hash)).map(
+    b => b.toString(16).padStart(2, '0')
+    ).join('')
     );
-});
+    });
 \end{lstlisting}
 Our testing showed that selecting files larger than 200MB crashes Firefox tabs when trying to read their contents
 into memory before we could pass it to the \texttt{digest} function.
@@ -75,13 +75,13 @@ By progressive hashing we mean the ability to pass to the hash function the data
 as seen in listing~\ref{lst:cryptojsprogressive}.
 
 \begin{lstlisting}[caption={Progressive SHA-256 hashing using CryptoJS},captionpos=b,language=JavaScript,label={lst:cryptojsprogressive}]
-const sha256 = CryptoJS.algo.SHA256.create();
+    const sha256 = CryptoJS.algo.SHA256.create();
 
-sha256.update("Message Part 1");
-sha256.update("Message Part 2");
-sha256.update("Message Part 3");
+    sha256.update("Message Part 1");
+    sha256.update("Message Part 2");
+    sha256.update("Message Part 3");
 
-const hash = sha256.finalize();
+    const hash = sha256.finalize();
 \end{lstlisting}
 
 The advantage of using \texttt{CryptoJS} over \texttt{SubtleCrypto} is, as mentioned, the ability to hash piece-wise.
@@ -118,12 +118,12 @@ We've worked on this for hours, producing ugly reflection-based hacks, until we 
 Now all that's needed is a little boilerplate to convert a JavaScript \texttt{Uint8Array} to a Golang \texttt{[]byte}, as seen in listing~\ref{lst:jscastingtogo}.
 
 \begin{lstlisting}[caption={Uint8Array to {[]}byte}, captionpos=b, language=Go, label={lst:jscastingtogo}, captionpos=b]
-func progressiveHash(this js.Value, in []js.Value) interface{} {
+    func progressiveHash(this js.Value, in []js.Value) interface{} {
     array := in[0]
     buf := make([]byte, array.Get("length").Int())
     js.CopyBytesToGo(buf, array)
     return this
-}
+    }
 \end{lstlisting}
 
 \paragraph{Goroutines} Go features its own concurrency primitive called Goroutines.
@@ -211,41 +211,41 @@ The only information that the receiver of the signature file is the number of th
 Our original choice for the signature format is based on our work in Projekt2 which contained the following fields:
 
 \begin{itemize}
-	\item signature (Base64)
-	\item signature format (\gls{RSA-PSS}, \gls{Ed25519}, ?)
-	\item signature hash algorithm (\gls{SHA}256, \gls{SHA}3, ?)
-	\item timestamp according to \gls{RFC} 3161\footnote{\url{https://tools.ietf.org/html/rfc3161}}
-	\item public key (\gls{PEM})
-	\item issuing \gls{CA} (\gls{PEM})
-	\item subject
-	\item validity
-	\item level
+    \item signature (Base64)
+    \item signature format (\gls{RSA-PSS}, \gls{Ed25519}, ?)
+    \item signature hash algorithm (\gls{SHA}256, \gls{SHA}3, ?)
+    \item timestamp according to \gls{RFC} 3161\footnote{\url{https://tools.ietf.org/html/rfc3161}}
+    \item public key (\gls{PEM})
+    \item issuing \gls{CA} (\gls{PEM})
+    \item subject
+    \item validity
+    \item level
 \end{itemize}
 
 This format would be encoded as a protobuf message in order to not have an overly verbose file(as opposed to xml), but still having a schema and deterministic encoding(as opposed to json).
 
 \subsection{Adding LTV}
 During our work on this thesis we wanted to add \gls{LTV}, which meant adding all the certificate chains, \gls{OCSP} responses and \gls{CLR} of all involved parties, as well as a possibility to refresh the timestamps (yearly).
-While experimenting with parsing and generating the timestamp data and understanding the format we noticed, that we were reinventing the wheel a bit in our format. A lot of the info we wanted to include was already present by using a standard \gls{PKCS}#7 signature with enveloped data.
+While experimenting with parsing and generating the timestamp data and understanding the format we noticed, that we were reinventing the wheel a bit in our format. A lot of the info we wanted to include was already present by using a standard \gls{PKCS}\#7 signature with enveloped data.
 This means we just need to specify how this enveloped data looks like and how we wrap all the timestamps with the \gls{LTV} information in the protobuf message.
 
 \subsection{Final Format}
 
-First the specification of the enveloped data in the \gls{PKCS}#7 signature
+First the specification of the enveloped data in the \gls{PKCS}\#7 signature
 
 \begin{itemize}
-	\item Hash of the document
-	\item used hashing algorithm
-	\item key for the \gls{MAC}
-	\item \gls{MAC} used
-	\item list of the \gls{MACs} of all other documents that were signed together (needed for link between ID token and signature)
-	\item signature level (advanced/qualified)
-	\item ID token
-	\item \gls{CA} chain of the \gls{IDP}
-	\item \gls{OCSP} response for the \gls{IDP} \gls{CA}
-	\item \gls{CRL} for the \gls{IDP} \gls{CA}
+    \item Hash of the document
+    \item used hashing algorithm
+    \item key for the \gls{MAC}
+    \item \gls{MAC} used
+    \item list of the \gls{MAC}s of all other documents that were signed together (needed for link between ID token and signature)
+    \item signature level (advanced/qualified)
+    \item ID token
+    \item \gls{CA} chain of the \gls{IDP}
+    \item \gls{OCSP} response for the \gls{IDP} \gls{CA}
+    \item \gls{CRL} for the \gls{IDP} \gls{CA}
 \end{itemize}
 
-The \gls{PKCS}#7 encoded signature together with the \gls{OCSP} response and \gls{CRL} of the signing \gls{CA} will be the message that is hashed in the message imprint of the \gls{RFC}3161 timestamp.
+The \gls{PKCS}\#7 encoded signature together with the \gls{OCSP} response and \gls{CRL} of the signing \gls{CA} will be the message that is hashed in the message imprint of the \gls{RFC}3161 timestamp.
 
-To refresh the signature the included timestamp and the \gls{OCSP} response and \gls{CRL} of the timestamping \gls{CA} will be used as the message  that is hashed in the message imprint of the next \gls{RFC}3161 timestamp.
+To refresh the signature the included timestamp and the \gls{OCSP} response and \gls{CRL} of the timestamping \gls{CA} will be used as the message that is hashed in the message imprint of the next \gls{RFC}3161 timestamp.
