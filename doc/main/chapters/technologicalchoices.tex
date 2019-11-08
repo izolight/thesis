@@ -149,10 +149,10 @@ Now all that's needed is a little boilerplate to convert a JavaScript \texttt{Ui
 
 \begin{lstlisting}[caption={Uint8Array to {[]}byte}, captionpos=b, language=Go, label={lst:jscastingtogo}, captionpos=b]
     func progressiveHash(this js.Value, in []js.Value) interface{} {
-    array := in[0]
-    buf := make([]byte, array.Get("length").Int())
-    js.CopyBytesToGo(buf, array)
-    return this
+        array := in[0]
+        buf := make([]byte, array.Get("length").Int())
+        js.CopyBytesToGo(buf, array)
+        return this
     }
 \end{lstlisting}
 
