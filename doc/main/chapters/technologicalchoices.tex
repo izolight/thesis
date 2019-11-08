@@ -207,46 +207,64 @@ the Rust-based implementation running in the \gls{WASM} \gls{VM}.
 The original protocol is based on our work in Projekt 2~\cite{projekt2}.
 
 \subsection{Flaws of the Original Protocol}\label{subsec:flaws-of-the-original-protocol}
-The original design employed a server-side secret nonce to generate the nonce used in the \gls{OIDC} ID token,
+The original design employed a server-side secret nonce to generate the nonce used in the \gls{OIDC} authentication request,
 which needed to be kept in memory until the signer returned with the ID token from their trip to the \gls{IDP}.
-This could be abused to \gls{DoS} the signing server,
-and it made this part of the signing server stateful.
+This could be abused to \gls{DoS} the signing server, and it made this part of the signing server stateful.
 
 Furthermore,
 for the verification of the signature all documents that were signed together needed to be present at the time of verification,
 since their hashes were incorporated in the \gls{OIDC} nonce.
 
+Moreover, multi-signatures, while technically possible, were made impractical for some applications:
+If a single person wishes to sign multiple documents at once that will be used together,
+(for example, an apartment rental contract, house rules, and a bank deposit confirmation)
+this won't be a problem.
+However, if multiple, independent documents are to be signed together
+(for example, a company sending 50 bills to 50 different customers),
+having to send each customer all the bills is just silly.
+
 \subsection{Draft 1: Making the Protocol stateless}\label{subsec:draft-1:-making-the-protocol-stateless}
-Storing the secret nonce on the signing server is undesirable,
-so we thought about changing the protocol to make this part stateless.
+Since storing the secret nonce on the signing server is undesirable,
+we thought about changing the protocol to make this part stateless.
 
 To achieve this, we introduce two more nonce-like values called \texttt{seed} and \texttt{salt}.
 The \texttt{seed} is a randomly generated value that is used to verify the id token when the signer returns from the \gls{IDP}.
 The \texttt{salt} is the \gls{MAC} of the document hash(es) concatenated with the \texttt{seed}, using a static server side secret as key.
 
-It takes the role of the original nonce that was used to construct the \gls{OIDC} nonce and protects against the \gls{IDP} gaining knowledge of the signed hashes and to protect against the \gls{IDP} learning about the document hashes.
+The \texttt{salt} takes the role of the original nonce that was used to construct the \gls{OIDC} nonce and protects against the \gls{IDP} gaining knowledge of the signed hashes and to protect against the \gls{IDP} learning about the document hashes.
 
 The signing server returns both the \texttt{seed} and the \texttt{salt} to the client,
 which then constructs the \gls{OIDC} nonce.
 The \gls{OIDC} nonce is now the \gls{MAC} of the list of hashes with the \texttt{salt} used as key.
 
-When the signer returns it will present the \texttt{seed}, \texttt{salt}, the hashes and ID token to the signing server.
+When the signer returns to the signing server, it presents the \texttt{seed}, \texttt{salt}, the hashes and ID token.
 Using the \texttt{seed} and the static secret the server can reconstruct the \texttt{salt} and verify that the presented \texttt{salt} is the same.
 
-This functions as a \gls{CSRF} protection or an malicious \gls{IDP} requesting signatures, while also keeping the server stateless.
+This functions as a \gls{CSRF} protection of a malicious \gls{IDP} requesting signatures using past values,
+while also allowing us to keep the signing server stateless.
+
 After this step the \texttt{seed} will not be used anymore and therefore doesn't need to be in the signature document.
 The \gls{OIDC} token will then be verified with the \texttt{salt} and the hashes.
 
 \subsection{Draft 2: Improving signing of multiple documents}\label{subsec:draft-2:-improving-signing-of-multiple-documents}
-Even with the improvements in draft 1, still only one signature file will be generated for multiple documents.
+Even with the improvements in draft 1 (section~\ref{subsec:draft-1:-making-the-protocol-stateless}),
+only one signature file will be generated for multiple documents, incorporating all document hashes irrevocably linked together.
+Verifying the signature would require having all documents present, which is impractical.
 
-Our first idea was to include the hashes of the other documents signed together and then generate a signature for each file.
-The hashes would be sorted before given as input to the \gls{MAC} in the verification step.
-This however would leak information about the other documents as they would be just plain hashes.
+To solve this, our first idea was to include the hashes of the other documents, signed together,
+and then generate a signature for each file.
+The sorted list of hashes is fed to the \gls{MAC} function in the verification step.
+This however would leak information about the other documents, as they would be just plain hashes.
+We put a lot of thought into minimising the amount of information all involved actors learn,
+such as masking the document hash from the \gls{IDP}, and we're not satisfied with a solution where the other recipients learn
+about unrelated document hashes just because they were signed together.
 
-The better solution for this would be to generate a \gls{MAC} of each hash with the salt as key and include that in the signature file with the \gls{OIDC} nonce just being the hash of the sorted \gls{MAC}s.
-This way the own \gls{MAC} can be generated during verification with the other \gls{MAC}s just being used as input parameters without leaking the hashes of the documents.
-The only information that the receiver of the signature file is the number of the documents that were signed together, granted the used \gls{MAC} is still cryptographically secure.
+The better solution for this would be to generate a \gls{MAC} of each hash with the \texttt{salt} as key and include that in the signature file,
+with the \gls{OIDC} nonce just being the hash of the sorted \gls{MAC}s.
+
+This way the verifiers' own \gls{MAC} can be generated during verification with the other \gls{MAC}s just being used as additional input parameters without leaking the hashes of the documents.
+Assuming the \gls{HMAC} function used is secure,
+the only information that the receiver of the signature file could learn is the number of the documents that were signed together.
 
 \section{Signature Format}
 \label{sec:signatureformat}
