@@ -1,92 +1,203 @@
 \chapter{Technical Specification}
 \section{Protocol}
 
+In this section, we provide an explanation of the protocol and the values used in it.
+
 The protocol of our signing service consists of five main phases:
 
 \begin{itemize}
-	\item Pre-Login
-	\item Login
-	\item Post-Login
-	\item Signature Generation
-	\item Signature Verification
+	\item Pre-Login (see~\ref{subsec:pre-login})
+	\item Login (see~\ref{subsec:login})
+	\item Post-Login (see~\ref{subsec:post-login})
+	\item Signature Generation (see~\ref{subsec:signature-generation})
+	\item Signature Verification (see~\ref{subsec:signature-verification})
 \end{itemize}
 
-\includegraphics[scale=0.5]{images/protocol_signature_generation_high_level.png}
+For a high-level overview of these phases, see figure~\ref{fig:highlevelprotocoloverview}.
 
-\subsection{Pre-Login}
-In this phase the signer provides a list of hashes to signing service. 
+\begin{figure}
+	\begin{center}
+		\includegraphics[scale=0.5]{images/protocol_signature_generation_high_level.png}
+		\caption{High-level protocol overview}
+		\label{fig:highlevelprotocoloverview}
+	\end{center}
+\end{figure}
 
-Afterwards the signing service generates a random seed value. This seed and a secret only known to the server will be used to calculate the key that will be used to generate a \gls{HMAC} of the sorted list of hashes. The \gls{HMAC} will be used as a salt to the hashes in the \gls{OIDC} nonce. The key consists simply of appending the secret to the seed.
+\subsection{Pre-Login}\label{subsec:pre-login}
+In this phase the signer provides a list of hashes to signing service
+(this list may consist of just one entry in case the signer wishes to sign a single document).
 
-Purpose of the salt:
-The salt is used to protect the hashes in the \gls{OIDC} nonce both from the \gls{IDP}, so that it doesn't know if two people sign the same document(s) and the receiver of the signature as it needs a list of all hashes that have been signed together to verify the signature.
+Then, the signing service generates a random \texttt{seed} value.
+This \texttt{seed}, together with a \texttt{secret} known to the server only,
+is be used to calculate the key that is used to generate a \gls{HMAC} of the sorted list of hashes.
+The resulting \gls{HMAC} is used as a \texttt{salt} for the hashes in the \gls{OIDC} nonce.
+The key consists of the \texttt{secret} appended to the \texttt{seed}.
 
-Purpose of the seed:
-The seed is used as a \gls{CSRF} protection mechanism without keeping any state on the server.
-If no seed is used for generating the salt, the signing server needs to keep it in memory and attach it to the users session in order to verify if the hashes or the salt weren't replaced while generating the \gls{OIDC} nonce.
-If the signing server doesn't verify this it would enable clients/attackers to skip the Pre-Login step.
+\paragraph{Purpose of the salt}
+The salt is used to mask the document hashes in the \gls{OIDC} nonce both from the \gls{IDP},
+so that it doesn't know whether two people sign the same document(s),
+and the recipient of the signature, as they need a list of all hashes that have been signed together
+in order to be able to verify the signature.
 
-The server than returns a list of \gls{IDP} choices, the seed and the salt to the client.
+\paragraph{Purpose of the seed}
+The \texttt{seed} is used as a \gls{CSRF} protection mechanism without the need for the server to keep any state.
+If no such \texttt{seed} were used for generating the salt,
+the signing server would be required to keep it in memory and attach it to the users session,
+in order to be able to verify whether the hashes or the salt weren't replaced while generating the \gls{OIDC} nonce
+(thus establishing the secure link between the document hashes and the authentication).
+If the signing server didn't verify this, it would enable attackers to skip the Pre-Login step (see~\ref{subsec:pre-login}).
 
-\includegraphics[scale=0.5]{images/protocol_step1_seed_generation.png}
+The server than returns a list of \gls{IDP} choices as well as the \texttt{seed} and the \texttt{salt} to the client.
 
-\subsection{Login}
-The client generates the nonce used for the \gls{OIDC} request which consists of the Hash of the sorted list of \gls{HMAC}s of the Hashes with the returned salt used as key. 
-Next the client chooses an \gls{IDP} and adds the nonce to the request parameters and then follows the link. At the \gls{IDP} the client signs in and gets an ID token back.
+For a sequence diagram of this phase, see figure~\ref{fig:seedgenerationstep}.
 
-\includegraphics[scale=0.5]{images/protocol_step2_nonce_generation.png}
+\begin{figure}
+	\begin{center}
+		\includegraphics[scale=0.5]{images/protocol_step1_seed_generation.png}
+		\caption{Seed generation step}
+		\label{fig:seedgenerationstep}
+	\end{center}
+\end{figure}
 
-\includegraphics[scale=0.5]{images/protocol_step3_oidc_authentication.png}
+\subsection{Login}\label{subsec:login}
+The client generates the nonce used for the \gls{OIDC} request,
+consisting of the hash of the sorted list of \gls{HMAC}s of the hashes with the \texttt{salt} as key.
+For a graphical representation of this, see figure~\ref{fig:noncegenerationstep}.
+Next, the client chooses an \gls{IDP}, and adds the nonce they just generated to the request parameters and then follows the link.
+The client then authenticates with the \gls{IDP} and receives their ID token as seen in figure~\ref{fig:oidcauthenticationstep}.
 
-\subsection{Post-Login}
-The client sends the ID token, the list of hashes, the seed and the salt to the signing service. The signing service then proceeds to verify the salt, OIDC nonce and ID token.
-After verifying the salt, the seed is not used anymore.
-\includegraphics[scale=0.5]{images/protocol_step4_id_token_verification.png}
+\begin{figure}
+	\begin{center}
+		\includegraphics[scale=0.5]{images/protocol_step2_nonce_generation.png}
+		\caption{Nonce generation step}
+		\label{fig:noncegenerationstep}
+	\end{center}
+\end{figure}
 
-\subsection{Signature Generation}
-The signing server requests a new signing key from the hsm, which will generate a private key and return a \gls{CSR}.
-The \gls{CSR} is sent to the \gls{CA} where it will be signed and the signed certificate is returned.
-Each hash is then submitted to the \gls{HSM} in order to be signed by the generated key.
+\begin{figure}
+	\begin{center}
+		\includegraphics[scale=0.5]{images/protocol_step3_oidc_authentication.png}
+		\caption{OIDC authentication step}
+		\label{fig:oidcauthenticationstep}
+	\end{center}
+\end{figure}
 
-For each hash an intermediate signature file consisting of the signed hash, the ID token, the salt and a sorted list of all other salted hashes.
-The hash of this file is sent to a \gls{TSA} where a signed timestamp will be created and returned.
-The signed timestamp and all the certificate chains and ocsp responses of the involved parties will be added to signature file, which is then returned to the user.
+\subsection{Post-Login}\label{subsec:post-login}
+As shown in figure~\ref{fig:tokenverificationstep},
+the client sends the ID token, the list of hashes, the \texttt{seed} and the \texttt{salt} to the signing service.
+The signing service then verifies the \texttt{salt}, OIDC nonce and ID token.
+After this step, the \texttt{seed} is not used anymore and should be discarded.
 
-\includegraphics[scale=0.45]{images/protocol_step5_signature_generation.png}
 
-\subsection{Signature Verification}
+\begin{figure}
+	\begin{center}
+		\includegraphics[scale=0.5]{images/protocol_step4_id_token_verification.png}
+		\caption{Token verification step}
+		\label{fig:tokenverificationstep}
+	\end{center}
+\end{figure}
 
-The signature verification can either be online or offline.
+\subsection{Signature Generation}\label{subsec:signature-generation}
+The signing server requests a new signing key from the \gls{HSM}, which in turn generates a private key and returns a \gls{CSR}.
+This \gls{CSR} is sent to the \gls{CA} where it is signed and the signed certificate returned.
 
-For the online verification the user uploads the hash and the signature file to the verification server.
+Each hash is then submitted to the \gls{HSM} to be signed by the signing key.
 
-\includegraphics[scale=0.5]{images/protocol_online_verification_high_level.png}
+Then, for each hash an intermediate signature file consisting of the signed hash,
+the ID token, the \texttt{salt} and a sorted list of all other salted hashes is created.
+The hash of this file is sent to a \gls{TSA} where a signed timestamp is created and returned.
 
-For the offline verification the user downloads the verification server program and starts it and then uploads the hash and signature file.
+Finally, the signed timestamp, and all the certificate chains,
+\gls{OCSP} responses and \gls{CRL}s of the involved parties,
+is added to signature file, which is then returned to the user.
 
-\includegraphics[scale=0.5]{images/protocol_offline_verification_high_level.png}
+See figure~\ref{fig:signaturegenerationstep} for a sequence diagram of this process.
 
-To verify a signature the verifier first needs to verify the signed timestamp(s) and their respective ca chains.
+\begin{figure}
+	\begin{center}
+		\includegraphics[scale=0.45]{images/protocol_step5_signature_generation.png}
+		\caption{Signature generation step}
+		\label{fig:signaturegenerationstep}
+	\end{center}
+\end{figure}
 
-\includegraphics[scale=0.5]{images/protocol_verification_step1_timestamp.png}
+\subsection{Signature Verification}\label{subsec:signature-verification}
 
-The signature then can be verified.
-Next the certificate chain for the signing certificate needs to be verified.
+The signature verification can either be online (figure~\ref{fig:onlinesignatureverificationprotocol})
+or offline (figure~\ref{fig:offlinesignatureverificationprotocol}).
 
-\includegraphics[scale=0.5]{images/protocol_verification_step2_signature.png}
+For online verification, the user simply uploads the list of hashes and the signature file to the verification service.
 
-The ID token itself needs to be verified.
-Then the certificate chain for the ID token needs to be verified.
+\begin{figure}
+	\begin{center}
+		\includegraphics[scale=0.5]{images/protocol_online_verification_high_level.png}
+		\caption{Online Signature Verification Protocol}
+		\label{fig:onlinesignatureverificationprotocol}
+	\end{center}
+\end{figure}
 
-\includegraphics[scale=0.5]{images/protocol_verification_step3_id_token.png}
+For the offline verification, the user downloads the verification programme and starts it.
+Then, they upload the list of hashes and signature file just as if they were using online verification,
+but to their own copy of the verification service running on their computer without needing any network connection
+instead of a remote verification service.
 
-The included hash needs to be salted and then together with the sorted list of salted hashes hashed.
+\begin{figure}
+	\begin{center}
+		\includegraphics[scale=0.5]{images/protocol_offline_verification_high_level.png}
+		\caption{Offline Signature Verification Protocol}
+		\label{fig:offlinesignatureverificationprotocol}
+	\end{center}
+\end{figure}
+
+To verify a signature,
+the verifier first needs to verify the chain of signed timestamps and their respective \gls{CA} chains (figure~\ref{fig:timestampverificationstep}).
+
+\begin{figure}
+	\begin{center}
+		\includegraphics[scale=0.5]{images/protocol_verification_step1_timestamp.png}
+		\caption{Timestamp verification step}
+		\label{fig:timestampverificationstep}
+	\end{center}
+\end{figure}
+
+The signature itself can then be verified (figure~\ref{fig:signaturegenerationstep}), along with
+the certificate chain for the signing certificate.
+
+\begin{figure}
+	\begin{center}
+		\includegraphics[scale=0.5]{images/protocol_verification_step2_signature.png}
+		\caption{Signature verification step}
+		\label{fig:signatureverificationstep}
+	\end{center}
+\end{figure}
+
+Then, the ID token itself needs to be verified,
+as well as the certificate chain of the key used to sign the ID token (figure~\ref{fig:idtokenverification}).
+
+\begin{figure}
+	\begin{center}
+		\includegraphics[scale=0.5]{images/protocol_verification_step3_id_token.png}
+		\caption{ID token verification}
+		\label{fig:idtokenverification}
+	\end{center}
+\end{figure}
+
+In order to verify the link of the document hashes with the ID token,
+the document hash needs to be salted, inserted into the sorted list of the other salted hashes,
+and the resulting list hashed again.
 The result must be the same as the nonce in the ID token.
-At last the hash of the document MUST match the included hash.
+At last, the hash of the document must match the included hash.
+Figure~\ref{fig:signaturedataverification} illustrates this process.
 
-\includegraphics[scale=0.5]{images/protocol_verification_step4_signature_data.png}
+\begin{figure}
+	\begin{center}
+		\includegraphics[scale=0.5]{images/protocol_verification_step4_signature_data.png}
+		\caption{Signature data verification}
+		\label{fig:signaturedataverification}
+	\end{center}
+\end{figure}
 
-\section{REST API}
+\section{REST API}\label{sec:rest-api}
 Endpoints:
 
 \begin{tabular}{|l|l|l|}
