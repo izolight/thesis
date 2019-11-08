@@ -1,0 +1,237 @@
+\chapter{Source Code for In-Browser Hashing}\label{ch:in-browser-hashing-code}
+
+\section{Golang}\label{sec:golang}
+
+\begin{lstlisting}[language=Go]
+    package main
+
+    import (
+    "crypto/sha256"
+    "fmt"
+    "syscall/js"
+    "time"
+    )
+
+    var hasher = sha256.New()
+    var start time.Time
+
+    func registerCallbacks() {
+    js.Global().Set("progressiveHash", js.FuncOf(progressiveHash))
+    js.Global().Set("startHash", js.FuncOf(startHash))
+    js.Global().Set("getHash", js.FuncOf(getHash))
+    }
+
+    func progressiveHash(this js.Value, in []js.Value) interface{} {
+    array := in[0]
+    buf := make([]byte, array.Get("length").Int())
+    js.CopyBytesToGo(buf, array)
+    hasher.Write(buf)
+    return this
+    }
+
+    func startHash(this js.Value, in []js.Value) interface{} {
+    start = time.Now()
+    fmt.Printf("Start: %s\n", start.Format(time.RFC3339Nano))
+    hasher = sha256.New()
+    return this
+    }
+
+    func getHash(this js.Value, in []js.Value) interface{} {
+    hash := hasher.Sum(nil)
+    hashStr := fmt.Sprintf("%x", hash)
+    fmt.Printf("Hash: %s\n", hashStr)
+    end := time.Now()
+    fmt.Printf("End: %s\n",end.Format(time.RFC3339Nano))
+    fmt.Printf("Took %s\n", end.Sub(start))
+
+    return js.ValueOf(hashStr)
+    }
+
+    func waitForever() {
+    c := make(chan struct{}, 0)
+    <-c
+    }
+
+    func main() {
+    fmt.Println("WASM Go Initialized")
+    registerCallbacks()
+    waitForever()
+    }
+\end{lstlisting}
+
+
+\section{Rust}
+
+\begin{lstlisting}[language=Rust]
+    extern crate sha2;
+    extern crate wasm_bindgen;
+
+    use std::cell::Cell;
+    use std::string::String;
+
+    use sha2::Digest;
+    use sha2::Sha256;
+    use wasm_bindgen::prelude::*;
+
+    #[wasm_bindgen]
+    pub struct Sha256hasher {
+    hasher: Cell<Sha256>,
+    }
+
+    #[wasm_bindgen]
+    impl Sha256hasher {
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> Sha256hasher {
+    Sha256hasher {
+    hasher: Cell::new(Sha256::default()),
+    }
+    }
+
+    pub fn update(&mut self, input_bytes: &[u8]) {
+    let hasher = self.hasher.get_mut();
+    hasher.input(input_bytes)
+    }
+
+    pub fn hex_digest(&mut self) -> String {
+    let hasher = self.hasher.take();
+    let output = hasher.result();
+    self.hasher = Cell::new(Sha256::default());
+    return format!("{:x}", output);
+    }
+    }
+\end{lstlisting}
+
+\section{Reading a file piece-wise in TypeScript}
+\begin{lstlisting}[language=Javascript]
+
+interface FileChunkDataCallback {
+(data: Uint8Array): void
+}
+
+interface ErrorCallback {
+(message: string): void
+}
+
+interface FileReaderOnLoadCallback {
+(event: ProgressEvent): void
+}
+
+interface ProgressCallback {
+(percentCompleted: number): void
+}
+
+interface ProcessingCompletedCallback {
+(startTime: Date, endTime: Date, fileSize: number): void
+}
+
+
+class FileInChunksProcessor {
+public readonly CHUNK_SIZE_IN_BYTES: number = 1024 * 1000 * 20;
+private readonly fileReader: FileReader;
+private readonly dataCallback: FileChunkDataCallback;
+private readonly errorCallback: ErrorCallback;
+private readonly processingCompletedCallback: ProcessingCompletedCallback;
+private readonly progressCallback: ProgressCallback;
+private start: number = 0;
+private end: number = this.start + this.CHUNK_SIZE_IN_BYTES;
+private startTime?: Date;
+private numChunks: number = 0;
+private chunkCounter: number = 0;
+private inputFile: File | null = null;
+
+constructor(dataCallback: FileChunkDataCallback,
+errorCallback: ErrorCallback,
+progressCallback: ProgressCallback,
+processingCompletedCallback: ProcessingCompletedCallback) {
+this.fileReader = new FileReader();
+this.fileReader.onload = this.getFileReadOnLoadHandler();
+this.dataCallback = dataCallback;
+this.errorCallback = errorCallback;
+this.processingCompletedCallback = processingCompletedCallback;
+this.progressCallback = progressCallback;
+}
+
+public processChunks(inputFile: File) {
+this.inputFile = inputFile;
+this.startTime = new Date();
+this.numChunks = Math.round(this.inputFile.size / this.CHUNK_SIZE_IN_BYTES);
+this.read(this.start, this.end);
+}
+
+public getFileFromElement(elementId: string): File | undefined {
+const filesElement = q(elementId) as HTMLInputElement;
+
+if (Validate.notNull(filesElement.files)) {
+if (filesElement.files.length < 0) {
+this.errorCallback("Too few files specified. Please select one file.")
+} else if (filesElement.files.length > 1) {
+this.errorCallback("Too many files specified. Please select one file.")
+} else {
+return filesElement.files[0];
+}
+}
+}
+
+private getFileReadOnLoadHandler(): FileReaderOnLoadCallback {
+return () => {
+if (Validate.notNull(this.inputFile)) {
+this.dataCallback(new Uint8Array((this.fileReader.result as ArrayBuffer)));
+
+this.start = this.end;
+if (this.end < this.inputFile.size) {
+this.chunkCounter++;
+this.end = this.start + this.CHUNK_SIZE_IN_BYTES;
+this.progressCallback(
+Math.round((this.chunkCounter / this.numChunks) * 100));
+this.read(this.start, this.end);
+} else {
+if (Validate.notNullNotUndefined(this.startTime)) {
+this.processingCompletedCallback(
+this.startTime, new Date(), this.inputFile.size);
+}
+this.progressCallback(100);
+}
+}
+}
+}
+
+private read(start: number, end: number) {
+if (Validate.notNull(this.inputFile)) {
+this.fileReader.readAsArrayBuffer(this.inputFile.slice(start, end));
+}
+}
+
+function errorHandlingCallback(message: string) {
+const errorElement = q("error");
+errorElement.innerHTML = `${errorElement.innerHTML} <p>${message}</p>`;
+}
+
+function progressCallback(percentCompleted: number) {
+if (percentCompleted == 100) {
+q("progress").innerText = `Completed!`
+} else {
+q("progress").innerText = `Hashing: ${percentCompleted}%`
+}
+}
+
+export function processFileButtonHandler(wasmHasher: Sha256hasher) {
+const startElement = q("start");
+const startTime = new Date();
+startElement.innerText = "started at " + dateObjectToTimeString(startTime);
+
+const processor = new FileInChunksProcessor((data) => {
+wasmHasher.update(new Uint8Array((data)));
+},
+errorHandlingCallback,
+progressCallback,
+(startTime, endTime, sizeInBytes) => {
+const hashStr = wasmHasher.hex_digest();
+wasmHasher.free();
+}
+);
+const file = processor.getFileFromElement("file");
+if (Validate.notNullNotUndefined(file)) {
+processor.processChunks(file);
+}
+}
+\end{lstlisting}

@@ -9,13 +9,24 @@ The backend is divided into two parts, the signing server and the verification s
 The signing service is implemented in the Kotlin programming language~\cite{kotlin} using the Ktor framework~\cite{ktor}.
 The verification servie is implemented in the Go programming language~\cite{golang}.
 
-We chose to split it in two because signature verification has to be available both online and offline.
+We chose to split the backend into two because signature verification has to be available both online and offline.
 The verification service being separate allows us to ship a smaller program,
-and since Go binaries are always statically linked we don't have to worry about handling dependencies.
+and since Go binaries are always statically linked we don't have to worry about shipping dependencies.
 
-We chose Kotlin because it is a modern and concise programming language,
-providing guaranteed null safety, coroutines for asynchronous programming, higher-order functions and more.
-It's like Java done right.
+For the signing service we chose Kotlin because it is a modern and concise programming language,
+providing guaranteed null safety, coroutines for asynchronous programming, higher-order functions and more,
+and it's genuinely nice to program in.
+Kotlin offers seamless Java interopability, allowing us to make use of the excellent and extensive Java ecosystem.
+
+Using two different programming languages and sets of libraries,
+implementing common formats and protocols independently from specification alone,
+allows us to hedge against the risk of some flaws in the libraries: if a library used in the signing service produced flawed output,
+it would likely be discovered by the verification service since it uses a different implementation of the same concepts.
+The exact same flaw being present in two different libraries implemented in different programming languages is rather small.
+
+On top of that, we can test ourselves how well we've specified the protocols and formats:
+if these two services can be used together without problems, the specification was precise enough.
+If not, we learn where we must improve it, which is a win-win situation.
 
 \section{Frontend}
 \label{sec:techfrontend}
@@ -27,22 +38,27 @@ we could use Flutter~\cite{flutterframework}.
 However, developing three applications on five platforms using two new-to-us frameworks and programming languages
 would take a lot more time and resources than what is available to us in the scope of this thesis.
 
-In order to reduce complexity we decide to implement the frontend as a web application, capable of running
-in any modern web browser regardless of platform, be it mobile or desktop.
+In order to reduce complexity and enable code reuse, we decide to implement the frontend as a web application.
+Web frontents are capable of running in any modern web browser regardless of platform, be it mobile or desktop.
 We're not happy about this, as we would much rather use mature, strongly-typed and well-designed languages and frameworks,
 but we're forced to make this compromise in order to meet our objectives in the time available.
-In order to reduce the pain, we will use TypeScript, which is a strongly typed superset of JavaScript~\cite{loltypes}.
+In order to reduce the pain, we will use TypeScript, which is a typed superset of JavaScript~\cite{loltypes}.
 
 \subsection{Client-Side File Hashing in the Web Browser}
 \label{subsec:browserhashing}
-This decision presents us with a challenge: hashing the files to be signed client-side in the web browser itself.
+However, the decision to implement the frontend as a web application presents us with a challenge:
+hashing the files to be signed client-side in the web browser itself.
 If we had implemented "proper" client applications this would've been easy, but in a web browser and using its
-JavaScript language not so much: they weren't designed with file I/O and CPU-intensive cryptographic functions in mind.
+JavaScript language not so much: it simply wasn't designed with file I/O and CPU-intensive cryptographic functions in mind.
+
 The easiest solution would be to upload the files to be signed to the server and hash them there,
 but this would be a clear violation of the least-information principle (the server doesn't need the file, only the hash)
 and a breach of user privacy.
+Nevermind the fact that signing large files could take a very long time over slow network connections,
+and turn out to be quite expensive for mobile users billed for data by volume.
+
 Another solution would be to ask the user to enter the file hashes instead of selecting files,
-but this would be very user-unfriendly and probably downright impossible for many people.
+but this would be very user-unfriendly and most likely too much to ask from many users.
 
 It is clear we must find a way to hash files in the web browser itself.
 In order to achieve this we have found the following options:
@@ -59,7 +75,7 @@ Each of these options comes with a number of advantages and disadvantages, as di
 \label{subsubsec:subtlecrypto}
 The \texttt{SubtleCrypto} class offers the \texttt{digest(algorithm, data)} method~\cite{subtlecrypto}, which can be used to
 calculate \gls{SHA-256} checksums.
-The advantage of using this implementation is that it is available in all modern browsers\footnote{Where modern browsers means Mozilla Firefox, Google Chrome/Chromium, and Microsoft Edge},
+The advantage of using this implementation is that it is available in all modern browsers\footnote{Where modern browsers means Mozilla Firefox, Google Chrome/Chromium, and Microsoft Edge, not older than the respective versions available in 2018},
 and since it's executed with native code, being able to take advantage of \gls{AVX2} instructions, instead of JavaScript it should be quite fast.
 There's a major drawback though: hashing a large amount of data progressively is not supported, the data has to be
 passed to the function en bloc, as seen in listing~\ref{lst:subtlecrypto}.
@@ -96,20 +112,24 @@ as seen in listing~\ref{lst:cryptojsprogressive}.
 
 The advantage of using \texttt{CryptoJS} over \texttt{SubtleCrypto} is, as mentioned, the ability to hash piece-wise.
 The disadvantage is that we need to load a third-party JavaScript library, using built-in functionality would be preferable.
-And since JavaScript is an interpreted language, using it to calculate the checksums would presumably result in significantly lower performance.
-
+And since JavaScript is an interpreted language, using it to calculate the checksums would result in significantly worse performance.
+This is a problem especially on mobile devices limited in compute and memory resources as well as battery capacity.
+Since we want to support mobile devices properly, and don't want to limit users to small files, we must do better.
 
 \subsubsection{Using a WASM-based implementation}
 \label{subsubsec:wasmhashing}
-\gls{WASM} provides a low-level virtual machine running machine-independent binary code, comparable to the \gls{JVM} or the \gls{CLR}, albeit much simpler and much less sophisticated.
-By using this virtual machine we should be able to, in theory, run code at near-native speed written in a statically-typed, compiled language such as Rust, C++ or Go.
-We expect significant performance gains over a JavaScript-based implementation.
-While developing the \gls{WASM}-based hashing program, we encountered some interesting challenges, as described in the following paragraphs.
+\gls{WASM} provides a low-level virtual machine in the web browser itself,
+running machine-independent binary code, comparable to the \gls{JVM} or the \gls{CLR},
+albeit much simpler and much less sophisticated.
+By using this virtual machine we should be able to run code at near-native speed written in a statically-typed, compiled language such as Rust, C/C++ or Go.
+Thus we expect significant performance gains over a JavaScript-based implementation.
+While developing the \gls{WASM}-based hashing programmes, we encountered some interesting challenges, as described in the following paragraphs.
 
 \paragraph{CORS Policy} While JavaScript can be executed simply by pointing the browser at a local \gls{HTML} file, the same doesn't work for \gls{WASM}.
 The browser's security policy forbids it due to its \gls{CORS} rule~\cite{cors}.
 We solved this by starting the \gls{HTTP} server built in to Go's standard library and having the browser load the \gls{WASM} binary through \gls{HTTP}.
 The code is in appendix~\ref{chap:appendix_golangwebserver}.
+For the Rust-based implementation we used the built-in web server of webpack~\cite{webpack}.
 
 \paragraph{JavaScript/WASM Compatibility} The Golang project conveniently provides a file containing the necessary boilerplate code to load, start and interact with \gls{WASM} programmes called \texttt{wasm\_exec.js}.
 But there's a catch: for each version of Go, the version of the accompanying \texttt{wasm\_exec.js} file used must match precisely.
@@ -141,27 +161,29 @@ From a programmers' perspective, they can be used like threads, but they carry m
 Communication between goroutines is achieved by using so-called channels, which on a high level are comparable to queues.
 Unfortunately, the \gls{WASM} specification wasn't drafted with this kind of concurrency in mind.
 Go is forced to unwind and restore the call stack when switching between goroutines, which is very expensive~\cite{lolnogoroutines}.
-We rewrote the Go programme to work without them, and we've seen a small performance improvement, as seen in figure~\ref{fig:hashingperformance}.
+We rewrote the Go programme to work without them, and we've seen a small but significant performance improvement.
 
 \paragraph{Rust based WASM}
-As the Go implementation also includes the Go runtime, which makes the wasm file much larger, and starts a program that
-will run continuously in the background it isn't the optimal choice for creating a WebAssembly implementation.
-As neither of us knows any other choice of the languages that compile to WebAssembly well, we first excluded them.
-However with the drawbacks of the Go based implementation we decided to try also implement a Rust based version to see
-how they compare both in performance and ease of development.
+As the Go implementation also includes the Go runtime,
+which makes the wasm file much larger,
+and starts a programme that will run continuously in the background it isn't the optimal choice for creating a WebAssembly implementation.
+As neither of us knows any other of the other languages that compile to WebAssembly well, we excluded them at first.
+However with the drawbacks of the Go based implementation we decided to try to implement a Rust-based version as well,
+in order to see how they compare both in performance and ease of development.
 
 
 \subsection{Performance Comparison}
 \label{subsec:perfcomphashing}
 No one likes waiting for slow software to do its work, and neither do we.
 This is why we decided to compare the performance of the aforementioned options in a simple test:
-we measure the time it takes for the browser to calculate the checksum of 1GB of random data using the three aforementioned methods.
+we measure the time it takes for the browser to calculate the checksum of 1GB of random data using the aforementioned methods.
 The code used for each example is in appendix TODO add test code and link here.
 The tests were run on Debian 10 using Firefox 69 on an Intel i7-8550U.
 The results can be seen in figure~\ref{fig:hashingperformance}.
-As expected, the in-browser implementation is the fastest by far, followed by the \gls{WASM}-based implementation.
-JavaScript is so slow it's not even competing.
-In order to have a baseline reference we compare the hashing speeds to the \texttt{openssl} command-line programme.
+
+As expected, the in-browser \texttt{SubtleCrypto}-implementation is the fastest, followed by the Rust-based implementation.
+JavaScript is so ridiculously slow it's not even trying to compete.
+In order to provide a reference to compare the hashing speeds to we include the performance of the \texttt{openssl} command-line programme.
 
 \begin{figure}
     \begin{center}
@@ -174,8 +196,9 @@ In order to have a baseline reference we compare the hashing speeds to the \text
 
 \subsection{Deciding On The In-Browser Hashing Implementation}
 \label{subsec:deciding-on-the-in-browser-hashing-implementation}
-It is clear from figure~\ref{fig:hashingperformance} that \texttt{SubtleCrypto} is significantly faster than the other options we tried.
-Unfortunately, since it doesn't support piece-wise hashing we're forced to pick the next-fastest option, the \gls{WASM}-based implementation.
+It is clear from figure~\ref{fig:hashingperformance} that \texttt{SubtleCrypto} is the fastest of the options we tried.
+Unfortunately, since it doesn't support piece-wise hashing we're forced to pick the next-fastest option,
+the Rust-based implementation running in the \gls{WASM} \gls{VM}.
 
 \section{Evolution of the Signing Protocol}
 \label{sec:signingprotocol}
