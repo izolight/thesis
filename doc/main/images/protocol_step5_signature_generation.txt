@@ -1,0 +1,36 @@
+title Step 5 - Signature Generation
+
+actor Signing Service
+actor HSM
+actor CA
+actor TSA
+
+Signing Service->HSM: request new signing key
+activate HSM
+HSM->HSM: generate key and CSR
+Signing Service<--HSM: send CSR
+deactivate HSM
+Signing Service->CA: send CSR
+activate CA
+CA->CA: sign CSR and generate certificate
+Signing Service<--CA: send certificate
+deactivate CA
+activate Signing Service
+loop for each document hash
+Signing Service->Signing Service: create signature data for hash
+note right of Signing Service: signature data:\n- document hash\n- hashing algorithm\n- MAC key(salt)\n- MAC algorithm\n- list of MACed other hashes\n- signature level\n- ID token\n- certificate chain of IDP\n- OCSP of IDP CA\n- CRL of IDP CA
+Signing Service->HSM: send signature data
+deactivate Signing Service
+activate HSM
+HSM->HSM: sign data
+Signing Service<--HSM: return pkcs#7 signed data
+deactivate HSM
+activate Signing Service
+Signing Service->Signing Service: generate TSQ for signed data
+Signing Service->TSS: send TSQ
+deactivate Signing Service
+activate TSS
+TSS->TSS: add signed\ntimestamp
+Signing Service<--TSS: return TSR
+deactivate TSS
+end

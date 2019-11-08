@@ -1,0 +1,7 @@
+title Step 2 - Nonce generation
+
+actor Signer
+activate Signer
+Signer->Signer: generate OIDC nonce
+note right of Signer:OIDC nonce:\nHash of the sorted list of\nHMAC(salt, hash)
+deactivate Signer

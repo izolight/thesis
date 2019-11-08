@@ -34,9 +34,14 @@ The server than returns a list of \gls{IDP} choices, the seed and the salt to th
 The client generates the nonce used for the \gls{OIDC} request which consists of the Hash of the sorted list of \gls{HMAC}s of the Hashes with the returned salt used as key. 
 Next the client chooses an \gls{IDP} and adds the nonce to the request parameters and then follows the link. At the \gls{IDP} the client signs in and gets an ID token back.
 
+\includegraphics[scale=0.5]{images/protocol_step2_nonce_generation.png}
+
+\includegraphics[scale=0.5]{images/protocol_step3_oidc_authentication.png}
+
 \subsection{Post-Login}
 The client sends the ID token, the list of hashes, the seed and the salt to the signing service. The signing service then proceeds to verify the salt, OIDC nonce and ID token.
 After verifying the salt, the seed is not used anymore.
+\includegraphics[scale=0.5]{images/protocol_step4_id_token_verification.png}
 
 \subsection{Signature Generation}
 The signing server requests a new signing key from the hsm, which will generate a private key and return a \gls{CSR}.
@@ -46,6 +51,8 @@ Each hash is then submitted to the \gls{HSM} in order to be signed by the genera
 For each hash an intermediate signature file consisting of the signed hash, the ID token, the salt and a sorted list of all other salted hashes.
 The hash of this file is sent to a \gls{TSA} where a signed timestamp will be created and returned.
 The signed timestamp and all the certificate chains and ocsp responses of the involved parties will be added to signature file, which is then returned to the user.
+
+\includegraphics[scale=0.45]{images/protocol_step5_signature_generation.png}
 
 \subsection{Signature Verification}
 To verify a signature the verifier first needs to verify the signed timestamp(s) and their respective ca chains.

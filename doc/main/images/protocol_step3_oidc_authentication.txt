@@ -1,0 +1,17 @@
+title Step 3 - OIDC authentication
+
+actor Signer
+actor IDP
+
+Signer->IDP: Follow redirect
+Signer<--IDP: ask credentials
+Signer->IDP: send credentials
+activate IDP
+IDP->IDP: verify credentials
+Signer<--IDP: ask MFA token
+deactivate IDP
+Signer->IDP: send MFA token
+activate IDP
+IDP->IDP: verify MFA token
+Signer<--IDP: return ID token
+deactivate IDP
