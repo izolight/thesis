@@ -269,45 +269,59 @@ the only information that the receiver of the signature file could learn is the 
 \section{Signature Format}
 \label{sec:signatureformat}
 
-\subsection{Original Format}
-Our original choice for the signature format is based on our work in Projekt2 which contained the following fields:
+\subsection{Original Format}\label{subsec:original-format}
+Our original specification for the signature format is based on our work in Projekt 2~\cite{projekt2} which contained the following fields:
 
 \begin{itemize}
-    \item signature (Base64)
-    \item signature format (\gls{RSA-PSS}, \gls{Ed25519}, ?)
-    \item signature hash algorithm (\gls{SHA}256, \gls{SHA}3, ?)
-    \item timestamp according to \gls{RFC} 3161\footnote{\url{https://tools.ietf.org/html/rfc3161}}
-    \item public key (\gls{PEM})
-    \item issuing \gls{CA} (\gls{PEM})
-    \item subject
-    \item validity
-    \item level
+    \item Signature (Base64)
+    \item Signature format (\gls{RSA-PSS}, \gls{Ed25519})
+    \item Signature hash algorithm (\gls{SHA}256, \gls{SHA}3)
+    \item Timestamp according to \gls{RFC} 3161\footnote{\url{https://tools.ietf.org/html/rfc3161}}
+    \item Public key (\gls{PEM})
+    \item Issuing \gls{CA} (\gls{PEM})
+    \item Subject
+    \item Validity
+    \item Level
 \end{itemize}
 
-This format would be encoded as a protobuf message in order to not have an overly verbose file(as opposed to xml), but still having a schema and deterministic encoding(as opposed to json).
+This format would be encoded as a protobuf message in order to not have an overly verbose file (as opposed to \gls{XML}),
+but still support having a schema (as opposed to \gls{JSON}).
 
-\subsection{Adding LTV}
-During our work on this thesis we wanted to add \gls{LTV}, which meant adding all the certificate chains, \gls{OCSP} responses and \gls{CLR} of all involved parties, as well as a possibility to refresh the timestamps (yearly).
-While experimenting with parsing and generating the timestamp data and understanding the format we noticed, that we were reinventing the wheel a bit in our format. A lot of the info we wanted to include was already present by using a standard \gls{PKCS}\#7 signature with enveloped data.
-This means we just need to specify how this enveloped data looks like and how we wrap all the timestamps with the \gls{LTV} information in the protobuf message.
+\subsection{Adding Long-Term Validation Capability}\label{subsec:adding-long-term-validation-capability}
+During our work on this thesis we wanted to add support for \gls{LTV},
+which meant adding all the certificate chains,
+\gls{OCSP} responses and \gls{CRL}s of all involved parties,
+as well as a means of refreshing the timestamps regularly.
 
-\subsection{Final Format}
+Additionally, a way to guard against \gls{CA} failure in the long term is required.
 
-First the specification of the enveloped data in the \gls{PKCS}\#7 signature
+While experimenting with parsing and generating the timestamp data and understanding the format we noticed,
+that we were reinventing the wheel a bit in our format.
+A lot of the information we wanted to encode is already included in the standard \gls{PKCS}\#7 signature with enveloped data.
+This means we just need to specify how this enveloped data looks like,
+and how we wrap all the timestamps with the \gls{LTV} information in the protobuf message,
+to establish the chain of timestamps for \gls{LTV} archival.
 
-\begin{itemize}
+\subsection{Final Format}\label{subsec:final-format}
+
+First, the specification of the enveloped data in the \gls{PKCS}\#7 signature:
+
+\begin{enumerate}
     \item Hash of the document
-    \item used hashing algorithm
-    \item key for the \gls{MAC}
+    \item Hashing algorithm employed
+    \item Key for the \gls{MAC}
     \item \gls{MAC} used
-    \item list of the \gls{MAC}s of all other documents that were signed together (needed for link between ID token and signature)
-    \item signature level (advanced/qualified)
+    \item List of the \gls{MAC}s of all other documents that were signed together (needed for link between ID token and signature)
+    \item Signature level (advanced/qualified)
     \item ID token
     \item \gls{CA} chain of the \gls{IDP}
     \item \gls{OCSP} response for the \gls{IDP} \gls{CA}
     \item \gls{CRL} for the \gls{IDP} \gls{CA}
-\end{itemize}
+\end{enumerate}
 
 The \gls{PKCS}\#7 encoded signature together with the \gls{OCSP} response and \gls{CRL} of the signing \gls{CA} will be the message that is hashed in the message imprint of the \gls{RFC}3161 timestamp.
 
-To refresh the signature the included timestamp and the \gls{OCSP} response and \gls{CRL} of the timestamping \gls{CA} will be used as the message that is hashed in the message imprint of the next \gls{RFC}3161 timestamp.
+To refresh the signature,
+the included timestamp and the \gls{OCSP} response and \gls{CRL} of the timestamping \gls{CA} will be used as the message that is hashed in the message imprint of the next \gls{RFC}3161 timestamp.
+This way, a hash-linked list of timestamps is built, each authenticating the timestamp that came before it.
+This list can be extended near-indefinitely.
