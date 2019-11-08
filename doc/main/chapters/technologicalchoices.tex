@@ -167,10 +167,47 @@ In order to have a baseline reference we compare the hashing speeds to the \text
 It is clear from figure~\ref{fig:hashingperformance} that \texttt{SubtleCrypto} is significantly faster than the other options we tried.
 Unfortunately, since it doesn't support piece-wise hashing we're forced to pick the next-fastest option, the \gls{WASM}-based implementation.
 
+\section{Evolution of the Signing Protocol}
+\label{sec:signingprotocol}
+
+\subsection{Original Protocol}
+The original protocol is based on our work in Projekt2.
+
+\subsection{Flaws of the Original Protocol}
+The original design used a server side secret to generate the nonce used in the \gls{OIDC} ID token, which needed to be kept in memory until the signer returned with the ID token. This could be abused to \gls{DoS} the signing server.
+
+Further for the verification of the signature all documents that were signed together needed to be present as their hashes were incorporated in the \gls{OIDC} nonce.
+
+\subsection{Draft 1: Making the Protocol stateless}
+To make the protocol stateless we introduce two more nonce-like values called seed and salt.
+The seed is a randomly generated value that will be just used to verify the id token when the signer returns.
+The salt is the \gls{MAC} of the hash(es) with the seed appended with a static server side secret as key.
+It takes the role of the original nonce that was used to construct the \gls{OIDC} nonce and protects against the \gls{IDP} gaining knowledge of the signed hashes and to protect against the \gls{IDP} gaining knowledge that the same documents are signed again.
+
+The signing server returns both the seed and the salt to the client, which then constructs the \gls{OIDC} nonce.
+The \gls{OIDC} nonce is now the \gls{MAC} of the list of hashes with the salt used as key.
+
+When the signer returns it will present the seed, salt, the hash(es) and ID token to the signing server.
+With the seed and the static secret the server can reconstruct the salt and verify that the presented salt is the same.
+This functions as a \gls{CSRF} protection or an malicious \gls{IDP} requesting signatures, while keeping the server stateless.
+After this step the seed will not be used anymore and therefore doesn't need to be in the signature document.
+The \gls{OIDC} token will then be verified with the salt and the hashes.
+
+\subsection{Draft 2: Improving signing of multiple documents}
+Even with the improvements in draft 1, still only one signature file will be generated for multiple documents.
+
+Our first idea was to include the hashes of the other documents signed together and then generate a signature for each file.
+The hashes would be sorted before given as input to the \gls{MAC} in the verification step.
+This however would leak information about the other documents as they would be just plain hashes.
+
+The better solution for this would be to generate a \gls{MAC} of each hash with the salt as key and include that in the signature file with the \gls{OIDC} nonce just being the hash of the sorted \gls{MAC}s.
+This way the own \gls{MAC} can be generated during verification with the other \gls{MAC}s just being used as input parameters without leaking the hashes of the documents.
+The only information that the receiver of the signature file is the number of the documents that were signed together, granted the used \gls{MAC} is still cryptographically secure.
+
 \section{Signature Format}
 \label{sec:signatureformat}
 
-\subsection{Base Format}
+\subsection{Original Format}
 Our original choice for the signature format is based on our work in Projekt2 which contained the following fields:
 
 \begin{itemize}
@@ -212,6 +249,3 @@ First the specification of the enveloped data in the \gls{PKCS}#7 signature
 The \gls{PKCS}#7 encoded signature together with the \gls{OCSP} response and \gls{CRL} of the signing \gls{CA} will be the message that is hashed in the message imprint of the \gls{RFC}3161 timestamp.
 
 To refresh the signature the included timestamp and the \gls{OCSP} response and \gls{CRL} of the timestamping \gls{CA} will be used as the message  that is hashed in the message imprint of the next \gls{RFC}3161 timestamp.
-
-
-
