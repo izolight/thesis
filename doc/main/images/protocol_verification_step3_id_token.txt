@@ -1,0 +1,18 @@
+title Step 3 - ID Token Verification
+
+actor Verification Service
+participant ID token Verifier
+participant Certificate Verifier
+
+Verification Service->ID token Verifier: send PKCS#7 enveloped data
+activate ID token Verifier
+ID token Verifier->ID token Verifier: decode signature data
+ID token Verifier->ID token Verifier: verify ID token
+ID token Verifier->Certificate Verifier: send OCSP response and CRL data
+activate Certificate Verifier
+Certificate Verifier->Certificate Verifier: verify OCSP response
+Certificate Verifier->Certificate Verifier: verify CRL
+ID token Verifier<--Certificate Verifier: return true/false
+deactivate Certificate Verifier
+Verification Service<--ID token Verifier: return true/false
+deactivate ID token Verifier

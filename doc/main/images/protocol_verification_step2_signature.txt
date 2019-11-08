@@ -1,0 +1,18 @@
+title Step 2 - Signature Verification
+
+actor Verification Service
+participant PKCS7 Verifier
+participant Certificate Verifier
+
+Verification Service->PKCS7 Verifier: send PKCS#7 enveloped signature
+activate PKCS7 Verifier
+PKCS7 Verifier->PKCS7 Verifier: verify signature
+Verification Service<--PKCS7 Verifier: return true/false
+deactivate PKCS7 Verifier
+Verification Service->Certificate Verifier: send OCSP response and CRL data
+activate Certificate Verifier
+Certificate Verifier->Certificate Verifier: verify OCSP response
+Certificate Verifier->Certificate Verifier: verify CRL
+Verification Service<--Certificate Verifier: return true/false
+deactivate Certificate Verifier
+

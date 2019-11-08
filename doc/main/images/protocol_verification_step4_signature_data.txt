@@ -1,0 +1,16 @@
+title Step 4 - Signature Data Verification
+
+actor Verification Service
+participant Signature Data Verifier
+
+Verification Service->Signature Data Verifier: send PKCS#7 enveloped data +\nhash
+activate Signature Data Verifier
+Signature Data Verifier->Signature Data Verifier: decode signature data
+Signature Data Verifier->Signature Data Verifier: compare hash with\nhash in signature data
+Signature Data Verifier->Signature Data Verifier: compute MAC of hash
+note left of Signature Data Verifier: MAC(salt,hash)
+Signature Data Verifier->Signature Data Verifier: sort MACed hashes
+Signature Data Verifier->Signature Data Verifier: hash list of MACed hashes
+Signature Data Verifier->Signature Data Verifier: compare computed hash with OIDC nonce
+Verification Service<--Signature Data Verifier: return true/false
+deactivate Signature Data Verifier

@@ -1,0 +1,28 @@
+title Step 1 - Timestamp Verification
+
+actor Verification Service
+participant Timestamp Verifier
+participant PKCS7 Verifier
+participant Certificate Verifier
+
+Verification Service->Timestamp Verifier: send timestamps +\nsigned data
+activate Timestamp Verifier
+loop for each timestamp
+Timestamp Verifier->Timestamp Verifier: decode timestamp
+Timestamp Verifier->PKCS7 Verifier: send PKCS#7 enveloped signature
+activate PKCS7 Verifier
+PKCS7 Verifier->PKCS7 Verifier: verify signature
+Timestamp Verifier<--PKCS7 Verifier: return true/false
+deactivate PKCS7 Verifier
+Timestamp Verifier->Certificate Verifier: send OCSP response and CRL data
+activate Certificate Verifier
+Certificate Verifier->Certificate Verifier: verify OCSP response
+Certificate Verifier->Certificate Verifier: verify CRL
+Timestamp Verifier<--Certificate Verifier: return true/false
+deactivate Certificate Verifier
+Timestamp Verifier->Timestamp Verifier: hash message
+note right of Timestamp Verifier:message:\nsigned data or previous timestamp
+Timestamp Verifier->Timestamp Verifier:compare hash with timestamped hash
+end
+Verification Service<--Timestamp Verifier: return true/false
+deactivate Timestamp Verifier

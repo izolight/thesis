@@ -67,13 +67,24 @@ For the offline verification the user downloads the verification server program 
 \includegraphics[scale=0.5]{images/protocol_offline_verification_high_level.png}
 
 To verify a signature the verifier first needs to verify the signed timestamp(s) and their respective ca chains.
+
+\includegraphics[scale=0.5]{images/protocol_verification_step1_timestamp.png}
+
 The signature then can be verified.
 Next the certificate chain for the signing certificate needs to be verified.
+
+\includegraphics[scale=0.5]{images/protocol_verification_step2_signature.png}
+
+The ID token itself needs to be verified.
 Then the certificate chain for the ID token needs to be verified.
-The ID token itself also needs to be verified.
+
+\includegraphics[scale=0.5]{images/protocol_verification_step3_id_token.png}
+
 The included hash needs to be salted and then together with the sorted list of salted hashes hashed.
 The result must be the same as the nonce in the ID token.
 At last the hash of the document MUST match the included hash.
+
+\includegraphics[scale=0.5]{images/protocol_verification_step4_signature_data.png}
 
 \section{REST API}
 Endpoints:
