@@ -167,15 +167,50 @@ In order to have a baseline reference we compare the hashing speeds to the \text
 It is clear from figure~\ref{fig:hashingperformance} that \texttt{SubtleCrypto} is significantly faster than the other options we tried.
 Unfortunately, since it doesn't support piece-wise hashing we're forced to pick the next-fastest option, the \gls{WASM}-based implementation.
 
+\section{Signature Format}
+\label{sec:signatureformat}
 
+\subsection{Base Format}
+Our original choice for the signature format is based on our work in Projekt2 which contained the following fields:
 
+\begin{itemize}
+	\item signature (Base64)
+	\item signature format (\gls{RSA-PSS}, \gls{Ed25519}, ?)
+	\item signature hash algorithm (\gls{SHA}256, \gls{SHA}3, ?)
+	\item timestamp according to \gls{RFC} 3161\footnote{\url{https://tools.ietf.org/html/rfc3161}}
+	\item public key (\gls{PEM})
+	\item issuing \gls{CA} (\gls{PEM})
+	\item subject
+	\item validity
+	\item level
+\end{itemize}
 
+This format would be encoded as a protobuf message in order to not have an overly verbose file(as opposed to xml), but still having a schema and deterministic encoding(as opposed to json).
 
+\subsection{Adding LTV}
+During our work on this thesis we wanted to add \gls{LTV}, which meant adding all the certificate chains, \gls{OCSP} responses and \gls{CLR} of all involved parties, as well as a possibility to refresh the timestamps (yearly).
+While experimenting with parsing and generating the timestamp data and understanding the format we noticed, that we were reinventing the wheel a bit in our format. A lot of the info we wanted to include was already present by using a standard \gls{PKCS}#7 signature with enveloped data.
+This means we just need to specify how this enveloped data looks like and how we wrap all the timestamps with the \gls{LTV} information in the protobuf message.
 
+\subsection{Final Format}
 
+First the specification of the enveloped data in the \gls{PKCS}#7 signature
 
+\begin{itemize}
+	\item \gls{HMAC} of the document
+	\item list of the \gls{HMACs} of all other documents that were signed together (needed for link between ID token and signature)
+	\item used hashing algorithm
+	\item key for the \gls{HMAC}
+	\item signature level (advanced/qualified)
+	\item ID token
+	\item \gls{CA} chain of the \gls{IDP}
+	\item \gls{OCSP} response for the \gls{IDP} \gls{CA}
+	\item \gls{CRL} for the \gls{IDP} \gls{CA}
+\end{itemize}
 
+The \gls{PKCS}#7 encoded signature together with the \gls{OCSP} response and \gls{CRL} of the signing \gls{CA} will be the message that is hashed in the message imprint of the \gls{RFC}3161 timestamp.
 
+To refresh the signature the included timestamp and the \gls{OCSP} response and \gls{CRL} of the timestamping \gls{CA} will be used as the message  that is hashed in the message imprint of the next \gls{RFC}3161 timestamp.
 
 
 
