@@ -1,5 +1,5 @@
 0 CryptoJS 9
-2 Go WASM 33
-3 Rust WASM 100
+1 Go+WASM 33
+2 Rust+WASM 100
 3 SubtleCrypto 120
 4 openssl 409

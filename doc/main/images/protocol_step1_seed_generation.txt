@@ -1,0 +1,9 @@
+title Step 1 - Seed Generation
+actor Signing Service
+
+activate Signing Service
+Signing Service->Signing Service: generate seed 
+note right of Signing Service: seed is random
+Signing Service->Signing Service: generate salt
+note right of Signing Service: salt:\nMAC((seed + secret), hash(es))\nsecret is static
+Signing Service->Signing Service: generate IDP redirects

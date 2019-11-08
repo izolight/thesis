@@ -28,6 +28,8 @@ If the signing server doesn't verify this it would enable clients/attackers to s
 
 The server than returns a list of \gls{IDP} choices, the seed and the salt to the client.
 
+\includegraphics[scale=0.5]{images/protocol_step1_seed_generation.png}
+
 \subsection{Login}
 The client generates the nonce used for the \gls{OIDC} request which consists of the Hash of the sorted list of \gls{HMAC}s of the Hashes with the returned salt used as key. 
 Next the client chooses an \gls{IDP} and adds the nonce to the request parameters and then follows the link. At the \gls{IDP} the client signs in and gets an ID token back.
