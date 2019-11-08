@@ -2,11 +2,11 @@ title Signature validation (offline)
 
 actor Signer
 actor Verifier
-actor Signing Service
+actor Verification Service
 
 Signer->Verifier: send document and signature
-Verifier->Signing Service: request validation tool download
-Verifier<--Signing Service: send validation tool
+Verifier->Verification Service: request validation tool download
+Verifier<--Verification Service: send validation tool
 Verifier->Tool: load document and signature into tool
 activate Tool
 Tool->Tool: validate signature and chain

@@ -55,6 +55,17 @@ The signed timestamp and all the certificate chains and ocsp responses of the in
 \includegraphics[scale=0.45]{images/protocol_step5_signature_generation.png}
 
 \subsection{Signature Verification}
+
+The signature verification can either be online or offline.
+
+For the online verification the user uploads the hash and the signature file to the verification server.
+
+\includegraphics[scale=0.5]{images/protocol_online_verification_high_level.png}
+
+For the offline verification the user downloads the verification server program and starts it and then uploads the hash and signature file.
+
+\includegraphics[scale=0.5]{images/protocol_offline_verification_high_level.png}
+
 To verify a signature the verifier first needs to verify the signed timestamp(s) and their respective ca chains.
 The signature then can be verified.
 Next the certificate chain for the signing certificate needs to be verified.
