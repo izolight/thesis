@@ -197,10 +197,11 @@ This means we just need to specify how this enveloped data looks like and how we
 First the specification of the enveloped data in the \gls{PKCS}#7 signature
 
 \begin{itemize}
-	\item \gls{HMAC} of the document
-	\item list of the \gls{HMACs} of all other documents that were signed together (needed for link between ID token and signature)
+	\item Hash of the document
 	\item used hashing algorithm
-	\item key for the \gls{HMAC}
+	\item key for the \gls{MAC}
+	\item \gls{MAC} used
+	\item list of the \gls{MACs} of all other documents that were signed together (needed for link between ID token and signature)
 	\item signature level (advanced/qualified)
 	\item ID token
 	\item \gls{CA} chain of the \gls{IDP}
