@@ -91,24 +91,3 @@ func Test_verifySignatureFile(t *testing.T) {
 		})
 	}
 }
-
-func Test_verifyTimestamps(t *testing.T) {
-	type args struct {
-		data       []byte
-		timestamps []*Timestamped
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := verifyTimestamps(tt.args.data, tt.args.timestamps); (err != nil) != tt.wantErr {
-				t.Errorf("verifyTimestamps() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}

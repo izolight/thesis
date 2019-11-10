@@ -2,11 +2,13 @@ package verifier
 
 import (
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"github.com/golang/protobuf/proto"
-	"go.mozilla.org/pkcs7"
 )
+
+type Verifier interface {
+	Verify() error
+}
 
 func verifySignatureFile(in verifyRequest) error {
 	signatureBytes, err := base64.StdEncoding.DecodeString(in.Signature)
@@ -21,7 +23,11 @@ func verifySignatureFile(in verifyRequest) error {
 	if err != nil {
 		return fmt.Errorf("could not marshal signature data: %w", err)
 	}
-	if err := verifyTimestamps(data, signatureFile.GetTimestamps()); err != nil {
+	timestampContainer := timestampContainer{
+		data:       data,
+		timestamps: signatureFile.GetTimestamps(),
+	}
+	if err := timestampContainer.Verify(); err != nil {
 		return fmt.Errorf("could not verify timestamps: %w", err)
 	}
 	// TODO: verifySignature -> pkcs#7
@@ -65,34 +71,3 @@ func verifySignature(container *SignatureContainer) (*SignatureData, error) {
 	return signatureData, nil
 }
 
-func verifyTimestamps(data []byte, timestamps []*Timestamped) error {
-	if timestamps == nil {
-		return errors.New("No timestamps included")
-	}
-
-	var previousBytes []byte
-	for i, timestamped := range timestamps {
-		ts, err := pkcs7.ParseTSResponse(timestamped.Rfc3161Timestamp)
-		if err != nil {
-			return fmt.Errorf("could not parse timestamp response: %w", err)
-		}
-		// TODO: verify ocsp and crl for each timestamp
-		hashData := previousBytes
-		if i == 0 {
-			hashData = data
-		}
-		hasher := ts.HashAlgorithm.New()
-		hasher.Write(hashData)
-		hash := fmt.Sprintf("%x", hasher.Sum(nil))
-		tsHash := fmt.Sprintf("%x", ts.HashedMessage)
-		if hash != tsHash {
-			return fmt.Errorf("timestamped hashes didn't match: %s != %s", hash, tsHash)
-		}
-		previousBytes, err = proto.Marshal(timestamped)
-		if err != nil {
-			return fmt.Errorf("could not marshal timestamp: %w", err)
-		}
-	}
-
-	return nil
-}
