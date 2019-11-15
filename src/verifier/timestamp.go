@@ -16,12 +16,12 @@ func (t timestampError) Error() string {
 	return string(t)
 }
 
-type timestampContainer struct {
+type timestampVerifier struct {
 	data []byte
 	timestamps []*Timestamped
 }
 
-func (t timestampContainer) Verify() error {
+func (t timestampVerifier) Verify() error {
 	if t.timestamps == nil || len(t.timestamps) == 0 {
 		return ErrNoTimestamps
 	}

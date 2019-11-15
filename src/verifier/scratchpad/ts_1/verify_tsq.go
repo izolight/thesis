@@ -73,7 +73,7 @@ func main() {
 	fmt.Printf("\t\t\t\t\tOrdering: %t\n", tsinfo.Ordering)
 	fmt.Printf("\t\t\t\t\tNonce: %s\n", tsinfo.Nonce)
 	fmt.Println("\t\t\t\t\tTSA:")
-	fmt.Printf("\t\t\t\t\t\t%s\n", tsinfo.TSA)
+	fmt.Printf("\t\t\t\t\t\t%v\n", tsinfo.TSA)
 	fmt.Println("\t\t\t\t\tExtensions:")
 	for _, ex := range tsinfo.Extensions {
 		fmt.Printf("\t\t\t\t\t\tId: %s\n", ex.Id)
@@ -86,7 +86,7 @@ func main() {
 		fmt.Printf("\t\t\t\tIssuer: %s\n", cert.Issuer)
 		fmt.Printf("\t\t\t\tIssuerURL: %s\n", cert.IssuingCertificateURL)
 	}
-	fmt.Printf("\t\t\tCRLs: %s\n", signedData.CRLs)
+	fmt.Printf("\t\t\tCRLs: %v\n", signedData.CRLs)
 	fmt.Println("\t\t\tSignerInfos:")
 	for _, si := range signedData.SignerInfos {
 		fmt.Printf("\t\t\t\tVersion: %d\n", si.Version)
@@ -94,7 +94,7 @@ func main() {
 		fmt.Printf("\t\t\t\tSignatureAlgorithm: %s\n", si.SignatureAlgorithm.Algorithm)
 		fmt.Println("\t\t\t\tSID:")
 		fmt.Printf("\t\t\t\t\tSerialNumber: %s\n", si.SID.IAS.SerialNumber)
-		fmt.Printf("\t\t\t\t\tIssuer: %s\n", si.SID.IAS.Issuer)
+		fmt.Printf("\t\t\t\t\tIssuer: %v\n", si.SID.IAS.Issuer)
 		fmt.Printf("\t\t\t\tSignature: %x\n", si.Signature)
 		fmt.Println("\t\t\t\tSignedAttributes:")
 		for _, sa := range si.SignedAttrs {
@@ -105,7 +105,7 @@ func main() {
 			fmt.Printf("\t\t\t\t\tType:%s\n", ua.Type)
 		}
 		h, _ := si.Hash()
-		fmt.Printf("\t\t\t\tHash: %s\n", h)
+		fmt.Printf("\t\t\t\tHash: %v\n", h)
 		ct, _ := si.GetContentTypeAttribute()
 		fmt.Printf("\t\t\t\tContent-Type: %s\n", ct)
 		dig, _ := si.GetMessageDigestAttribute()

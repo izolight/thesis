@@ -23,7 +23,7 @@ func verifySignatureFile(in verifyRequest) error {
 	if err != nil {
 		return fmt.Errorf("could not marshal signature data: %w", err)
 	}
-	timestampContainer := timestampContainer{
+	timestampContainer := timestampVerifier{
 		data:       data,
 		timestamps: signatureFile.GetTimestamps(),
 	}

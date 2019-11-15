@@ -17,38 +17,57 @@ func TestVerifyLTV(t *testing.T) {
 
 	tests := []struct{
 		name string
-		cert *x509.Certificate
-		ltv map[string]*LTV
+		verifier Verifier
 		wantErr bool
 	}{
 		{
 			name: "root CA",
-			cert: rootCA,
-			ltv: nil,
+			verifier:ltvVerifier{
+				certs:  []*x509.Certificate{rootCA},
+				ltvMap: nil,
+			},
 			wantErr:false,
 		},
 		{
 			name: "intermediate CA without ltv info",
-			cert: intermediateCA,
-			ltv: nil,
+			verifier:ltvVerifier{
+				certs:  []*x509.Certificate{rootCA, intermediateCA},
+				ltvMap: nil,
+			},
 			wantErr: true,
 		},
 		{
 			name: "intermediate CA with ocsp response",
-			cert: intermediateCA,
-			ltv: map[string]*LTV{
-				fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): &LTV{
-					Ocsp:                 intermediateCAOCSPFile,
+			verifier:ltvVerifier{
+				certs:  []*x509.Certificate{rootCA, intermediateCA},
+				ltvMap: map[string]*LTV{
+					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): &LTV{
+						Ocsp:                 intermediateCAOCSPFile,
+					},
 				},
 			},
 			wantErr: false,
 		},
 		{
-			name: "intermediate CA with wrong ocsp resonse",
-			cert: intermediateCA,
-			ltv: map[string]*LTV{
-				fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): &LTV{
-					Ocsp:                 tsaCAOCSPFile,
+			name: "intermediate CA with ocsp response and different ca order",
+			verifier:ltvVerifier{
+				certs:  []*x509.Certificate{intermediateCA, rootCA},
+				ltvMap: map[string]*LTV{
+					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): &LTV{
+						Ocsp:                 intermediateCAOCSPFile,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "intermediate CA with wrong ocsp response",
+			verifier:ltvVerifier{
+				certs:  []*x509.Certificate{rootCA, intermediateCA},
+				ltvMap: map[string]*LTV{
+					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): &LTV{
+						Ocsp:                 tsaCAOCSPFile,
+					},
 				},
 			},
 			wantErr: true,
@@ -56,7 +75,7 @@ func TestVerifyLTV(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := VerifyLTV(tt.cert, tt.ltv); err != nil != tt.wantErr {
+			if err := tt.verifier.Verify(); err != nil != tt.wantErr {
 				t.Errorf("VerifyLTV() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

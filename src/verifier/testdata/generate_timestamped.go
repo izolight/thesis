@@ -13,10 +13,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not read file: %s", err)
 	}
+	ocsp, err := ioutil.ReadFile(os.Args[2])
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	ts := &verifier.Timestamped{
 		Rfc3161Timestamp:     data,
-		LtvTimestamp:         nil,
+		LtvTimestamp: map[string]*verifier.LTV{
+
+		},
 	}
 
 	msg, err := proto.Marshal(ts)
