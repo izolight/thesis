@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestVerify(t *testing.T) {
+func TestVerifyTimestamp(t *testing.T) {
 	tests := []struct{
 		name string
 		container timestampContainer
