@@ -3,6 +3,7 @@ package ch.bfh.ti.hirtp1ganzg1.thesis
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.ApiError
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.InvalidJSONException
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.views.postHashes
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.views.sign
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -121,6 +122,7 @@ fun Application.module() {
 
         root()
         postHashes()
+        sign()
 
         get<MyLocation> {
             call.respondText("Location: name=${it.name}, arg1=${it.arg1}, arg2=${it.arg2}")
