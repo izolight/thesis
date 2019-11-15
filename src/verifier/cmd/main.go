@@ -9,7 +9,7 @@ import (
 
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/verifiy", verifier.VerifyHandler).Methods("POST")
+	r.HandleFunc("/verify", verifier.VerifyHandler).Methods("POST")
 	r.Handle("/static", http.FileServer(http.Dir("./static")))
 	log.Fatal(http.ListenAndServe(":8080", r))
 }

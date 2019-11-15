@@ -12,21 +12,19 @@ type verifyRequest struct {
 }
 
 type verifyResponse struct {
-	Hash string `json:"hash"`
 	Valid bool `json:"valid"`
-	ValidText string `json:"valid_text"`
+	Error string `json:"error,omitempty"`
 }
 
 func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var in verifyRequest
 	resp := verifyResponse{
-		Hash: in.Hash,
 		Valid: false,
 	}
 	if r.Body == nil {
 		w.WriteHeader(http.StatusBadRequest)
-		resp.ValidText = "No request body"
+		resp.Error = "No request body"
 		out, _ := json.Marshal(resp)
 		w.Write(out)
 		return
@@ -34,7 +32,7 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		resp.ValidText = err.Error()
+		resp.Error = err.Error()
 		out, _ := json.Marshal(resp)
 		w.Write(out)
 		return
@@ -42,7 +40,7 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(body, &in)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		resp.ValidText = err.Error()
+		resp.Error = err.Error()
 		out, _ := json.Marshal(resp)
 		w.Write(out)
 		return
@@ -50,17 +48,16 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	err = verifySignatureFile(in)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		resp.ValidText = err.Error()
+		resp.Error = err.Error()
 		out, _ := json.Marshal(resp)
 		w.Write(out)
 		return
 	}
-	resp.ValidText = "Ok"
 	resp.Valid = true
 	out, err := json.Marshal(resp)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		resp.ValidText = err.Error()
+		resp.Error = err.Error()
 		out, _ := json.Marshal(resp)
 		w.Write(out)
 		return
