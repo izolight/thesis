@@ -18,10 +18,7 @@ func TestVerify(t *testing.T) {
 				timestamps: []*Timestamped{
 					{
 						Rfc3161Timestamp: readFile(t, "response.tsr"),
-						LtvTimestampCa: &LTV{
-							Ocsp: nil,
-							Crl:  nil,
-						},
+						LtvTimestamp: map[string]*LTV{},
 					},
 				},
 			},
@@ -34,12 +31,17 @@ func TestVerify(t *testing.T) {
 				timestamps: []*Timestamped{
 					{
 						Rfc3161Timestamp: readFile(t, "response.tsr"),
-						LtvTimestampCa: &LTV{
-							Ocsp: nil,
-							Crl:  nil,
-						},
+						LtvTimestamp: map[string]*LTV{},
 					},
 				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "no timestamps",
+			container:timestampContainer{
+				data:       []byte("hello world"),
+				timestamps: []*Timestamped{},
 			},
 			wantErr: true,
 		},

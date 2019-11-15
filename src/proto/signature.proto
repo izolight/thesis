@@ -31,17 +31,17 @@ message SignatureData {
     SignatureLevel signature_level = 6;
     bytes id_token = 7;
     repeated bytes x509_idp = 8;
-    LTV ltv_idp_ca = 9;
+    map<string, LTV> ltv_idp = 9; // maps the fingerprint of the cert to the ltv information
 }
 
 message Timestamped {
     bytes rfc3161_timestamp = 1; // pkcs#7 wrapped
-    LTV ltv_timestamp_ca = 2;
+    map<string, LTV> ltv_timestamp = 2; // maps the fingerprint of the cert to the ltv information
 }
 
 message SignatureContainer {
     bytes enveloped_signature_data_pkcs7 = 1; // pkcs#7 DER encoded bytes
-    LTV ltv_signing_ca = 2;
+    map<string, LTV> ltv_signing = 2; // maps the fingerprint of the cert to the ltv information
 }
 
 message LTV {
