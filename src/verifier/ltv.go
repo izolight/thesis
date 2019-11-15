@@ -3,6 +3,7 @@ package verifier
 import (
 	"crypto/sha256"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"golang.org/x/crypto/ocsp"
 )
@@ -28,7 +29,7 @@ func (l ltvVerifier) Verify() error {
 
 		fingerprint := fmt.Sprintf("%x", sha256.Sum256(cert.Raw))
 		ltv, ok := l.ltvMap[fingerprint]
-		if !ok {
+		if !ok || ltv == nil{
 			return fmt.Errorf("no ltv information for certificate with fingerprint %s", fingerprint)
 		}
 		// check first for ocsp and only fallback to crl
@@ -36,6 +37,7 @@ func (l ltvVerifier) Verify() error {
 			if ltv.Crl == nil {
 				return fmt.Errorf("no ltv information for certificate with fingerprint %s", fingerprint)
 			}
+			return errors.New("crl not supported yet")
 			// TODO: verify crl
 		}
 		response, err := ocsp.ParseResponseForCert(ltv.Ocsp, cert, issuingCA)
