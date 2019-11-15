@@ -33,10 +33,6 @@ func (t timestampContainer) Verify() error {
 			return fmt.Errorf("could not parse timestamp response: %w", err)
 		}
 		// TODO: verify ocsp and crl for each timestamp
-		for _, cert := range ts.Certificates {
-			fmt.Println(cert.Subject)
-			fmt.Println(cert.CRLDistributionPoints)
-		}
 		hashData := previousBytes
 		if i == 0 {
 			hashData = t.data

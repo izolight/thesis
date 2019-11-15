@@ -17,7 +17,7 @@ func TestVerify(t *testing.T) {
 				data: []byte("hello world\n"),
 				timestamps: []*Timestamped{
 					{
-						Rfc3161Timestamp: readFile(t, "response.tsr"),
+						Rfc3161Timestamp: readFile(t, "hello_world_response.tsr"),
 						LtvTimestamp: map[string]*LTV{},
 					},
 				},
@@ -25,12 +25,28 @@ func TestVerify(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "nested timestamp",
+			container: timestampContainer{
+				data:       []byte("hello world\n"),
+				timestamps: []*Timestamped{
+					{
+						Rfc3161Timestamp: readFile(t, "hello_world_response.tsr"),
+						LtvTimestamp: map[string]*LTV{},
+					},
+					{
+						Rfc3161Timestamp: readFile(t, "hello_world_response.tsr.data_response.tsr"),
+						LtvTimestamp: map[string]*LTV{},
+					},
+				},
+			},
+		},
+		{
 			name: "hash mismatch",
 			container: timestampContainer{
 				data: []byte("hello world"),
 				timestamps: []*Timestamped{
 					{
-						Rfc3161Timestamp: readFile(t, "response.tsr"),
+						Rfc3161Timestamp: readFile(t, "hello_world_response.tsr"),
 						LtvTimestamp: map[string]*LTV{},
 					},
 				},
