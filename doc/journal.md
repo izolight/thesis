@@ -56,3 +56,28 @@
 #### 29.10.19
 - Vortrag für Experten vorbereiten
 - Besprechung mit Betreuenden und Experten
+
+#### 01.11.19
+- Frontend UI layout sketches
+- WASM Performance Vergleich fertigstellen
+- UML Sequenzdiagramme verbessern
+- Dokumentation
+- Signaturdateiformat für LTV erweitern
+
+#### 02.11.19
+- Arbeiten am Verifier-Programm
+
+
+#### 08.11.19
+- Arbeiten an Backend-Implementation
+- Signaturdateiformat für LTV erweitern
+- Prozess der Entwicklung des Protokolls dokumentieren
+- Dokumentation verbessern
+
+
+#### 14.11.19
+- Besprechung mit Betreuenden
+
+#### 15.11.19
+- Arbeiten am Verifier-Programm
+- Arbeiten am Signing Server
