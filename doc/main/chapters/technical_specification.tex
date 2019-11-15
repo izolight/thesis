@@ -198,19 +198,19 @@ Figure~\ref{fig:signaturedataverification} illustrates this process.
 \end{figure}
 
 \section{REST API}\label{sec:rest-api}
+
+\subsection{Signing Service}
 Endpoints:
 
 \begin{tabular}{|l|l|l|}
 	\hline
 	Endpoint & Method & Description \\ \hline
-	/api/v1/hashes & POST & send hashes to generate nonce \\ \hline
-	/api/v1/login & POST & get oidc providers \\ \hline
+	/api/v1/login & POST & send hashes to get oidc providers \\ \hline
 	/api/v1/sign & POST & sign hashes \\ \hline
-	/api/v1/signatures & GET & retrieve list of all signatures for current session \\ \hline
-	/api/v1/signatures/:hash & GET & retrieve signature \\ \hline
+	/api/v1/signatures/:id & GET & retrieve signature \\ \hline
 \end{tabular}
 
-\subsection{hashes}
+\subsubsection{login}
 Input:
 
 \begin{tabular}{|l|l|l|l|}
@@ -224,11 +224,13 @@ Output:
 \begin{tabular}{|l|l|l|l|}
 	\hline
 	Parameter & Presence & Type & Description \\ \hline
-	nonce & MANDATORY & string & Nonce to use for generating to OIDC nonce in the token \\ \hline
+	providers & MANDATORY & dictionary[string]url & List of providers with the redirect url \\ \hline
+	seed & MANDATORY & string & Seed for generating the salt \\ \hline
+	salt & MANDATORY & string & Salt for generating the OIDC nonce \\ \hline
 \end{tabular}
 
 Sample Request:
-\begin{lstlisting}[caption={hashes request}, captionpos=b, language=JavaScript, label={lst:hashesrequest}]
+\begin{lstlisting}[caption={login request}, captionpos=b, language=JavaScript, label={lst:hashesrequest}]
 POST /api/v1/hashes HTTP/1.1
 Host: service.example.org
 Content-Type: application/json
@@ -242,65 +244,29 @@ Content-Type: application/json
 \end{lstlisting}
 
 Sample Response:
-\begin{lstlisting}[caption={hashes response}, captionpos=b, language=JavaScript, label={lst:hashesresponse}]
+\begin{lstlisting}[caption={login response}, captionpos=b, language=JavaScript, label={lst:hashesresponse}]
 HTTP/1.1 201 Created
 Content-Type: application/json
 
 {
-  "nonce": "test1234"
-}
-\end{lstlisting}
-
-\subsection{login}
-Input:
-
-\begin{tabular}{|l|l|l|l|}
-	\hline
-	Parameter & Presence & Type & Description \\ \hline
-	nonce & MANDATORY & string & Nonce to use for retrieving the OIDC token \\ \hline
-\end{tabular}
-
-Output:
-
-\begin{tabular}{|l|l|l|l|}
-	\hline
-	Parameter & Presence & Type & Description \\ \hline
-	providers & MANDATORY & dictionary[string]url & List of providers with the redirect url \\ \hline
-\end{tabular}
-
-Sample Request:
-\begin{lstlisting}[caption={login request}, captionpos=b, language=JavaScript, label={lst:loginrequest}]
-POST /api/v1/login HTTP/1.
-Host: service.example.org
-Content-Type: application/json
-
-{
-  "nonce": "6cd7ef99e5e79d68d681e5d097b7f805381c4d013152fa3f26d06bd728ae49fa"
-}
-\end{lstlisting}
-
-Sample Response:
-
-\begin{lstlisting}[caption={login response}, captionpos=b, language=JavaScript, label={lst:loginresponse}]
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-{
   "providers": {
-    "SwissID": "https://...&nonce=6cd7ef99e5e79d68d681e5d097b7f805381c4d013152fa3f26d06bd728ae49fa",
-    "Google": "https://...&nonce=6cd7ef99e5e79d68d681e5d097b7f805381c4d013152fa3f26d06bd728ae49fa"
-  }
+  	"SwissID": "https://...&nonce=6cd7ef99e5e79d68d681e5d097b7f805381c4d013152fa3f26d06bd728ae49fa",
+	"Google": "https://...&nonce=6cd7ef99e5e79d68d681e5d097b7f805381c4d013152fa3f26d06bd728ae49fa"
+  },
+  "seed": "84c97acc49335faa0266fb29b4228205e9400a85a10faa68ec30cf894e1730ed",
+  "salt": "cfb663431af5e2d68be48867f93e86e477cd7eeefc10b16a51c238d2c810561b"
 }
 \end{lstlisting}
 
-\subsection{sign}
+\subsubsection{sign}
 Input:
 
 \begin{tabular}{|l|l|l|l|}
 	\hline
 	Parameter & Presence & Type & Description \\ \hline
 	idtoken & MANDATORY & string & OIDC ID token \\ \hline
-	nonce & MANDATORY & string & Nonce to use for generating to OIDC nonce in the token \\ \hline
+	seed & MANDATORY & string & Seed for generating the salt \\ \hline
+	salt & MANDATORY & string & Salt for generating the OIDC nonce \\ \hline
 	hashes & MANDATORY & list(string) & Hashes of the documents to be signed \\ \hline
 \end{tabular}
 
@@ -309,18 +275,19 @@ Output:
 \begin{tabular}{|l|l|l|l|}
 	\hline
 	Parameter & Presence & Type & Description \\ \hline
-	result & MANDATORY & bool & Status of the signing (true = success, false = failure) \\ \hline
+	signature urls & MANDATORY & dictionary[string]url & List of urls to the generated signature files for each hash\\ \hline
 \end{tabular}
 
 Sample Request:
 \begin{lstlisting}[caption={sign request}, captionpos=b, language=JavaScript, label={lst:signrequest}]
-POST /api/v1/sign HTTP/1.
+POST /api/v1/sign HTTP/1.1
 Host: service.example.org
 Content-Type: application/json
 
 {
   "idtoken": {...},
-  "nonce": "test1234",
+  "seed": "84c97acc49335faa0266fb29b4228205e9400a85a10faa68ec30cf894e1730ed",
+  "salt": "cfb663431af5e2d68be48867f93e86e477cd7eeefc10b16a51c238d2c810561b",
   "hashes": [
     "e8a96e6203b9c0df058ba862abc63d9c520157faef6d5d54e54e526b0a85b2be",
     "0b9a7fd3e612061a7fe6d834e102a143170f33d0e8c5a8eb79416aa3eb53c0d6"
@@ -335,48 +302,20 @@ HTTP/1.1 201 Created
 Content-Type: application/json
 
 {
-  "result": true
+	"signatures": {
+		"e8a96e6203b9c0df058ba862abc63d9c520157faef6d5d54e54e526b0a85b2be": "https://signingservice.local/api/v1/signatures/64ba127f549d9b480c1e2a304da1f7f7787cdcaed64a57b7a1ec9773c0246da1",
+		"0b9a7fd3e612061a7fe6d834e102a143170f33d0e8c5a8eb79416aa3eb53c0d6": "https://signingservice.local/api/v1/signatures/0b1131c417cafcc5a5f259d357903026f8e0c4f85e3ca0b68f3d55b8e32a55e8"
+	}
 }
 \end{lstlisting}
 
-\subsection{signatures}
-Output:
-
-\begin{tabular}{|l|l|l|l|}
-	\hline
-	Parameter & Presence & Type & Description \\ \hline
-	hashes & MANDATORY & list(string) & hashes that were signed \\ \hline
-\end{tabular}
-
-Sample Request:
-
-\begin{lstlisting}[caption={signatures request}, captionpos=b, language=JavaScript, label={lst:signaturesrequest}]
-GET /api/v1/signatures HTTP/1.
-Host: service.example.org
-Content-Type: application/json
-\end{lstlisting}
-
-Sample Response:
-
-\begin{lstlisting}[caption={signatures response}, captionpos=b, language=JavaScript, label={lst:signaturesresponse}]
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-{
-  "hashes": [
-    "e8a96e6203b9c0df058ba862abc63d9c520157faef6d5d54e54e526b0a85b2be",
-    "0b9a7fd3e612061a7fe6d834e102a143170f33d0e8c5a8eb79416aa3eb53c0d6"
-  ]
-}
-\end{lstlisting}
-
-\subsection{signatures/:hash}
+\subsubsection{signatures/:id}
 Input:
 
 \begin{tabular}{|l|l|l|l|}
 	\hline
 	Parameter & Presence & Type & Description \\ \hline
-	hash & MANDATORY & string & hash that was signed \\ \hline
+	id & MANDATORY & string & id of the hash that was signed \\ \hline
 \end{tabular}
 
 Output:
@@ -390,7 +329,7 @@ Output:
 Sample Request:
 
 \begin{lstlisting}[caption={signature request}, captionpos=b, language=JavaScript, label={lst:signaturerequest}]
-GET /api/v1/signatures/e8a96e6203b9c0df058ba862abc63d9c520157faef6d5d54e54e526b0a85b2be HTTP/1.
+GET /api/v1/signatures/e8a96e6203b9c0df058ba862abc63d9c520157faef6d5d54e54e526b0a85b2be HTTP/1.1
 Host: service.example.org
 Content-Type: application/json
 \end{lstlisting}
@@ -403,6 +342,69 @@ Content-Type: application/json
 
 {
   "signature": "IyMjIFJFU1QgQVBJIFNwZWNpZmljYXRpb24gU2NyYXRjaHBhZAoKIyMjIyBQcmUtQXV0aCBlbmRw...b2ludCAKIyMjIyMgRW5kcG9pbnQKYGBgUE9TVCAvYXBpL3YxL3NpZ25gYGAK"
+}
+\end{lstlisting}
+
+\subsection{Verification Service}
+Endpoints:
+
+\begin{tabular}{|l|l|l|}
+	\hline
+	Endpoint & Method & Description \\ \hline
+	/api/v1/verify & POST & send hash signature file for verification \\ \hline
+\end{tabular}
+
+\subsubsection{verify}
+Input:
+
+\begin{tabular}{|l|l|l|l|}
+	\hline
+	Parameter & Presence & Type & Description \\ \hline
+	hash & MANDATORY & string & Hash of the signed document \\ \hline
+	signature & MANDATORY & binary & base64 encoded signature file \\ \hline
+\end{tabular}
+
+Output:
+
+\begin{tabular}{|l|l|l|l|}
+	\hline
+	Parameter & Presence & Type & Description \\ \hline
+	valid & MANDATORY & bool & validity of signature \\ \hline
+	error & OPTIONAL & string & error message why the signature is invalid \\ \hline
+\end{tabular}
+
+Sample Request:
+\begin{lstlisting}[caption={sign request}, captionpos=b, language=JavaScript, label={lst:verifyrequest}]
+POST /api/v1/sign HTTP/1.1
+Host: service.example.org
+Content-Type: application/json
+
+{
+  "hash": "e8a96e6203b9c0df058ba862abc63d9c520157faef6d5d54e54e526b0a85b2be",
+  "signature": "IyMjIFJFU1QgQVBJIFNwZWNpZmljYXRpb24gU2NyYXRjaHBhZAoKIyMjIyBQcmUtQXV0aCBlbmRw...b2ludCAKIyMjIyMgRW5kcG9pbnQKYGBgUE9TVCAvYXBpL3YxL3NpZ25gYGAK"
+}
+\end{lstlisting}
+
+Sample Response:
+
+\begin{lstlisting}[caption={sign response}, captionpos=b, language=JavaScript, label={lst:verifyresponse}]
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "valid": true
+}
+\end{lstlisting}
+
+Invalid signature:
+
+\begin{lstlisting}[caption={sign response}, captionpos=b, language=JavaScript, label={lst:verifyresponsefailed}]
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "valid": false,
+  "error": "signed hash and provided hash don't match"
 }
 \end{lstlisting}
 
