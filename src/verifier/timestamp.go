@@ -33,6 +33,14 @@ func (t timestampVerifier) Verify() error {
 			return fmt.Errorf("could not parse timestamp response: %w", err)
 		}
 		// TODO: verify ocsp and crl for each timestamp
+		l := ltvVerifier{
+			certs:  ts.Certificates,
+			ltvMap: timestamped.LtvTimestamp,
+		}
+		err = l.Verify()
+		if err != nil {
+			return fmt.Errorf("ltv information for timestamp not valid: %w", err)
+		}
 		hashData := previousBytes
 		if i == 0 {
 			hashData = t.data
