@@ -7,3 +7,5 @@ open class InvalidRequestException(message: String) : RuntimeException(message)
 
 class InvalidJSONException(message: String) : InvalidRequestException(message)
 
+
+class InvalidDataException(message: String) : InvalidRequestException(message)
