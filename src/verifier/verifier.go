@@ -24,7 +24,7 @@ func verifySignatureFile(in verifyRequest) error {
 		return fmt.Errorf("could not marshal signature Data: %w", err)
 	}
 	timestampVerifier := NewTimestampVerifier(signatureFile.GetTimestamps())
-	timestampVerifier.passData(data)
+	timestampVerifier.sendData(data)
 	if err := timestampVerifier.Verify(); err != nil {
 		return fmt.Errorf("could not verify timestamps: %w", err)
 	}

@@ -60,7 +60,7 @@ func TestVerifyTimestamp(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			verifier := NewTimestampVerifier(tt.timestamps)
-			verifier.passData(tt.data)
+			verifier.sendData(tt.data)
 			if err := verifier.Verify(); err != nil != tt.wantErr {
 				t.Errorf("Verify() error = %v, wantErr %v", err, tt.wantErr)
 			}
