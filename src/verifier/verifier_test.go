@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func Test_verifyHashes(t *testing.T) {
+/*func Test_verifyHashes(t *testing.T) {
 	type args struct {
 		data *SignatureData
 		hash string
@@ -24,7 +24,7 @@ func Test_verifyHashes(t *testing.T) {
 			}
 		})
 	}
-}
+}*/
 
 func Test_verifyIDToken(t *testing.T) {
 	type args struct {

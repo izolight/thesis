@@ -38,21 +38,21 @@ func verifySignatureFile(in verifyRequest) error {
 		return fmt.Errorf("could not verify id token: %w", err)
 	}
 	// TODO: verify hashes
-	if err := verifyHashes(signatureData, in.Hash); err != nil {
-		return fmt.Errorf("could not verify hashes: %w", err)
-	}
+	//if err := verifyHashes(signatureData, in.Hash); err != nil {
+	//	return fmt.Errorf("could not verify hashes: %w", err)
+	//}
 
 	return nil
 }
 
-func verifyHashes(data *SignatureData, hash string) error {
+//func verifyHashes(data *SignatureData, hash string) error {
 	// TODO: HMAC(salt, hash)
 	// TODO: append HMAC to saltedHashes and sort
 	// TODO: hash sorted list
 	// TODO: compare computed hash with OIDC nonce
 	// TODO: compare input hash with signature hash
-	return nil
-}
+//	return nil
+//}
 
 func verifyIDToken(data *SignatureData) error {
 	// TODO: verify chain and id token
