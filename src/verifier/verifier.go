@@ -21,13 +21,11 @@ func verifySignatureFile(in verifyRequest) error {
 	}
 	data, err := proto.Marshal(signatureFile.SignatureContainer)
 	if err != nil {
-		return fmt.Errorf("could not marshal signature data: %w", err)
+		return fmt.Errorf("could not marshal signature Data: %w", err)
 	}
-	timestampContainer := timestampVerifier{
-		data:       data,
-		timestamps: signatureFile.GetTimestamps(),
-	}
-	if err := timestampContainer.Verify(); err != nil {
+	timestampVerifier := NewTimestampVerifier(signatureFile.GetTimestamps())
+	timestampVerifier.passData(data)
+	if err := timestampVerifier.Verify(); err != nil {
 		return fmt.Errorf("could not verify timestamps: %w", err)
 	}
 	// TODO: verifySignature -> pkcs#7

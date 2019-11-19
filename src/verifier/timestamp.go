@@ -16,12 +16,23 @@ func (t timestampError) Error() string {
 	return string(t)
 }
 
-type timestampVerifier struct {
-	data []byte
+type TimestampVerifier struct {
+	data       chan[]byte
 	timestamps []*Timestamped
 }
 
-func (t timestampVerifier) Verify() error {
+func NewTimestampVerifier(timestamps []*Timestamped) *TimestampVerifier{
+	return &TimestampVerifier{
+		data:       make(chan []byte, 1),
+		timestamps: timestamps,
+	}
+}
+
+func (t TimestampVerifier) passData(data []byte) {
+	t.data <- data
+}
+
+func (t TimestampVerifier) Verify() error {
 	if t.timestamps == nil || len(t.timestamps) == 0 {
 		return ErrNoTimestamps
 	}
@@ -43,7 +54,7 @@ func (t timestampVerifier) Verify() error {
 		}
 		hashData := previousBytes
 		if i == 0 {
-			hashData = t.data
+			hashData = <- t.data
 		}
 		hasher := ts.HashAlgorithm.New()
 		hasher.Write(hashData)
