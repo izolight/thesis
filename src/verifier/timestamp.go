@@ -43,7 +43,6 @@ func (t TimestampVerifier) Verify() error {
 		if err != nil {
 			return fmt.Errorf("could not parse timestamp response: %w", err)
 		}
-		// TODO: verify ocsp and crl for each timestamp
 		l := ltvVerifier{
 			certs:  ts.Certificates,
 			ltvMap: timestamped.LtvTimestamp,
