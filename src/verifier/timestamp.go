@@ -37,8 +37,8 @@ func (t TimestampVerifier) Verify() error {
 		return ErrNoTimestamps
 	}
 
-	var previousData []byte
-	for i, timestamped := range t.timestamps {
+	for i := len(t.timestamps)-1; i >= 0; i-- {
+		timestamped := t.timestamps[i]
 		ts, err := pkcs7.ParseTSResponse(timestamped.Rfc3161Timestamp)
 		if err != nil {
 			return fmt.Errorf("could not parse timestamp response: %w", err)
@@ -51,19 +51,20 @@ func (t TimestampVerifier) Verify() error {
 		if err != nil {
 			return fmt.Errorf("ltv information for timestamp not valid: %w", err)
 		}
-		hashData := previousData
+		hashData := []byte{}
 		// during last signature the data is not in the previous(next) signature,
 		// so we need to block until the data arrives
 		if i == 0 {
 			hashData = <- t.data
+		} else {
+			hashData, err = proto.Marshal(t.timestamps[i-1])
+			if err != nil {
+				return fmt.Errorf("could not marshal timestamp: %w", err)
+			}
 		}
 		err = verifyHash(hashData, ts.HashedMessage, ts.HashAlgorithm)
 		if err != nil {
 			return fmt.Errorf("could not verify hash: %w", err)
-		}
-		previousData, err = proto.Marshal(timestamped)
-		if err != nil {
-			return fmt.Errorf("could not marshal timestamp: %w", err)
 		}
 	}
 	return nil
