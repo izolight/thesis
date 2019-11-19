@@ -56,12 +56,9 @@ func (t TimestampVerifier) Verify() error {
 		if i == 0 {
 			hashData = <- t.data
 		}
-		hasher := ts.HashAlgorithm.New()
-		hasher.Write(hashData)
-		hash := fmt.Sprintf("%x", hasher.Sum(nil))
-		tsHash := fmt.Sprintf("%x", ts.HashedMessage)
-		if hash != tsHash {
-			return fmt.Errorf("timestamped hashes didn't match: %s != %s", hash, tsHash)
+		err = verifyHash(hashData, ts.HashedMessage, ts.HashAlgorithm)
+		if err != nil {
+			return fmt.Errorf("could not verify hash: %w", err)
 		}
 		previousBytes, err = proto.Marshal(timestamped)
 		if err != nil {
