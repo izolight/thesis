@@ -165,6 +165,21 @@
             <artifactId>java-jwt</artifactId>
             <version>3.8.2</version>
         </dependency>
+        <dependency>
+            <groupId>com.kllso</groupId>
+            <artifactId>kcrypto</artifactId>
+            <version>0.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.64</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
+            <version>1.64</version>
+        </dependency>
     </dependencies>
     <build>
         <sourceDirectory>src</sourceDirectory>
