@@ -60,13 +60,16 @@ class TestSubmitHashes : KoinTest {
                 val client by inject<HttpClient>()
 
                 runBlocking {
-                    try {
-                        val idpResponse = client.get<HttpResponse>(response.idpChoices[0])
-                        println(idpResponse.content)
-                    } catch (e: io.ktor.client.features.ServerResponseException) {
-                        println(e.response.content)
-                        e.printStackTrace()
-                    }
+                    val idpResponse = client.get<HttpResponse>(response.idpChoices[0])
+                    assertEquals(HttpStatusCode.OK, idpResponse.status)
+                    TODO("submit form with csrf and challenge stuff")
+//                    val loginResponse = client.post<HttpResponse>(
+//                        "https://${idpResponse.call.request.url.hostWithPort}/login",
+//                        MultiPartFormDataContent(formData {
+//                            TODO()
+//
+//                        })
+//                    )
                 }
             }
 
