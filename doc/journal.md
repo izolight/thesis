@@ -101,4 +101,9 @@
 - Setup eigener OIDC IDP
 
 #### 27.11.19
-- Arbeiten am Signing Server: Zertifikat und CSR generieren mit BouncyCastle
+- Arbeiten am Signing Server: 
+    - Zertifikat und CSR generieren mit BouncyCastle
+    - Anpassen OIDC Code an eigenen IdP
+    - OIDC Tests mit eigenem IdP
+- IdP fixen
+
