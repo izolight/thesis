@@ -81,3 +81,24 @@
 #### 15.11.19
 - Arbeiten am Verifier-Programm
 - Arbeiten am Signing Server
+
+
+#### 18.11.19
+- Setup gitlab ci
+- Beginn der Arbeit am Verifier-Programm
+
+
+#### 19.11.19
+- Arbeit am Verifier-Programm
+
+#### 20.11.19
+- Arbeit am Verifier-Programm
+
+#### 22.11.19
+- Arbeit am Signing Server: JWTs validieren
+- Problem mit JWKS erkannt (kein X.509)
+- Setup eigene CA mit OCSP Responder
+- Setup eigener OIDC IDP
+
+#### 27.11.19
+- Arbeiten am Signing Server: Zertifikat und CSR generieren mit BouncyCastle
