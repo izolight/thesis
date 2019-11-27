@@ -1,6 +1,5 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
 
-import ch.bfh.ti.hirtp1ganzg1.thesis.Constants
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.InvalidDataException
 import com.auth0.jwk.JwkException
 import com.auth0.jwk.UrlJwkProvider
@@ -15,7 +14,9 @@ import io.ktor.client.features.json.serializer.KotlinxSerializer
 import io.ktor.client.features.logging.LogLevel
 import io.ktor.client.features.logging.Logging
 import io.ktor.client.request.get
+import io.ktor.http.Parameters
 import io.ktor.http.Url
+import io.ktor.http.formUrlEncode
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -23,7 +24,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import java.net.URL
-import java.net.URLEncoder
 import java.security.interfaces.RSAPublicKey
 
 interface IOIDCService {
@@ -32,10 +32,10 @@ interface IOIDCService {
     fun getJwkUrl(): Url
     fun constructAuthenticationRequestUrl(
         authorisationEndpoint: Url,
-        clientId: String = Constants.OIDC_CLIENT_ID,
-        responseType: String = Constants.OIDC_RESPONSE_TYPE,
-        scope: List<String> = Constants.OIDC_SCOPES,
-        redirectUri: Url = Constants.OIDC_REDIRECT_URI,
+        clientId: String = Config.OIDC_CLIENT_ID,
+        responseType: String = Config.OIDC_RESPONSE_TYPE,
+        scope: List<String> = Config.OIDC_SCOPES,
+        redirectUri: Url = Config.OIDC_REDIRECT_URI,
         state: String,
         nonce: String
     ): Url
@@ -46,6 +46,11 @@ interface IOIDCService {
 class Config {
     companion object {
         val OIDC_CONFIGURATION_DISCOVERY_URL = Url("https://idp.thesis.izolight.xyz/.well-known/openid-configuration")
+        val OIDC_CLIENT_ID = "thesis"
+        val OIDC_CLIENT_SECRET = "much-secure-very-secret"
+        val OIDC_REDIRECT_URI = Url("http://127.0.0.1:8080/callback")
+        val OIDC_SCOPES = listOf("openid", "profile")
+        val OIDC_RESPONSE_TYPE = "id_token"
     }
 }
 
@@ -106,12 +111,16 @@ class OurDemoOIDCService private constructor(
         state: String,
         nonce: String
     ): Url {
-        val scopeConcatenated = scope.fold("", { acc, next -> "$acc $next" })
         return Url(
-            URLEncoder.encode(
-                "$authorisationEndpoint?client_id=$clientId&response_type=$responseType&scope=$scopeConcatenated&redirect_uri=$redirectUri&state=$state&nonce=$nonce",
-                "UTF-8"
-            )
+            "$authorisationEndpoint?${
+            Parameters.build {
+                append("client_id", clientId)
+                append("response_type", responseType)
+                append("scope", scope.joinToString(" "))
+                append("redirect_uri", redirectUri.toString())
+                append("state", nonce)
+                append("nonce", nonce)
+            }.formUrlEncode()}"
         )
     }
 
@@ -129,7 +138,7 @@ class OurDemoOIDCService private constructor(
                 }
                 val verifier = JWT.require(algo)
                     .withIssuer(this.getIssuer().toString())
-                    .withAudience(Constants.OIDC_CLIENT_ID)
+                    .withAudience(Config.OIDC_CLIENT_ID)
                     .build()
 
                 return verifier.verify(idToken)

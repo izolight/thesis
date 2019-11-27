@@ -10,7 +10,7 @@ class NonceGeneratorServiceDefaultImpl : INonceGeneratorService {
     private val secureRandom = SecureRandom()
 
     override fun getNonce(): ByteArray {
-        return ByteArray(10).also {
+        return ByteArray(32).also {
             secureRandom.nextBytes(it)
         }
     }

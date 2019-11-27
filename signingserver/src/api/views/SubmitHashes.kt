@@ -8,6 +8,7 @@ import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.INonceGeneratorService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.IOIDCService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.ISecretService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.byteArrayToHexString
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.hexStringToByteArray
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.hmacSha256
 import io.ktor.application.call
 import io.ktor.locations.KtorExperimentalLocationsAPI
@@ -33,12 +34,7 @@ fun Routing.postHashes() {
             is Valid -> {
                 val seed = nonceGenerator.getNonce()
                 val hmacKey = secretService.getSecret()
-                val concatenatedHashes =
-                    input.value.hashes.fold("",
-                        { accumulator, next ->
-                            accumulator + next
-                        }
-                    ).toByteArray()
+                val concatenatedHashes = hexStringToByteArray(input.value.hashes.joinToString(""))
                 val salt = hmacSha256(hmacKey, concatenatedHashes)
                 val oidcNonce = hmacSha256(salt, concatenatedHashes)
                 val oidcNonceAsHexString = byteArrayToHexString(oidcNonce)

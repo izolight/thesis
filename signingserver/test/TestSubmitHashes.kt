@@ -1,14 +1,20 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis
 
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.response.HttpResponse
 import io.ktor.http.*
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
+import io.ktor.util.KtorExperimentalAPI
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import org.junit.Test
+import org.koin.core.inject
 import org.koin.test.KoinTest
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -17,6 +23,7 @@ import kotlin.test.assertTrue
 
 @KtorExperimentalLocationsAPI
 class TestSubmitHashes : KoinTest {
+    @KtorExperimentalAPI
     @Test
     fun testSubmitHashes() {
         @Serializable
@@ -50,6 +57,17 @@ class TestSubmitHashes : KoinTest {
                 assertNotNull(response)
                 assertFalse(response.idpChoices.isEmpty())
                 response.idpChoices.forEach { s -> Url(s) }
+                val client by inject<HttpClient>()
+
+                runBlocking {
+                    try {
+                        val idpResponse = client.get<HttpResponse>(response.idpChoices[0])
+                        println(idpResponse.content)
+                    } catch (e: io.ktor.client.features.ServerResponseException) {
+                        println(e.response.content)
+                        e.printStackTrace()
+                    }
+                }
             }
 
             with(handleRequest(HttpMethod.Post, "/api/v1/hashes") {
