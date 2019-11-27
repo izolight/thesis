@@ -5,8 +5,8 @@ import javax.security.cert.X509Certificate
 
 data class SigningKeySubjectInformation(val surname: String, val givenName: String, val email: String) {
     companion object Constants {
-        val ORGANISATIONAL_UNIT = "Demo Signing Service"
-        val COUNTRY = "CH"
+        const val ORGANISATIONAL_UNIT = "Demo Signing Service"
+        const val COUNTRY = "CH"
     }
 
     fun toDN(): String {
@@ -14,7 +14,7 @@ data class SigningKeySubjectInformation(val surname: String, val givenName: Stri
     }
 }
 
-interface SigningKeysService {
+interface ISigningKeysService {
     fun generateSigningKey(subjectInformation: SigningKeySubjectInformation): PKCS10CertificationRequest
 }
 

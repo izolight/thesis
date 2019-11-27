@@ -21,7 +21,7 @@ import org.koin.ktor.ext.inject
 
 @KtorExperimentalLocationsAPI
 @Location("/api/v1/hashes")
-class HashesRoute()
+class HashesRoute
 
 @KtorExperimentalLocationsAPI
 fun Routing.postHashes() {

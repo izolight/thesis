@@ -12,10 +12,10 @@ interface IExpireableCache<T> {
     fun exists(key: String): Boolean
 }
 
-class ExpireableCacheDefaultImpl<T>() : IExpireableCache<T> {
+class ExpireableCacheDefaultImpl<T> : IExpireableCache<T> {
     companion object {
-        val CYCLE_TIME_MILLISECONDS = 60 * 1000
-        val EXPIRATION_TIME_MILLISECONDS = 15 * 60 * 1000
+        const val CYCLE_TIME_MILLISECONDS = 60 * 1000
+        const val EXPIRATION_TIME_MILLISECONDS = 15 * 60 * 1000
     }
 
     data class ExpirableEntry<T>(val insertionTimeMillis: Long, val value: T)

@@ -17,12 +17,12 @@ import java.security.KeyPairGenerator
 
 class Constants {
     companion object {
-        val CERTIFICATE_ALGORITHM = "SHA256withRSA"
-        val RSA_KEY_BITS = 4096
+        const val CERTIFICATE_ALGORITHM = "SHA256withRSA"
+        const val RSA_KEY_BITS = 4096
     }
 }
 
-class SigningKeysServiceImpl : SigningKeysService {
+class SigningKeysServiceImpl : ISigningKeysService {
     private val keyPairGenerator = KeyPairGenerator.getInstance(Constants.CERTIFICATE_ALGORITHM)
     private val keyCache = ExpireableCacheDefaultImpl<KeyPair>()
     private val contentSignerBuilder = JcaContentSignerBuilder(Constants.CERTIFICATE_ALGORITHM)

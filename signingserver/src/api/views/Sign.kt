@@ -19,7 +19,7 @@ import org.koin.ktor.ext.inject
 
 @KtorExperimentalLocationsAPI
 @Location("/api/v1/sign")
-class SignRoute()
+class SignRoute
 
 @KtorExperimentalLocationsAPI
 fun Routing.sign() {

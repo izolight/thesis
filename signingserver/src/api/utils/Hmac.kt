@@ -6,7 +6,7 @@ import javax.crypto.spec.SecretKeySpec
 
 class Constants {
     companion object {
-        val HMAC_SHA256 = "HmacSHA256"
+        const val HMAC_SHA256 = "HmacSHA256"
     }
 }
 
