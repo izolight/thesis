@@ -1,5 +1,6 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis.api.utils
 
+import at.favre.lib.bytes.Bytes
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
@@ -15,3 +16,7 @@ fun hmacSha256(key: ByteArray, contents: ByteArray): ByteArray {
     mac.init(keySpec)
     return mac.doFinal(contents)
 }
+
+fun byteArrayToHexString(a: ByteArray): String = Bytes.wrap(a).encodeHex()
+
+fun hexStringToByteArray(s: String): ByteArray = Bytes.parseHex(s).array()

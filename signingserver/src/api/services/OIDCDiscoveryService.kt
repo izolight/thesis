@@ -21,6 +21,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.Serializable
 import java.net.URL
 import java.net.URLEncoder
 import java.security.interfaces.RSAPublicKey
@@ -42,8 +43,14 @@ interface IOIDCService {
     fun validateIdToken(idToken: String): DecodedJWT
 }
 
+class Config {
+    companion object {
+        val OIDC_CONFIGURATION_DISCOVERY_URL = Url("https://idp.thesis.izolight.xyz/.well-known/openid-configuration")
+    }
+}
+
 @KtorExperimentalAPI
-class GoogleOIDCService private constructor(
+class OurDemoOIDCService private constructor(
     private val futureDiscoveryDocument: Deferred<OIDCDiscoveryDocument>
 ) : IOIDCService {
 
@@ -61,7 +68,6 @@ class GoogleOIDCService private constructor(
 
     companion object {
         suspend operator fun invoke() = coroutineScope {
-            val discoveryDocumentUrl = Url("https://accounts.google.com/.well-known/openid-configuration")
             val client = HttpClient(CIO) {
                 install(Logging) {
                     level = LogLevel.INFO
@@ -71,10 +77,10 @@ class GoogleOIDCService private constructor(
                 }
             }
             val discoveryDocument = async {
-                client.get<OIDCDiscoveryDocument>(discoveryDocumentUrl)
+                client.get<OIDCDiscoveryDocument>(Config.OIDC_CONFIGURATION_DISCOVERY_URL)
             }
 
-            GoogleOIDCService(futureDiscoveryDocument = discoveryDocument)
+            OurDemoOIDCService(futureDiscoveryDocument = discoveryDocument)
         }
     }
 
@@ -141,12 +147,31 @@ class GoogleOIDCService private constructor(
 
     }
 
+    @Serializable
     data class OIDCDiscoveryDocument(
         val issuer: String,
         val authorization_endpoint: String,
         val token_endpoint: String,
+        val jwks_uri: String,
+        val subject_types_supported: List<String>,
+        val response_types_supported: List<String>,
+        val claims_supported: List<String>,
+        val grant_types_supported: List<String>,
+        val response_modes_supported: List<String>,
         val userinfo_endpoint: String,
+        val scopes_supported: List<String>,
+        val token_endpoint_auth_methods_supported: List<String>,
+        val userinfo_signing_alg_values_supported: List<String>,
+        val id_token_signing_alg_values_supported: List<String>,
+        val request_parameter_supported: Boolean,
+        val request_uri_parameter_supported: Boolean,
+        val require_request_uri_registration: Boolean,
+        val claims_parameter_supported: Boolean,
         val revocation_endpoint: String,
-        val jwks_uri: String
+        val backchannel_logout_supported: Boolean,
+        val backchannel_logout_session_supported: Boolean,
+        val frontchannel_logout_supported: Boolean,
+        val frontchannel_logout_session_supported: Boolean,
+        val end_session_endpoint: String
     )
 }

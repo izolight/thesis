@@ -10,5 +10,5 @@ val DIModule = module {
     single<INonceGeneratorService> { NonceGeneratorServiceDefaultImpl() }
     single<ISecretService> { SecretServiceDefaultImpl() }
     single<ISignaturesHoldingService> { SignaturesHoldingServiceDefaultImpl() }
-    single<IOIDCService> { runBlocking { GoogleOIDCService() } }
+    single<IOIDCService> { runBlocking { OurDemoOIDCService() } }
 }

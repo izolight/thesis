@@ -88,31 +88,16 @@ fun Application.module() {
         }
 
         exception<Throwable> { exception ->
+            call.application.environment.log.error(
+                "Unhandled exception",
+                exception
+            )
             call.respond(
                 HttpStatusCode.InternalServerError,
                 ApiError("Unexpected error: ${exception.message ?: "Unknown"}")
             )
         }
     }
-
-//    val client = HttpClient(CIO) {
-//        install(JsonFeature) {
-//            serializer = GsonSerializer()
-//        }
-//        install(Logging) {
-//            level = LogLevel.HEADERS
-//        }
-//    }
-//    runBlocking {
-    // Sample for making a HTTP Client request
-    /*
-    val message = client.post<JsonSampleClass> {
-        url("http://127.0.0.1:8080/path/to/endpoint")
-        contentType(ContentType.Application.Json)
-        body = JsonSampleClass(hello = "world")
-    }
-    */
-//    }
 
     routing {
         // Static feature. Try to access `/static/ktor_logo.svg`

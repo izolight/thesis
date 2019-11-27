@@ -1,7 +1,6 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis
 
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.IHashesCachingService
-import com.beust.klaxon.Klaxon
+import at.favre.lib.bytes.Bytes
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -10,8 +9,10 @@ import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonConfiguration
 import org.koin.test.KoinTest
-import org.koin.test.inject
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -19,6 +20,15 @@ import kotlin.test.assertTrue
 
 @KtorExperimentalLocationsAPI
 class ApplicationTest : KoinTest {
+    @Test
+    fun testByteSerialisation() {
+        val someString = "hello I would like to serialise plix"
+        val byteArray = someString.toByteArray()
+        val hexString = Bytes.wrap(byteArray).encodeHex()
+        val byteArray2 = Bytes.parseHex(hexString).array()
+        byteArray.forEachIndexed { index, byte ->  assertEquals(byte, byteArray2[index]) }
+    }
+
     @Test
     fun testRoot() {
         withTestApplication({ module() }) {
@@ -31,18 +41,19 @@ class ApplicationTest : KoinTest {
 
     @Test
     fun testSubmitHashes() {
+        @Serializable
         data class TestSubmitHashesPostBody(val hashes: List<String>)
-        data class ExpectedNonceResponse(val nonce: String)
+        @Serializable
+        data class ExpectedNonceResponse(val idpChoices: List<String>, val seed: String, val salt: String)
 
-        val klaxon = Klaxon()
         withTestApplication({ module() }) {
-            val hashesCache by inject<IHashesCachingService>()
+            val json = Json(JsonConfiguration.Stable)
             with(handleRequest(HttpMethod.Post, "/api/v1/hashes") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
 
                 setBody(
-                    klaxon.toJsonString(
+                    json.stringify(TestSubmitHashesPostBody.serializer(),
                         TestSubmitHashesPostBody(
                             listOf(
                                 "06180c7ede6c6936334501f94ccfc5d0ff828e57a4d8f6dc03f049eaad5fb308",
@@ -52,13 +63,12 @@ class ApplicationTest : KoinTest {
                     )
                 )
             }) {
-                assertEquals(HttpStatusCode.Created, response.status())
+                assertEquals(HttpStatusCode.OK, response.status(), response.content)
                 val responseText = response.content.toString()
                 assertTrue("nonce" in responseText, responseText)
-                val response = klaxon.parse<ExpectedNonceResponse>(responseText)
+                val response = json.parse(ExpectedNonceResponse.serializer(), responseText)
                 assertNotNull(response)
-                assertTrue(response.nonce.length == 64)
-                assertTrue(hashesCache.exists(response.nonce))
+                println(response)
             }
 
             with(handleRequest(HttpMethod.Post, "/api/v1/hashes") {
@@ -66,7 +76,7 @@ class ApplicationTest : KoinTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
 
                 setBody(
-                    klaxon.toJsonString(
+                    json.stringify(TestSubmitHashesPostBody.serializer(),
                         TestSubmitHashesPostBody(
                             listOf(
                                 "06180c7ede6c6936334501f94ccfc5d0ff828e57a4d8f6dc03f049eaad5fb308",
@@ -90,7 +100,7 @@ class ApplicationTest : KoinTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
 
                 setBody(
-                    klaxon.toJsonString(
+                    json.stringify(TestSubmitHashesPostBody.serializer(),
                         TestSubmitHashesPostBody(
                             listOf(
                             )

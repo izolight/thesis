@@ -6,10 +6,13 @@ import kotlinx.serialization.Serializable
 data class SigningRequest(
     val id_token: String,
     val hashes: List<String>,
-    val seed: Long,
+    val seed: String,
     val salt: String
 ) : Validatable<SigningRequest> {
     override fun validate(): Validated<SigningRequest> {
+        if(seed.length != 64) return Invalid(InvalidJSONException("Invalid seed length"))
+        if(salt.length != 64) return Invalid(InvalidJSONException("Invalid seed length"))
+
         return when (val hashesValidationResult = SubmittedHashes(this.hashes).validate()) {
             is Valid -> Valid(
                 SigningRequest(

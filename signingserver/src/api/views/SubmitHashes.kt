@@ -7,6 +7,7 @@ import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.Valid
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.INonceGeneratorService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.IOIDCService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.ISecretService
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.byteArrayToHexString
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.hmacSha256
 import io.ktor.application.call
 import io.ktor.locations.KtorExperimentalLocationsAPI
@@ -31,24 +32,26 @@ fun Routing.postHashes() {
         when (val input = call.receive<SubmittedHashes>().validate()) {
             is Valid -> {
                 val seed = nonceGenerator.getNonce()
-                val hmacKey = secretService.getHmacKey(seed)
+                val hmacKey = secretService.getSecret()
                 val concatenatedHashes =
                     input.value.hashes.fold("",
                         { accumulator, next ->
-                            accumulator + next }
+                            accumulator + next
+                        }
                     ).toByteArray()
                 val salt = hmacSha256(hmacKey, concatenatedHashes)
-                val oidcNonce = hmacSha256(salt, concatenatedHashes).toString()
+                val oidcNonce = hmacSha256(salt, concatenatedHashes)
+                val oidcNonceAsHexString = byteArrayToHexString(oidcNonce)
                 val idpRedirect = oidcService.constructAuthenticationRequestUrl(
                     oidcService.getAuthorisationEndpoint(),
-                    nonce = oidcNonce,
-                    state = oidcNonce
+                    nonce = oidcNonceAsHexString,
+                    state = oidcNonceAsHexString
                 )
                 call.respond(
                     HashesSubmissionResponse(
                         idpChoices = listOf(idpRedirect.toString()),
-                        salt = salt.toString(),
-                        seed = seed
+                        salt = byteArrayToHexString(salt),
+                        seed = byteArrayToHexString(seed)
                     )
                 )
             }
@@ -56,3 +59,4 @@ fun Routing.postHashes() {
         }
     }
 }
+

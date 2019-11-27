@@ -3,20 +3,14 @@ package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
 import java.security.SecureRandom
 
 interface ISecretService {
-    fun getSecret(): Long
-    fun getHmacKey(nonce: Long): ByteArray
+    fun getSecret(): ByteArray
 }
 
 
 class SecretServiceDefaultImpl : ISecretService {
-    private val secret = SecureRandom().nextLong()
-    override fun getSecret(): Long {
-        return this.secret
+    private val secret = ByteArray(32).also { SecureRandom().nextBytes(it) }
+    override fun getSecret(): ByteArray {
+        return this.secret.copyOf()
     }
 
-    override fun getHmacKey(nonce: Long): ByteArray {
-        return (
-                this.getSecret().toString() + nonce.toString().toByteArray()
-                ).toByteArray()
-    }
 }

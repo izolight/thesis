@@ -6,6 +6,7 @@ import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.SigningRequest
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.Valid
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.IOIDCService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.ISecretService
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.hexStringToByteArray
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.hmacSha256
 import com.auth0.jwt.interfaces.DecodedJWT
 import io.ktor.application.call
@@ -41,7 +42,7 @@ fun Routing.sign() {
     }
 
     fun validateSalt(signingRequest: Valid<SigningRequest>) {
-        val hmacKey = secretService.getHmacKey(signingRequest.value.seed)
+        val hmacKey = hexStringToByteArray(signingRequest.value.seed)
         val concatenatedHashes = signingRequest.value.hashes.fold(
             "",
             { acc, next ->
