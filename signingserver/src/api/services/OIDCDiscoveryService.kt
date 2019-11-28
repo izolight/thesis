@@ -42,6 +42,7 @@ interface IOIDCService {
 
 class Config {
     companion object {
+        const val OIDC_IDP_NAME = "Izolight IDP"
         val OIDC_CONFIGURATION_DISCOVERY_URL =
             Url("https://keycloak.thesis.izolight.xyz/auth/realms/testing/.well-known/openid-configuration")
         const val OIDC_CLIENT_ID = "thesis"
