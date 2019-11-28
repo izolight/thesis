@@ -106,4 +106,8 @@
     - Anpassen OIDC Code an eigenen IdP
     - OIDC Tests mit eigenem IdP
 - IdP fixen
+- Hydra IDP zurückbauen und ersetzen mit Keycloak
+
+#### 28.11.19
+- Keycloak IDP an Signing Server anbinden
 
