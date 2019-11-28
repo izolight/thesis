@@ -43,7 +43,7 @@ interface IOIDCService {
 class Config {
     companion object {
         val OIDC_CONFIGURATION_DISCOVERY_URL =
-            Url("https://keycloak.thesis.izolight.xyz/auth/realms/master/.well-known/openid-configuration")
+            Url("https://keycloak.thesis.izolight.xyz/auth/realms/testing/.well-known/openid-configuration")
         const val OIDC_CLIENT_ID = "thesis"
         const val OIDC_CLIENT_SECRET = "1f164d78-ff38-4f68-9bae-8ec8dd3b1a53"
         val OIDC_REDIRECT_URI = Url("http://127.0.0.1:8080/callback")
