@@ -4,9 +4,10 @@ import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.Invalid
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.InvalidDataException
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.SigningRequest
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.Valid
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.Config
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.IOIDCService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.ISecretService
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.hexStringToByteArray
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.byteArrayToHexString
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.hmacSha256
 import com.auth0.jwt.interfaces.DecodedJWT
 import io.ktor.application.call
@@ -16,52 +17,46 @@ import io.ktor.locations.post
 import io.ktor.request.receive
 import io.ktor.routing.Routing
 import org.koin.ktor.ext.inject
+import org.slf4j.LoggerFactory
 
 @KtorExperimentalLocationsAPI
-@Location("/api/v1/sign")
+@Location(URLs.SIGN)
 class SignRoute
 
 @KtorExperimentalLocationsAPI
 fun Routing.sign() {
     val oidcService by inject<IOIDCService>()
     val secretService by inject<ISecretService>()
+    val logger = LoggerFactory.getLogger(this.javaClass)
 
-    fun validateOidcNonceAndState(idToken: DecodedJWT, salt: ByteArray, concatenatedHashes: ByteArray) {
-        val oidcNonce = hmacSha256(salt, concatenatedHashes).toString()
-        if (idToken.getClaim("nonce").asString() != oidcNonce) {
+    fun validateOidcNonce(idToken: DecodedJWT, salt: ByteArray, concatenatedHashes: ByteArray) {
+        val oidcNonce = hmacSha256(salt, concatenatedHashes)
+        val oidcNonceAsHexString = byteArrayToHexString(oidcNonce)
+        if (idToken.getClaim("nonce").asString() != oidcNonceAsHexString) {
             throw InvalidDataException(
                 "Nonce mismatch"
             )
-        } else {
-            if (idToken.getClaim("state").asString() != oidcNonce) {
-                throw InvalidDataException(
-                    "State mismatch"
-                )
-            }
         }
     }
 
-    fun validateSalt(signingRequest: Valid<SigningRequest>) {
-        val hmacKey = hexStringToByteArray(signingRequest.value.seed)
-        val concatenatedHashes = signingRequest.value.hashes.fold(
-            "",
-            { acc, next ->
-                acc + next
-            }
-        ).toByteArray()
-        val salt = hmacSha256(hmacKey, concatenatedHashes)
+    fun validateClientId(idToken: DecodedJWT) {
+        if (idToken.getClaim("aud").asString() != Config.OIDC_CLIENT_ID) {
+            throw InvalidDataException("Client ID (audience) mismatch")
+        }
+    }
 
-        if (salt.toString() != signingRequest.value.salt) {
+    fun validateSalt(signingRequest: Valid<SigningRequest>): ByteArray {
+        val hmacKey = secretService.getSecret()
+        val concatenatedHashes = signingRequest.value.hashes.joinToString("").toByteArray()
+        val salt = hmacSha256(hmacKey, concatenatedHashes)
+        val saltAsHexString = byteArrayToHexString(salt)
+
+        if (saltAsHexString != signingRequest.value.salt) {
             throw InvalidDataException(
                 "Salt mismatch"
             )
         } else {
-            val jwtIdToken = oidcService.validateIdToken(signingRequest.value.id_token)
-            validateOidcNonceAndState(
-                jwtIdToken,
-                salt,
-                concatenatedHashes
-            )
+            return salt
         }
     }
 
@@ -70,7 +65,14 @@ fun Routing.sign() {
     post<SignRoute> {
         when (val input = call.receive<SigningRequest>().validate()) {
             is Valid -> {
-                validateSalt(input)
+                val salt = validateSalt(input)
+                val jwtIdToken = oidcService.validateIdToken(input.value.id_token)
+                validateOidcNonce(
+                    jwtIdToken,
+                    salt,
+                    input.value.hashes.joinToString("").toByteArray(Charsets.UTF_8)
+                )
+                validateClientId(jwtIdToken)
 
 
             }
