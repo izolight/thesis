@@ -61,7 +61,7 @@ data class SubmittedHashes(val hashes: List<String>) : Validatable<SubmittedHash
 
 @Serializable
 data class HashesSubmissionResponse(
-    val idpChoices: List<String>,
+    val providers: Map<String, String>,
     val seed: String,
     val salt: String
 )
