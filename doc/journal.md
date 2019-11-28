@@ -110,4 +110,6 @@
 
 #### 28.11.19
 - Keycloak IDP an Signing Server anbinden
+- Unit Test fürs OIDC Karussell
+- Kleine Fixes
 
