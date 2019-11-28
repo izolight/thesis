@@ -1,5 +1,6 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis
 
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.defaultConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.response.HttpResponse
@@ -14,7 +15,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import org.junit.Test
-import org.koin.core.inject
 import org.koin.test.KoinTest
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -57,16 +57,15 @@ class TestSubmitHashes : KoinTest {
                 assertNotNull(response)
                 assertFalse(response.idpChoices.isEmpty())
                 response.idpChoices.forEach { s -> Url(s) }
-                val client by inject<HttpClient>()
 
                 runBlocking {
+                    val client = HttpClient() { defaultConfig() }
                     val idpResponse = client.get<HttpResponse>(response.idpChoices[0])
                     assertEquals(HttpStatusCode.OK, idpResponse.status)
-                    TODO("submit form with csrf and challenge stuff")
+//                    TODO("submit form with csrf and challenge stuff")
 //                    val loginResponse = client.post<HttpResponse>(
 //                        "https://${idpResponse.call.request.url.hostWithPort}/login",
 //                        MultiPartFormDataContent(formData {
-//                            TODO()
 //
 //                        })
 //                    )
