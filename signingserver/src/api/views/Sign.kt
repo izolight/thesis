@@ -1,25 +1,33 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis.api.views
 
+import Signature
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.Invalid
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.InvalidDataException
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.SigningRequest
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.Valid
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.IOIDCService
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.ISecretService
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.*
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.Either
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.byteArrayToHexString
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.hexStringToByteArray
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.hmacSha256
 import com.auth0.jwt.interfaces.DecodedJWT
+import com.google.protobuf.ByteString
 import io.ktor.application.call
 import io.ktor.request.receive
 import io.ktor.routing.Routing
 import io.ktor.routing.post
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonConfiguration
 import org.koin.ktor.ext.inject
 import org.slf4j.LoggerFactory
 
 fun Routing.sign() {
     val oidcService by inject<IOIDCService>()
     val secretService by inject<ISecretService>()
+    val signingKeyService by inject<ISigningKeysService>()
+    val caService by inject<ICertificateAuthorityService>()
     val logger = LoggerFactory.getLogger(this.javaClass)
+    val json = Json(JsonConfiguration.Stable)
 
     fun validateOidcNonce(idToken: DecodedJWT, salt: ByteArray, concatenatedHashes: ByteArray) {
         val oidcNonce = hmacSha256(salt, concatenatedHashes)
@@ -50,14 +58,38 @@ fun Routing.sign() {
         when (val input = call.receive<SigningRequest>().validate()) {
             is Valid -> {
                 val salt = validateSalt(input)
-                val jwtIdToken = oidcService.validateIdToken(input.value.id_token)
+                val jwtValidationResult = oidcService.validateIdToken(input.value.id_token)
                 validateOidcNonce(
-                    jwtIdToken,
+                    jwtValidationResult.idToken,
                     salt,
                     input.value.hashes.joinToString("").toByteArray(Charsets.UTF_8)
                 )
-                println()
+                when (val subjectInformation = SigningKeySubjectInformation.fromIdToken(jwtValidationResult.idToken)) {
+                    is Either.Success -> {
+                        val signingKeyCSR = signingKeyService.generateSigningKey(subjectInformation.value)
+                        val cert = caService.signCSR(signingKeyCSR)
+//                        TODO("other hashes, macced, sorted")
+                        val signatureData = Signature.SignatureData.newBuilder()
+                            .setDocumentHash(ByteString.copyFrom(hexStringToByteArray(input.value.hashes[0])))
+                            .setHashAlgorithm(Signature.HashAlgorithm.SHA2_256)
+                            .setMacKey(ByteString.copyFrom(salt))
+                            .setMacAlgorithm(Signature.MACAlgorithm.HMAC_SHA2_256)
+                            .setSignatureLevel(Signature.SignatureLevel.ADVANCED)
+                            .setIdToken(ByteString.copyFromUtf8(input.value.id_token))
+                            .setJwkIdp(
+                                0,
+                                ByteString.copyFromUtf8(
+                                    oidcService.marshalJwk(jwtValidationResult.jwk)
 
+                                ))
+                            .build()
+
+
+//                        val pkcs7 = signingKeyService.signToPkcs7()
+                                        println ()
+                    }
+                    is Either.Error -> throw subjectInformation.e
+                }
 
             }
             is Invalid -> throw input.error

@@ -12,4 +12,5 @@ val DIModule = module {
     single<ISignaturesHoldingService> { SignaturesHoldingServiceDefaultImpl() }
     single<IOIDCService> { runBlocking { OurDemoOIDCService() } }
     single<ISigningKeysService> { SigningKeysServiceImpl() }
+    single<ICertificateAuthorityService> { CertificateAuthorityServiceImpl() }
 }

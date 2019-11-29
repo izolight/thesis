@@ -2,6 +2,7 @@ package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
 
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.InvalidDataException
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.defaultConfig
+import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkException
 import com.auth0.jwk.UrlJwkProvider
 import com.auth0.jwt.JWT
@@ -19,7 +20,10 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonConfiguration
 import java.net.URL
 import java.security.interfaces.RSAPublicKey
 
@@ -37,7 +41,10 @@ interface IOIDCService {
         nonce: String
     ): Url
 
-    fun validateIdToken(idToken: String): DecodedJWT
+    fun marshalJwk(jwk: Jwk): String
+
+    fun validateIdToken(idToken: String): JwtValidationResult
+    data class JwtValidationResult(val idToken: DecodedJWT, val jwk: Jwk)
 }
 
 class Config {
@@ -57,6 +64,34 @@ class Config {
 class OurDemoOIDCService private constructor(
     private val futureDiscoveryDocument: Deferred<OIDCDiscoveryDocument>
 ) : IOIDCService {
+
+    @Serializable
+    data class JWK(
+        val kid: String,
+        val kty: String,
+        val alg: String,
+        val use: String,
+        val n: String,
+        val e: String,
+        val x5c: List<String>,
+        val x5t: String,
+        @SerialName("x5t#S256")
+        val x5t_S256: String
+    ) {
+        companion object {
+            fun fromJwk(jwks: Jwk) = JWK(
+                kid = jwks.id,
+                kty = jwks.type,
+                alg = jwks.algorithm,
+                use = jwks.usage,
+                n = jwks.additionalAttributes["n"]!!.toString(),
+                e = jwks.additionalAttributes["e"]!!.toString(),
+                x5c = jwks.certificateChain,
+                x5t = jwks.certificateThumbprint,
+                x5t_S256 = jwks.additionalAttributes["x5t#S256"]!!.toString()
+            )
+        }
+    }
 
     private val discoveryDocument: OIDCDiscoveryDocument by lazy {
         runBlocking {
@@ -78,6 +113,8 @@ class OurDemoOIDCService private constructor(
                 }
             })
         }
+
+        private val json = Json(JsonConfiguration.Stable)
     }
 
     override fun getAuthorisationEndpoint(): Url {
@@ -115,7 +152,9 @@ class OurDemoOIDCService private constructor(
         )
     }
 
-    //    fun decodeJWT(idToken: String): Either<DecodedJWT> {
+    override fun marshalJwk(jwk: Jwk) = json.stringify(JWK.serializer(), JWK.fromJwk(jwk))
+
+//    fun decodeJWT(idToken: String): Either<DecodedJWT> {
 //        return Either.Success(JWT.decode(idToken))
 //    }
 //
@@ -135,7 +174,8 @@ class OurDemoOIDCService private constructor(
 //        )
 //    }
 //
-    override fun validateIdToken(idToken: String): DecodedJWT {
+
+    override fun validateIdToken(idToken: String): IOIDCService.JwtValidationResult {
 //        val decodedJwt = attempt {
 //            val jwt = attempt { decodeJWT(idToken) }
 //            val jwk = attempt(jwt) { decodeJWK(it) }
@@ -159,7 +199,7 @@ class OurDemoOIDCService private constructor(
                     .withAudience(Config.OIDC_CLIENT_ID)
                     .build()
 
-                return verifier.verify(idToken)
+                return IOIDCService.JwtValidationResult(idToken = verifier.verify(idToken), jwk = jwk)
             } catch (e: JwkException) {
                 throw InvalidDataException(
                     "JWK Error: $e"

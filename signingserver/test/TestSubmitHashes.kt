@@ -125,126 +125,126 @@ class TestSubmitHashes : KoinTest {
             }) {
                 assertEquals(HttpStatusCode.OK, response.status(), response.content)
             }
-
-            with(handleRequest(HttpMethod.Post, URLs.SIGN) {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
-
-                setBody(
-                    json.stringify(
-                        SignatureRequest.serializer(),
-                        SignatureRequest(
-                            id_token = "${signatureRequest.id_token}invalid",
-                            salt = signatureRequest.salt,
-                            seed = signatureRequest.seed,
-                            hashes = TESTHASHES
-                        )
-                    )
-                )
-            }) {
-                assertEquals(HttpStatusCode.BadRequest, response.status(), response.content)
-            }
-
-            with(handleRequest(HttpMethod.Post, URLs.SIGN) {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
-
-                setBody(
-                    json.stringify(
-                        SignatureRequest.serializer(),
-                        SignatureRequest(
-                            id_token = signatureRequest.id_token,
-                            salt = signatureRequest.salt + "a",
-                            seed = signatureRequest.seed,
-                            hashes = TESTHASHES
-                        )
-                    )
-                )
-            }) {
-                assertEquals(HttpStatusCode.BadRequest, response.status(), response.content)
-            }
-
-            with(handleRequest(HttpMethod.Post, URLs.SIGN) {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
-
-                setBody(
-                    json.stringify(
-                        SignatureRequest.serializer(),
-                        SignatureRequest(
-                            id_token = signatureRequest.id_token,
-                            salt = signatureRequest.salt,
-                            seed = signatureRequest.seed + "a",
-                            hashes = TESTHASHES
-                        )
-                    )
-                )
-            }) {
-                assertEquals(HttpStatusCode.BadRequest, response.status(), response.content)
-            }
-
-            with(handleRequest(HttpMethod.Post, URLs.SIGN) {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
-
-                setBody(
-                    json.stringify(
-                        SignatureRequest.serializer(),
-                        SignatureRequest(
-                            id_token = signatureRequest.id_token,
-                            salt = signatureRequest.salt,
-                            seed = signatureRequest.seed,
-                            hashes = listOf(TESTHASHES[0])
-                        )
-                    )
-                )
-            }) {
-                assertEquals(HttpStatusCode.BadRequest, response.status(), response.content)
-            }
-
-            with(handleRequest(HttpMethod.Post, URLs.SUBMIT_HASHES) {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
-
-                setBody(
-                    json.stringify(
-                        TestSubmitHashesPostBody.serializer(),
-                        TestSubmitHashesPostBody(
-                            listOf(
-                                "06180c7ede6c6936334501f94ccfc5d0ff828e57a4d8f6dc03f049eaad5fb308",
-                                "8f33ddf43ee0cc72c7123f878a8926feab6cedf885e148d45ae30213cd443"
-                            )
-                        )
-                    )
-                )
-            }) {
-                assertEquals(
-                    HttpStatusCode.BadRequest,
-                    response.status(),
-                    "Status: ${response.status().toString()}, body: ${response.content}"
-                )
-                val responseText = response.content.toString()
-                assertTrue("not a valid" in responseText, responseText)
-            }
-
-            with(handleRequest(HttpMethod.Post, URLs.SUBMIT_HASHES) {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
-
-                setBody(
-                    json.stringify(
-                        TestSubmitHashesPostBody.serializer(),
-                        TestSubmitHashesPostBody(
-                            listOf(
-                            )
-                        )
-                    )
-                )
-            }) {
-                assertEquals(HttpStatusCode.BadRequest, response.status())
-                val responseText = response.content.toString()
-                assertTrue("No values" in responseText, responseText)
-            }
+//
+//            with(handleRequest(HttpMethod.Post, URLs.SIGN) {
+//                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+//                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+//
+//                setBody(
+//                    json.stringify(
+//                        SignatureRequest.serializer(),
+//                        SignatureRequest(
+//                            id_token = "${signatureRequest.id_token}invalid",
+//                            salt = signatureRequest.salt,
+//                            seed = signatureRequest.seed,
+//                            hashes = TESTHASHES
+//                        )
+//                    )
+//                )
+//            }) {
+//                assertEquals(HttpStatusCode.BadRequest, response.status(), response.content)
+//            }
+//
+//            with(handleRequest(HttpMethod.Post, URLs.SIGN) {
+//                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+//                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+//
+//                setBody(
+//                    json.stringify(
+//                        SignatureRequest.serializer(),
+//                        SignatureRequest(
+//                            id_token = signatureRequest.id_token,
+//                            salt = signatureRequest.salt + "a",
+//                            seed = signatureRequest.seed,
+//                            hashes = TESTHASHES
+//                        )
+//                    )
+//                )
+//            }) {
+//                assertEquals(HttpStatusCode.BadRequest, response.status(), response.content)
+//            }
+//
+//            with(handleRequest(HttpMethod.Post, URLs.SIGN) {
+//                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+//                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+//
+//                setBody(
+//                    json.stringify(
+//                        SignatureRequest.serializer(),
+//                        SignatureRequest(
+//                            id_token = signatureRequest.id_token,
+//                            salt = signatureRequest.salt,
+//                            seed = signatureRequest.seed + "a",
+//                            hashes = TESTHASHES
+//                        )
+//                    )
+//                )
+//            }) {
+//                assertEquals(HttpStatusCode.BadRequest, response.status(), response.content)
+//            }
+//
+//            with(handleRequest(HttpMethod.Post, URLs.SIGN) {
+//                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+//                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+//
+//                setBody(
+//                    json.stringify(
+//                        SignatureRequest.serializer(),
+//                        SignatureRequest(
+//                            id_token = signatureRequest.id_token,
+//                            salt = signatureRequest.salt,
+//                            seed = signatureRequest.seed,
+//                            hashes = listOf(TESTHASHES[0])
+//                        )
+//                    )
+//                )
+//            }) {
+//                assertEquals(HttpStatusCode.BadRequest, response.status(), response.content)
+//            }
+//
+//            with(handleRequest(HttpMethod.Post, URLs.SUBMIT_HASHES) {
+//                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+//                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+//
+//                setBody(
+//                    json.stringify(
+//                        TestSubmitHashesPostBody.serializer(),
+//                        TestSubmitHashesPostBody(
+//                            listOf(
+//                                "06180c7ede6c6936334501f94ccfc5d0ff828e57a4d8f6dc03f049eaad5fb308",
+//                                "8f33ddf43ee0cc72c7123f878a8926feab6cedf885e148d45ae30213cd443"
+//                            )
+//                        )
+//                    )
+//                )
+//            }) {
+//                assertEquals(
+//                    HttpStatusCode.BadRequest,
+//                    response.status(),
+//                    "Status: ${response.status().toString()}, body: ${response.content}"
+//                )
+//                val responseText = response.content.toString()
+//                assertTrue("not a valid" in responseText, responseText)
+//            }
+//
+//            with(handleRequest(HttpMethod.Post, URLs.SUBMIT_HASHES) {
+//                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+//                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+//
+//                setBody(
+//                    json.stringify(
+//                        TestSubmitHashesPostBody.serializer(),
+//                        TestSubmitHashesPostBody(
+//                            listOf(
+//                            )
+//                        )
+//                    )
+//                )
+//            }) {
+//                assertEquals(HttpStatusCode.BadRequest, response.status())
+//                val responseText = response.content.toString()
+//                assertTrue("No values" in responseText, responseText)
+//            }
         }
     }
 }

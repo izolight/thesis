@@ -1,11 +1,10 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
 
+import Signature
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers
 import org.bouncycastle.asn1.x500.X500Name
-import org.bouncycastle.asn1.x509.BasicConstraints
-import org.bouncycastle.asn1.x509.Extension
-import org.bouncycastle.asn1.x509.ExtensionsGenerator
-import org.bouncycastle.asn1.x509.GeneralName
+import org.bouncycastle.asn1.x509.*
+import org.bouncycastle.cms.CMSSignedData
 import org.bouncycastle.crypto.CryptoException
 import org.bouncycastle.jce.X509KeyUsage
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
@@ -17,15 +16,16 @@ import java.security.KeyPairGenerator
 
 class Constants {
     companion object {
-        const val CERTIFICATE_ALGORITHM = "SHA256withRSA"
+        const val KEY_ALGORITHM = "RSA"
+        const val SIGNATURE_ALGORITHM = "SHA256withRSA"
         const val RSA_KEY_BITS = 4096
     }
 }
 
 class SigningKeysServiceImpl : ISigningKeysService {
-    private val keyPairGenerator = KeyPairGenerator.getInstance(Constants.CERTIFICATE_ALGORITHM)
+    private val keyPairGenerator = KeyPairGenerator.getInstance(Constants.KEY_ALGORITHM)
     private val keyCache = ExpireableCacheDefaultImpl<KeyPair>()
-    private val contentSignerBuilder = JcaContentSignerBuilder(Constants.CERTIFICATE_ALGORITHM)
+    private val contentSignerBuilder = JcaContentSignerBuilder(Constants.SIGNATURE_ALGORITHM)
 
     init {
         keyPairGenerator.initialize(Constants.RSA_KEY_BITS)
@@ -56,9 +56,14 @@ class SigningKeysServiceImpl : ISigningKeysService {
                 it.addExtension(
                     Extension.subjectAlternativeName,
                     false,
-                    GeneralName(GeneralName.rfc822Name, subjectInformation.email)
+                    GeneralNames(GeneralName(GeneralName.rfc822Name, subjectInformation.email))
                 )
             }.generate()
         ).build(this.contentSignerBuilder.build(keyPair.private)) ?: throw CryptoException("Unable to construct CSR")
     }
+
+    override fun signToPkcs7(signatureData: Signature.SignatureData): CMSSignedData {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
 }
