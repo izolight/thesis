@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/golang/protobuf/proto"
 	"go.mozilla.org/pkcs7"
+	"time"
 )
 
 const (
@@ -18,41 +19,47 @@ func (t timestampError) Error() string {
 
 type TimestampVerifier struct {
 	data       chan[]byte
+	notAfter chan time.Time
 	timestamps []*Timestamped
 }
 
 func NewTimestampVerifier(timestamps []*Timestamped) *TimestampVerifier{
 	return &TimestampVerifier{
 		data:       make(chan []byte, 1),
+		notAfter: make(chan time.Time, 1),
 		timestamps: timestamps,
 	}
 }
 
-func (t TimestampVerifier) sendData(data []byte) {
+func (t *TimestampVerifier) sendData(data []byte) {
 	t.data <- data
 }
 
-func verifyTimestamp(t *Timestamped, data []byte) error {
+func (t *TimestampVerifier) getNotAfter() time.Time {
+	return <- t.notAfter
+}
+
+func verifyTimestamp(t *Timestamped, data []byte) (*time.Time, error) {
 	ts, err := pkcs7.ParseTSResponse(t.Rfc3161Timestamp)
 	if err != nil {
-		return fmt.Errorf("could not parse timestamp response: %w", err)
+		return nil, fmt.Errorf("could not parse timestamp response: %w", err)
 	}
 	l := ltvVerifier{
 		certs:  ts.Certificates,
 		ltvMap: t.LtvTimestamp,
 	}
-	err = l.Verify()
-	if err != nil {
-		return fmt.Errorf("ltv information for timestamp not valid: %w", err)
+
+	if err = l.Verify(); err != nil {
+		return nil, fmt.Errorf("ltv information for timestamp not valid: %w", err)
 	}
 	err = verifyHash(data, ts.HashedMessage, ts.HashAlgorithm)
 	if err != nil {
-		return fmt.Errorf("could not verify hash: %w", err)
+		return nil, fmt.Errorf("could not verify hash: %w", err)
 	}
-	return nil
+	return &ts.Time, nil
 }
 
-func (t TimestampVerifier) Verify() error {
+func (t *TimestampVerifier) Verify() error {
 	if t.timestamps == nil || len(t.timestamps) == 0 {
 		return ErrNoTimestamps
 	}
@@ -70,8 +77,12 @@ func (t TimestampVerifier) Verify() error {
 				return fmt.Errorf("could not marshal timestamp: %w", err)
 			}
 		}
-		if err := verifyTimestamp(t.timestamps[i], hashData); err != nil {
+		notAfter, err := verifyTimestamp(t.timestamps[i], hashData)
+		if err != nil {
 			return fmt.Errorf("could not verify timestamp: %w", err)
+		}
+		if i == 0 {
+			t.notAfter <- *notAfter
 		}
 	}
 	return nil

@@ -95,7 +95,7 @@ func TestVerifyIDToken(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v, err := NewIDTokenVerifier(tt.args.token, tt.args.issuer, tt.args.nonce, tt.args.clientId, tt.args.notAfter, tt.args.key, ltv)
+			v, err := NewIDTokenVerifier(nil, nil)
 			if err != nil {
 				t.Errorf("NewIDTokenVerifier error = %v, wantErr %v", err, tt.wantErr)
 			}

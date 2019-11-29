@@ -12,7 +12,50 @@ import (
 type signatureDataVerifier struct {
 	data SignatureData
 	documentHash []byte
-	nonce []byte
+	nonce chan string
+}
+
+func NewSignatureDataVerifier(data SignatureData, documentHash []byte) *signatureDataVerifier{
+	return &signatureDataVerifier{
+		data:         data,
+		documentHash: documentHash,
+		nonce:        make(chan string, 1),
+	}
+}
+
+func (s *signatureDataVerifier) sendNonce(nonce string) {
+	s.nonce <- nonce
+}
+
+func (s *signatureDataVerifier) Verify() error {
+	if !bytes.Equal(s.documentHash, s.data.DocumentHash) {
+		return fmt.Errorf("document hash and signature didn't match")
+	}
+	macAlgo,err := s.data.MacAlgorithm.Algorithm()
+	if err != nil {
+		return err
+	}
+	macer := hmac.New(macAlgo.New, s.data.MacKey)
+	mac := macer.Sum(s.documentHash)
+	allMacs := append(s.data.OtherMacs, mac)
+	sort.Sort(macs(allMacs))
+
+	hashAlgo,err := s.data.HashAlgorithm.Algorithm()
+	if err != nil {
+		return err
+	}
+
+	hasher := hashAlgo.New()
+	for i := range allMacs {
+		hasher.Write(allMacs[i])
+	}
+	computedNonce := hasher.Sum(nil)
+	nonce := []byte(<-s.nonce)
+	if !bytes.Equal(nonce, computedNonce) {
+		return errors.New("computed nonce and id token nonce don't match")
+	}
+
+	return nil
 }
 
 type macs [][]byte
@@ -45,34 +88,4 @@ func (m MACAlgorithm) Algorithm() (crypto.Hash, error) {
 
 func (h HashAlgorithm) Algorithm() (crypto.Hash, error) {
 	return MACAlgorithm(h).Algorithm()
-}
-
-func (s signatureDataVerifier) Verify() error {
-	if !bytes.Equal(s.documentHash, s.data.DocumentHash) {
-		return fmt.Errorf("document hash and signature didn't match")
-	}
-	macAlgo,err := s.data.MacAlgorithm.Algorithm()
-	if err != nil {
-		return err
-	}
-	macer := hmac.New(macAlgo.New, s.data.MacKey)
-	mac := macer.Sum(s.documentHash)
-	allMacs := append(s.data.OtherMacs, mac)
-	sort.Sort(macs(allMacs))
-
-	hashAlgo,err := s.data.HashAlgorithm.Algorithm()
-	if err != nil {
-		return err
-	}
-
-	hasher := hashAlgo.New()
-	for i := range allMacs {
-		hasher.Write(allMacs[i])
-	}
-	nonce := hasher.Sum(nil)
-	if !bytes.Equal(nonce, s.nonce) {
-		return errors.New("computed nonce and id token nonce don't match")
-	}
-
-	return nil
 }
