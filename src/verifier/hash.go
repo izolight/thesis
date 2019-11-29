@@ -1,6 +1,7 @@
 package verifier
 
 import (
+	"bytes"
 	"crypto"
 	"errors"
 	"fmt"
@@ -16,9 +17,7 @@ func verifyHash(data []byte, hash []byte, algorithm crypto.Hash) error {
 	}
 	hasher := algorithm.New()
 	hasher.Write(data)
-	computedHash := fmt.Sprintf("%x", hasher.Sum(nil))
-	inputHash := fmt.Sprintf("%x", hash)
-	if computedHash != inputHash {
+	if !bytes.Equal(hash, hasher.Sum(nil)) {
 		return ErrHashMismatch
 	}
 	return nil

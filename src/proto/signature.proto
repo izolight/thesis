@@ -26,7 +26,7 @@ message SignatureData {
     bytes document_hash = 1;
     HashAlgorithm hash_algorithm = 2;
     bytes mac_key = 3;
-    MACAlgorithm mac = 4;
+    MACAlgorithm mac_algorithm = 4;
     repeated bytes other_macs = 5;
     SignatureLevel signature_level = 6;
     bytes id_token = 7;
