@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option go_package = "verifier";
 
-enum MAC {
+enum MACAlgorithm {
     HMAC_SHA2_256 = 0;
     HMAC_SHA2_512 = 1;
     HMAC_SHA3_256 = 2;
@@ -26,7 +26,7 @@ message SignatureData {
     bytes document_hash = 1;
     HashAlgorithm hash_algorithm = 2;
     bytes mac_key = 3;
-    MAC mac = 4;
+    MACAlgorithm mac = 4;
     repeated bytes other_macs = 5;
     SignatureLevel signature_level = 6;
     bytes id_token = 7;
