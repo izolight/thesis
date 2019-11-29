@@ -113,3 +113,12 @@
 - Unit Test fürs OIDC Karussell
 - Kleine Fixes
 
+#### 19.11.19
+- Arbeiten am Verifier
+- Arbeiten am Signing Server
+    - CSR Fixen (subjectAltName ist immer eine Liste)
+    - CA anbinden
+    - CSR zur CA senden und Zertifikat erhalten
+    - Protobuf anbinden
+    - Signaturdatei beginnen zu erstellen
+    - TSA Anbindung beginnen
