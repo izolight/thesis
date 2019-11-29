@@ -12,5 +12,5 @@ require (
 	go.mozilla.org/pkcs7 v0.0.0-20180702141046-401d3877331b
 	golang.org/x/crypto v0.0.0-20191029031824-8986dd9e96cf
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45 // indirect
-	gopkg.in/square/go-jose.v2 v2.4.0 // indirect
+	gopkg.in/square/go-jose.v2 v2.4.0
 )
