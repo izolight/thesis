@@ -4,26 +4,18 @@ import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.Invalid
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.InvalidDataException
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.SigningRequest
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.Valid
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.Config
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.IOIDCService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.ISecretService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.byteArrayToHexString
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.hmacSha256
 import com.auth0.jwt.interfaces.DecodedJWT
 import io.ktor.application.call
-import io.ktor.locations.KtorExperimentalLocationsAPI
-import io.ktor.locations.Location
-import io.ktor.locations.post
 import io.ktor.request.receive
 import io.ktor.routing.Routing
+import io.ktor.routing.post
 import org.koin.ktor.ext.inject
 import org.slf4j.LoggerFactory
 
-@KtorExperimentalLocationsAPI
-@Location(URLs.SIGN)
-class SignRoute
-
-@KtorExperimentalLocationsAPI
 fun Routing.sign() {
     val oidcService by inject<IOIDCService>()
     val secretService by inject<ISecretService>()
@@ -36,12 +28,6 @@ fun Routing.sign() {
             throw InvalidDataException(
                 "Nonce mismatch"
             )
-        }
-    }
-
-    fun validateClientId(idToken: DecodedJWT) {
-        if (idToken.getClaim("aud").asString() != Config.OIDC_CLIENT_ID) {
-            throw InvalidDataException("Client ID (audience) mismatch")
         }
     }
 
@@ -60,9 +46,7 @@ fun Routing.sign() {
         }
     }
 
-
-
-    post<SignRoute> {
+    post(URLs.SIGN) {
         when (val input = call.receive<SigningRequest>().validate()) {
             is Valid -> {
                 val salt = validateSalt(input)
@@ -72,7 +56,7 @@ fun Routing.sign() {
                     salt,
                     input.value.hashes.joinToString("").toByteArray(Charsets.UTF_8)
                 )
-                validateClientId(jwtIdToken)
+                println()
 
 
             }

@@ -44,9 +44,9 @@ class Config {
     companion object {
         const val OIDC_IDP_NAME = "Izolight IDP"
         val OIDC_CONFIGURATION_DISCOVERY_URL =
-            Url("https://keycloak.thesis.izolight.xyz/auth/realms/testing/.well-known/openid-configuration")
+            Url("https://keycloak.thesis.izolight.xyz/auth/realms/master/.well-known/openid-configuration")
         const val OIDC_CLIENT_ID = "thesis"
-        const val OIDC_CLIENT_SECRET = "1f164d78-ff38-4f68-9bae-8ec8dd3b1a53"
+        const val OIDC_CLIENT_SECRET = "0d6079d7-18a5-4f82-a94e-8960aed5dd89"
         val OIDC_REDIRECT_URI = Url("http://127.0.0.1:8080/callback")
         val OIDC_SCOPES = listOf("openid", "profile")
         const val OIDC_RESPONSE_TYPE = "id_token"
@@ -115,7 +115,34 @@ class OurDemoOIDCService private constructor(
         )
     }
 
+    //    fun decodeJWT(idToken: String): Either<DecodedJWT> {
+//        return Either.Success(JWT.decode(idToken))
+//    }
+//
+//    fun decodeJWK(jwt: DecodedJWT): Either<Jwk> {
+//        return Either.Success(jwkProvider.get(jwt.keyId))
+//    }
+//
+//    fun getAlgorithm(jwk: Jwk): Either<Algorithm> {
+//        return Either.Success(
+//            when (jwk.algorithm) {
+//                "RS256" -> Algorithm.RSA256(
+//                    jwk.publicKey as RSAPublicKey,
+//                    null
+//                )
+//                else -> throw InvalidDataException("Unsupported algorithm")
+//            }
+//        )
+//    }
+//
     override fun validateIdToken(idToken: String): DecodedJWT {
+//        val decodedJwt = attempt {
+//            val jwt = attempt { decodeJWT(idToken) }
+//            val jwk = attempt(jwt) { decodeJWK(it) }
+//        }
+//
+//
+//    }
         try {
             val jwt = JWT.decode(idToken)
             try {
@@ -143,8 +170,6 @@ class OurDemoOIDCService private constructor(
                 "Invalid JWT: $e"
             )
         }
-
-
     }
 
     @Serializable

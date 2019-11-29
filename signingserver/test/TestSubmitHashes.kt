@@ -35,7 +35,7 @@ class TestSubmitHashes : KoinTest {
     @Test
     fun testSubmitHashes() {
 
-        val TESTUSERNAME = "testuser"
+        val TESTUSERNAME = "testuser2"
         val TESTPASSWORD = "test1234"
         val TESTHASHES = listOf(
             "06180c7ede6c6936334501f94ccfc5d0ff828e57a4d8f6dc03f049eaad5fb308",
@@ -48,9 +48,17 @@ class TestSubmitHashes : KoinTest {
         @Serializable
         data class ExpectedNonceResponse(val providers: Map<String, String>, val seed: String, val salt: String)
 
+        @Serializable
+        data class SignatureRequest(
+            val id_token: String,
+            val seed: String,
+            val salt: String,
+            val hashes: List<String>
+        )
+
         withTestApplication({ module() }) {
             val json = Json(JsonConfiguration.Stable)
-            with(handleRequest(HttpMethod.Post, URLs.SUBMIT_HASHES) {
+            val signatureRequest = with(handleRequest(HttpMethod.Post, URLs.SUBMIT_HASHES) {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
 
@@ -95,99 +103,104 @@ class TestSubmitHashes : KoinTest {
                     return@runBlocking Url(idpToSigningServiceCallback.headers["Location"]!!)
                 }
 
-                @Serializable
-                data class SignatureRequest(
-                    val id_token: String,
-                    val seed: String,
-                    val salt: String,
-                    val hashes: List<String>
+                return@with SignatureRequest(
+                    id_token = location.getFragments()["id_token"]
+                        ?: throw IllegalArgumentException("No id_token"),
+                    salt = responseBody.salt,
+                    seed = responseBody.seed,
+                    hashes = TESTHASHES
                 )
-
-                with(handleRequest(HttpMethod.Post, URLs.SIGN) {
-                    addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
-
-                    setBody(
-                        json.stringify(
-                            SignatureRequest.serializer(),
-                            SignatureRequest(
-                                id_token = location.getFragments()["id_token"]
-                                    ?: throw IllegalArgumentException("No id_token"),
-                                salt = responseBody.salt,
-                                seed = responseBody.seed,
-                                hashes = TESTHASHES
-                            )
-                        )
-                    )
-                }) {
-                    TODO("split up unit tests - avoid nested with(handleRequest())")
-                    assertEquals(HttpStatusCode.OK, response.status(), response.content)
-                    println()
-                }
-
-                with(handleRequest(HttpMethod.Post, URLs.SIGN) {
-                    addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
-
-                    setBody(
-                        json.stringify(
-                            SignatureRequest.serializer(),
-                            SignatureRequest(
-                                id_token = "${location.getFragments()["id_token"]
-                                    ?: throw IllegalArgumentException("No id_token")}umad",
-                                salt = responseBody.salt,
-                                seed = responseBody.seed,
-                                hashes = TESTHASHES
-                            )
-                        )
-                    )
-                }) {
-                    assertEquals(HttpStatusCode.BadRequest, response.status(), response.content)
-                }
-
-                with(handleRequest(HttpMethod.Post, URLs.SIGN) {
-                    addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
-
-                    setBody(
-                        json.stringify(
-                            SignatureRequest.serializer(),
-                            SignatureRequest(
-                                id_token = location.getFragments()["id_token"]
-                                    ?: throw IllegalArgumentException("No id_token"),
-                                salt = responseBody.salt + "a",
-                                seed = responseBody.seed,
-                                hashes = TESTHASHES
-                            )
-                        )
-                    )
-                }) {
-                    assertEquals(HttpStatusCode.BadRequest, response.status(), response.content)
-                }
-
-                with(handleRequest(HttpMethod.Post, URLs.SIGN) {
-                    addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
-
-                    setBody(
-                        json.stringify(
-                            SignatureRequest.serializer(),
-                            SignatureRequest(
-                                id_token = location.getFragments()["id_token"]
-                                    ?: throw IllegalArgumentException("No id_token"),
-                                salt = responseBody.salt + "a",
-                                seed = responseBody.seed.replace(responseBody.seed[0], responseBody.seed[0] + 1),
-                                hashes = TESTHASHES
-                            )
-                        )
-                    )
-                }) {
-                    assertEquals(HttpStatusCode.BadRequest, response.status(), response.content)
-                }
-
-
             }
 
+            with(handleRequest(HttpMethod.Post, URLs.SIGN) {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+
+                setBody(
+                    json.stringify(
+                        SignatureRequest.serializer(),
+                        signatureRequest
+                    )
+                )
+            }) {
+                assertEquals(HttpStatusCode.OK, response.status(), response.content)
+            }
+
+            with(handleRequest(HttpMethod.Post, URLs.SIGN) {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+
+                setBody(
+                    json.stringify(
+                        SignatureRequest.serializer(),
+                        SignatureRequest(
+                            id_token = "${signatureRequest.id_token}invalid",
+                            salt = signatureRequest.salt,
+                            seed = signatureRequest.seed,
+                            hashes = TESTHASHES
+                        )
+                    )
+                )
+            }) {
+                assertEquals(HttpStatusCode.BadRequest, response.status(), response.content)
+            }
+
+            with(handleRequest(HttpMethod.Post, URLs.SIGN) {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+
+                setBody(
+                    json.stringify(
+                        SignatureRequest.serializer(),
+                        SignatureRequest(
+                            id_token = signatureRequest.id_token,
+                            salt = signatureRequest.salt + "a",
+                            seed = signatureRequest.seed,
+                            hashes = TESTHASHES
+                        )
+                    )
+                )
+            }) {
+                assertEquals(HttpStatusCode.BadRequest, response.status(), response.content)
+            }
+
+            with(handleRequest(HttpMethod.Post, URLs.SIGN) {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+
+                setBody(
+                    json.stringify(
+                        SignatureRequest.serializer(),
+                        SignatureRequest(
+                            id_token = signatureRequest.id_token,
+                            salt = signatureRequest.salt,
+                            seed = signatureRequest.seed + "a",
+                            hashes = TESTHASHES
+                        )
+                    )
+                )
+            }) {
+                assertEquals(HttpStatusCode.BadRequest, response.status(), response.content)
+            }
+
+            with(handleRequest(HttpMethod.Post, URLs.SIGN) {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+
+                setBody(
+                    json.stringify(
+                        SignatureRequest.serializer(),
+                        SignatureRequest(
+                            id_token = signatureRequest.id_token,
+                            salt = signatureRequest.salt,
+                            seed = signatureRequest.seed,
+                            hashes = listOf(TESTHASHES[0])
+                        )
+                    )
+                )
+            }) {
+                assertEquals(HttpStatusCode.BadRequest, response.status(), response.content)
+            }
 
             with(handleRequest(HttpMethod.Post, URLs.SUBMIT_HASHES) {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())

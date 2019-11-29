@@ -7,15 +7,12 @@ import ch.bfh.ti.hirtp1ganzg1.thesis.api.views.sign
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
+import io.ktor.application.log
 import io.ktor.features.*
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.resources
 import io.ktor.http.content.static
-import io.ktor.locations.KtorExperimentalLocationsAPI
-import io.ktor.locations.Location
-import io.ktor.locations.Locations
-import io.ktor.locations.get
 import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.response.respondText
@@ -30,11 +27,8 @@ import org.slf4j.event.Level
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
-@KtorExperimentalLocationsAPI
 @Suppress("unused") // Referenced in application.conf
 fun Application.module() {
-    install(Locations) {
-    }
 
     install(Compression) {
         gzip {
@@ -100,6 +94,9 @@ fun Application.module() {
     }
 
     routing {
+        trace { application.log.trace(it.buildText()) }
+
+
         // Static feature. Try to access `/static/ktor_logo.svg`
         static("/static") {
             resources("static")
@@ -109,9 +106,6 @@ fun Application.module() {
         postHashes()
         sign()
 
-        get<MyLocation> {
-            call.respondText("Location: name=${it.name}, arg1=${it.arg1}, arg2=${it.arg2}")
-        }
     }
 }
 
@@ -120,9 +114,3 @@ fun Routing.root() {
         call.respondText("lol generics", contentType = ContentType.Text.Plain)
     }
 }
-
-
-@KtorExperimentalLocationsAPI
-@Location("/location/{name}")
-class MyLocation(val name: String, val arg1: Int = 42, val arg2: String = "default")
-

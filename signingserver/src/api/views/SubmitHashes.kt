@@ -11,27 +11,20 @@ import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.ISecretService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.byteArrayToHexString
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.hmacSha256
 import io.ktor.application.call
-import io.ktor.locations.KtorExperimentalLocationsAPI
-import io.ktor.locations.Location
-import io.ktor.locations.post
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.Routing
+import io.ktor.routing.post
 import org.koin.ktor.ext.inject
 import org.slf4j.LoggerFactory
 
-@KtorExperimentalLocationsAPI
-@Location(URLs.SUBMIT_HASHES)
-class HashesRoute
-
-@KtorExperimentalLocationsAPI
 fun Routing.postHashes() {
     val logger = LoggerFactory.getLogger(this.javaClass)
     val nonceGenerator by inject<INonceGeneratorService>()
     val secretService by inject<ISecretService>()
     val oidcService by inject<IOIDCService>()
 
-    post<HashesRoute> {
+    post(URLs.SUBMIT_HASHES) {
         when (val input = call.receive<SubmittedHashes>().validate()) {
             is Valid -> {
                 val seed = nonceGenerator.getNonce()
