@@ -1,11 +1,18 @@
 package verifier
 
 import (
+	"crypto/sha256"
+	"fmt"
 	"io/ioutil"
 	"testing"
 )
 
 func TestVerifyTimestamp(t *testing.T) {
+	intermediateCA := parsePEM(t, "SwissSign TSA Platinum CA 2017 - G22.pem")
+	intermediateCAOCSPFile := readFile(t, "SwissSign TSA Platinum CA 2017 - G22.pem.ocsp")
+	tsaCA := parsePEM(t, "SwissSign ZertES TSA UNIT CH-2018.pem")
+	tsaCAOCSPFile := readFile(t, "SwissSign ZertES TSA UNIT CH-2018.pem.ocsp")
+
 	tests := []struct {
 		name       string
 		data       []byte
@@ -19,7 +26,14 @@ func TestVerifyTimestamp(t *testing.T) {
 			timestamps: []*Timestamped{
 				{
 					Rfc3161Timestamp: readFile(t, "hello_world_response.tsr"),
-					LtvTimestamp:     map[string]*LTV{},
+					LtvTimestamp: map[string]*LTV{
+						fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
+							Ocsp: intermediateCAOCSPFile,
+						},
+						fmt.Sprintf("%x", sha256.Sum256(tsaCA.Raw)): {
+							Ocsp: tsaCAOCSPFile,
+						},
+					},
 				},
 			},
 			wantErr: false,
@@ -37,6 +51,7 @@ func TestVerifyTimestamp(t *testing.T) {
 					LtvTimestamp:     map[string]*LTV{},
 				},
 			},
+			wantErr: false,
 		},
 		{
 			name: "hash mismatch",
