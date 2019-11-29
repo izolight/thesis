@@ -3,6 +3,7 @@ package verifier
 import (
 	"crypto/sha256"
 	"fmt"
+	"github.com/golang/protobuf/proto"
 	"io/ioutil"
 	"testing"
 )
@@ -12,6 +13,11 @@ func TestVerifyTimestamp(t *testing.T) {
 	intermediateCAOCSPFile := readFile(t, "SwissSign TSA Platinum CA 2017 - G22.pem.ocsp")
 	tsaCA := parsePEM(t, "SwissSign ZertES TSA UNIT CH-2018.pem")
 	tsaCAOCSPFile := readFile(t, "SwissSign ZertES TSA UNIT CH-2018.pem.ocsp")
+	timestampedFile := readFile(t, "hello_world_response.tsr.data")
+	timestamped := &Timestamped{}
+	if err := proto.Unmarshal(timestampedFile, timestamped); err != nil {
+		t.Fatal(err)
+	}
 
 	tests := []struct {
 		name       string
@@ -42,13 +48,17 @@ func TestVerifyTimestamp(t *testing.T) {
 			name: "nested timestamp",
 			data: []byte("hello world\n"),
 			timestamps: []*Timestamped{
-				{
-					Rfc3161Timestamp: readFile(t, "hello_world_response.tsr"),
-					LtvTimestamp:     map[string]*LTV{},
-				},
+				timestamped,
 				{
 					Rfc3161Timestamp: readFile(t, "hello_world_response.tsr.data_response.tsr"),
-					LtvTimestamp:     map[string]*LTV{},
+					LtvTimestamp: map[string]*LTV{
+						fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
+							Ocsp: intermediateCAOCSPFile,
+						},
+						fmt.Sprintf("%x", sha256.Sum256(tsaCA.Raw)): {
+							Ocsp: tsaCAOCSPFile,
+						},
+					},
 				},
 			},
 			wantErr: false,
