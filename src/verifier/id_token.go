@@ -13,6 +13,7 @@ type idTokenVerifier struct {
 	issuer string
 	keys string
 	nonce string
+	clientId string
 	notAfter time.Time
 }
 
@@ -20,7 +21,7 @@ func (i idTokenVerifier) Verify() error {
 	ctx := context.Background()
 	keySet := oidc.NewRemoteKeySet(ctx, i.keys)
 	cfg := &oidc.Config{
-		SkipClientIDCheck:    true,
+		ClientID: i.clientId,
 		Now: i.notAfter.Local,
 	}
 	verifier := oidc.NewVerifier(i.issuer, keySet, cfg)
