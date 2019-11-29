@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/coreos/go-oidc"
+	"time"
 )
 
 type idTokenVerifier struct {
@@ -12,6 +13,7 @@ type idTokenVerifier struct {
 	issuer string
 	keys string
 	nonce string
+	notAfter time.Time
 }
 
 func (i idTokenVerifier) Verify() error {
@@ -19,6 +21,7 @@ func (i idTokenVerifier) Verify() error {
 	keySet := oidc.NewRemoteKeySet(ctx, i.keys)
 	cfg := &oidc.Config{
 		SkipClientIDCheck:    true,
+		Now: i.notAfter.Local,
 	}
 	verifier := oidc.NewVerifier(i.issuer, keySet, cfg)
 	idToken, err := verifier.Verify(ctx, string(i.token))
