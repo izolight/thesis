@@ -30,7 +30,7 @@ message SignatureData {
     repeated bytes other_macs = 5;
     SignatureLevel signature_level = 6;
     bytes id_token = 7;
-    repeated bytes x509_idp = 8;
+    repeated bytes jwk_idp = 8;
     map<string, LTV> ltv_idp = 9; // maps the fingerprint of the cert to the ltv information
 }
 
