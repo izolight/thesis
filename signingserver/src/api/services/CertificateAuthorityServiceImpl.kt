@@ -56,7 +56,7 @@ class CertificateAuthorityServiceImpl : ICertificateAuthorityService {
     ) : Validatable<CfsslResponse> {
         override fun validate(): Validated<CfsslResponse> {
             return when {
-                errors.isEmpty() -> Valid(this)
+                errors.isEmpty() and success -> Valid(this)
                 else -> Invalid(InvalidDataException(errors[0].message))
             }
         }

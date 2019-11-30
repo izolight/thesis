@@ -1,9 +1,11 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
 
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.*
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.defaultConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.url
+import io.ktor.http.Url
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
@@ -112,23 +114,41 @@ class SigningKeysServiceImpl : ISigningKeysService {
         val result: String,
         val errors: List<CertificateAuthorityServiceImpl.ResponseMessage>,
         val messages: List<CertificateAuthorityServiceImpl.ResponseMessage>
-    )
-
-    suspend fun retrieveCrl(signedCertificate: X509CertificateHolder): String {
-        val url = withContext(Dispatchers.IO) {
-            (CRLDistPoint.getInstance(
-                JcaX509ExtensionUtils.parseExtensionValue(
-                    signedCertificate.getExtension(Extension.cRLDistributionPoints).extnValue.encoded
-                )
-            ).distributionPoints[0].distributionPoint.name as GeneralNames).names[0].name.toString()
-        }
-        val response = HttpClient {
-            defaultConfig()
-        }.use {
-            it.get<CfsslCrlResponse> {
-                url(url)
+    ) : Validatable<CfsslCrlResponse> {
+        override fun validate(): Validated<CfsslCrlResponse> {
+            return when {
+                errors.isEmpty() and success -> Valid(this)
+                else -> Invalid(InvalidDataException(errors[0].message))
             }
         }
-        return response.result
+    }
+
+    suspend fun extractCrlUrl(signedCertificate: X509CertificateHolder): Url {
+        return Url(
+            withContext(Dispatchers.IO) {
+                (CRLDistPoint.getInstance(
+                    JcaX509ExtensionUtils.parseExtensionValue(
+                        signedCertificate.getExtension(Extension.cRLDistributionPoints).extnValue.encoded
+                    )
+                ).distributionPoints[0].distributionPoint.name as GeneralNames).names[0].name.toString()
+            }
+        )
+    }
+
+    suspend fun retrieveCrl(signedCertificate: X509CertificateHolder): String {
+        return when (
+            val response = HttpClient {
+                defaultConfig()
+            }.use {
+                it.get<Validatable<CfsslCrlResponse>> {
+                    url(
+                        extractCrlUrl(signedCertificate)
+                    )
+                }
+            }.validate()
+            ) {
+            is Valid -> response.value.result
+            is Invalid -> throw response.error
+        }
     }
 }
