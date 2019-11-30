@@ -10,9 +10,7 @@ func TestVerifySignatureData(t *testing.T) {
 	}{
 		{
 			name: "valid signature",
-			verifier: signatureDataVerifier{
-
-			},
+			verifier: nil,
 			wantErr: false,
 		},
 	}

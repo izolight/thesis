@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto"
 	"crypto/hmac"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"sort"
@@ -50,7 +51,10 @@ func (s *signatureDataVerifier) Verify() error {
 		hasher.Write(allMacs[i])
 	}
 	computedNonce := hasher.Sum(nil)
-	nonce := []byte(<-s.nonce)
+	nonce, err := hex.DecodeString(<-s.nonce)
+	if err != nil {
+		return fmt.Errorf("could not decode nonce: %w", err)
+	}
 	if !bytes.Equal(nonce, computedNonce) {
 		return errors.New("computed nonce and id token nonce don't match")
 	}
