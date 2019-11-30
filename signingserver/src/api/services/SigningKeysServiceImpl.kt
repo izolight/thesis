@@ -51,12 +51,6 @@ class Constants {
     }
 }
 
-class ASN1ObjectIdentifiers {
-    companion object {
-        const val X509V3_CRL_DISTRIBUTION_POINT = "2.5.29.35"
-    }
-}
-
 class SigningKeysServiceImpl : ISigningKeysService {
     private val keyPairGenerator = KeyPairGenerator.getInstance(Constants.KEY_ALGORITHM)
     private val keyCache = ExpireableCacheDefaultImpl<SigningKeySubjectInformation, KeyPair>()
