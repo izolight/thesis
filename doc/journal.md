@@ -113,7 +113,7 @@
 - Unit Test fürs OIDC Karussell
 - Kleine Fixes
 
-#### 19.11.19
+#### 29.11.19
 - Arbeiten am Verifier
 - Arbeiten am Signing Server
     - CSR Fixen (subjectAltName ist immer eine Liste)
@@ -122,3 +122,11 @@
     - Protobuf anbinden
     - Signaturdatei beginnen zu erstellen
     - TSA Anbindung beginnen
+    
+#### 30.11.19
+- Arbeiten am Signing Server
+    - TSA Anbindung fertigstellen
+    - CRL & OCSP holen
+    - PKCS7 bauen
+    - Über Bouncycastle fluchen
+
