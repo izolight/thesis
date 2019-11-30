@@ -9,8 +9,9 @@ import org.koin.dsl.module
 val DIModule = module {
     single<INonceGeneratorService> { NonceGeneratorServiceDefaultImpl() }
     single<ISecretService> { SecretServiceDefaultImpl() }
-    single<ISignaturesHoldingService> { SignaturesHoldingServiceDefaultImpl() }
+//    single<ISignaturesHoldingService> { SignaturesHoldingServiceDefaultImpl() }
     single<IOIDCService> { runBlocking { OurDemoOIDCService() } }
     single<ISigningKeysService> { SigningKeysServiceImpl() }
     single<ICertificateAuthorityService> { CertificateAuthorityServiceImpl() }
+    single<ITimestampingService> { TimestampingServiceImpl() }
 }

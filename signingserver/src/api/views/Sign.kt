@@ -26,6 +26,7 @@ fun Routing.sign() {
     val secretService by inject<ISecretService>()
     val signingKeyService by inject<ISigningKeysService>()
     val caService by inject<ICertificateAuthorityService>()
+    val tsaService by inject<ITimestampingService>()
     val logger = LoggerFactory.getLogger(this.javaClass)
     val json = Json(JsonConfiguration.Stable)
 
@@ -68,6 +69,8 @@ fun Routing.sign() {
                     is Either.Success -> {
                         val signingKeyCSR = signingKeyService.generateSigningKey(subjectInformation.value)
                         val cert = caService.signCSR(signingKeyCSR)
+                        signingKeyService.signToPkcs7(subjectInformation.value, "asdf".toByteArray(Charsets.UTF_8), cert)
+
 //                        TODO("other hashes, macced, sorted")
                         val signatureData = Signature.SignatureData.newBuilder()
                             .setDocumentHash(ByteString.copyFrom(hexStringToByteArray(input.value.hashes[0])))
@@ -85,8 +88,8 @@ fun Routing.sign() {
                             .build()
 
 
-//                        val pkcs7 = signingKeyService.signToPkcs7()
-                                        println ()
+//                        val timestampOfSignatureData = tsaService.stamp(stuff)
+
                     }
                     is Either.Error -> throw subjectInformation.e
                 }

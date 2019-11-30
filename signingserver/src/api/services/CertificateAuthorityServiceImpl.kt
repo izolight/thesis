@@ -14,6 +14,7 @@ import kotlinx.io.StringWriter
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
+import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder
 import org.bouncycastle.openssl.MiscPEMGenerator
 import org.bouncycastle.pkcs.PKCS10CertificationRequest
 import org.bouncycastle.util.io.pem.PemWriter
@@ -47,12 +48,19 @@ class CertificateAuthorityServiceImpl : ICertificateAuthorityService {
     data class ResponseMessage(val code: Int, val message: String)
 
     @Serializable
-    data class Response(
+    data class CfsslResponse(
         val success: Boolean,
         val result: Map<String, String>,
         val errors: List<ResponseMessage>,
         val messages: List<ResponseMessage>
-    )
+    ) : Validatable<CfsslResponse> {
+        override fun validate(): Validated<CfsslResponse> {
+            return when {
+                errors.isEmpty() -> Valid(this)
+                else -> Invalid(InvalidDataException(errors[0].message))
+            }
+        }
+    }
 
     private fun authenticateCertificateRequest(request: Valid<CertificateRequest>): Request {
         with(
@@ -76,10 +84,10 @@ class CertificateAuthorityServiceImpl : ICertificateAuthorityService {
         }
     }
 
-    override fun signCSR(certificateSigningRequest: PKCS10CertificationRequest): X509Certificate {
+    override fun signCSR(certificateSigningRequest: PKCS10CertificationRequest): JcaX509CertificateHolder {
         val response = runBlocking {
             HttpClient { defaultConfig() }.use {
-                it.post<Response> {
+                it.post<Validatable<CfsslResponse>> {
                     url(CA_URL)
                     contentType(ContentType.Application.Json)
                     body = authenticateCertificateRequest(
@@ -100,17 +108,24 @@ class CertificateAuthorityServiceImpl : ICertificateAuthorityService {
                 }
             }
         }
-        return pemToCertificate(
-            response.result["certificate"] ?: throw InvalidJSONException("Missing certificate in CA response")
-        )
+        when (val validatedResponse = response.validate()) {
+            is Valid ->
+                return pemToCertificate(
+                    validatedResponse.value.result["certificate"]
+                        ?: throw InvalidJSONException("Missing certificate in CA response")
+                )
+            is Invalid -> throw validatedResponse.error
+        }
     }
 
-    private fun pemToCertificate(pem: String): X509Certificate {
-        return CertificateFactory.getInstance("X.509")
-            .generateCertificate(
-                ByteArrayInputStream(
-                    pem.toByteArray(Charsets.UTF_8)
-                )
-            ) as X509Certificate
+    private fun pemToCertificate(pem: String): JcaX509CertificateHolder {
+        return JcaX509CertificateHolder(
+            CertificateFactory.getInstance("X.509")
+                .generateCertificate(
+                    ByteArrayInputStream(
+                        pem.toByteArray(Charsets.UTF_8)
+                    )
+                ) as X509Certificate
+        )
     }
 }

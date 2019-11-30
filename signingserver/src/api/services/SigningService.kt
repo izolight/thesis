@@ -1,8 +1,9 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
 
-import Signature
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.Either
 import com.auth0.jwt.interfaces.DecodedJWT
+import org.bouncycastle.cert.X509CertificateHolder
+import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder
 import org.bouncycastle.cms.CMSSignedData
 import org.bouncycastle.pkcs.PKCS10CertificationRequest
 import org.slf4j.LoggerFactory
@@ -37,12 +38,16 @@ data class SigningKeySubjectInformation(val surname: String, val givenName: Stri
 
 interface ISigningKeysService {
     fun generateSigningKey(subjectInformation: SigningKeySubjectInformation): PKCS10CertificationRequest
-    fun signToPkcs7(signatureData: Signature.SignatureData): CMSSignedData
+    suspend fun signToPkcs7(
+        subjectInformation: SigningKeySubjectInformation,
+        dataToSign: ByteArray,
+        signedCertificate: X509CertificateHolder
+    ): CMSSignedData
 }
 
 
 interface ICertificateAuthorityService {
-    fun signCSR(certificateSigningRequest: PKCS10CertificationRequest): java.security.cert.X509Certificate
+    fun signCSR(certificateSigningRequest: PKCS10CertificationRequest): JcaX509CertificateHolder
 }
 
 

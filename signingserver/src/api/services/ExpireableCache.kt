@@ -6,35 +6,35 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 
-interface IExpireableCache<T> {
-    fun set(key: String, value: T)
-    fun get(key: String): T?
-    fun exists(key: String): Boolean
+interface IExpireableCache<T, U> {
+    fun set(key: T, value: U)
+    fun get(key: T): U?
+    fun exists(key: T): Boolean
 }
 
-class ExpireableCacheDefaultImpl<T> : IExpireableCache<T> {
+class ExpireableCacheDefaultImpl<T, U> : IExpireableCache<T, U> {
     companion object {
         const val CYCLE_TIME_MILLISECONDS = 60 * 1000
         const val EXPIRATION_TIME_MILLISECONDS = 15 * 60 * 1000
     }
 
-    data class ExpirableEntry<T>(val insertionTimeMillis: Long, val value: T)
+    data class ExpirableEntry<U>(val insertionTimeMillis: Long, val value: U)
 
     private var lastCycleTime = System.currentTimeMillis()
-    private val storage: MutableMap<String, ExpirableEntry<T>> = HashMap()
+    private val storage: MutableMap<T, ExpirableEntry<U>> = HashMap()
     private val cycleLock = Mutex()
 
-    override fun set(key: String, value: T) {
+    override fun set(key: T, value: U) {
         this.storage[key] = ExpirableEntry(System.currentTimeMillis(), value)
         this.cycle()
     }
 
-    override fun get(key: String): T? {
+    override fun get(key: T): U? {
         this.cycle()
         return this.storage[key]?.value
     }
 
-    override fun exists(key: String): Boolean {
+    override fun exists(key: T): Boolean {
         return this.storage.contains(key)
     }
 
