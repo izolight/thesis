@@ -9,7 +9,7 @@ import (
 )
 
 type ltvVerifier struct {
-	certs []*x509.Certificate
+	certs  []*x509.Certificate
 	ltvMap map[string]*LTV
 }
 
@@ -29,7 +29,7 @@ func (l ltvVerifier) Verify() error {
 
 		fingerprint := fmt.Sprintf("%x", sha256.Sum256(cert.Raw))
 		ltv, ok := l.ltvMap[fingerprint]
-		if !ok || ltv == nil{
+		if !ok || ltv == nil {
 			return fmt.Errorf("no ltv information for certificate with fingerprint %s", fingerprint)
 		}
 		// check first for ocsp and only fallback to crl

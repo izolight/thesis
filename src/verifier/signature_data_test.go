@@ -3,15 +3,15 @@ package verifier
 import "testing"
 
 func TestVerifySignatureData(t *testing.T) {
-	tests := []struct{
-		name string
+	tests := []struct {
+		name     string
 		verifier Verifier
-		wantErr bool
+		wantErr  bool
 	}{
 		{
-			name: "valid signature",
+			name:     "valid signature",
 			verifier: nil,
-			wantErr: false,
+			wantErr:  false,
 		},
 	}
 

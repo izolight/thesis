@@ -12,7 +12,7 @@ type Verifier interface {
 }
 
 type config struct {
-	issuer string
+	issuer   string
 	clientId string
 }
 
@@ -82,7 +82,7 @@ func verifySignatureFile(in verifyRequest) error {
 
 	wg.Wait()
 
-	err = <- errors
+	err = <-errors
 	if err != nil {
 		return fmt.Errorf("error during verification: %w", err)
 	}

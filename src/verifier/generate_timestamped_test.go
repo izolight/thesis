@@ -16,7 +16,7 @@ func TestGenerateTimestamped(t *testing.T) {
 	tsaCAOCSPFile := readFile(t, "SwissSign ZertES TSA UNIT CH-2018.pem.ocsp")
 
 	ts := &Timestamped{
-		Rfc3161Timestamp:     data,
+		Rfc3161Timestamp: data,
 		LtvTimestamp: map[string]*LTV{
 			fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
 				Ocsp: intermediateCAOCSPFile,

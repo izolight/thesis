@@ -19,22 +19,22 @@ func TestVerifyLTV(t *testing.T) {
 	revokedIntermediateCA := parsePEM(t, "SwissSign Personal Silver CA 2014 - G22.pem")
 	revokedIntermediateOCSPFile := readFile(t, "SwissSign Personal Silver CA 2014 - G22.pem.ocsp")
 
-	tests := []struct{
-		name string
+	tests := []struct {
+		name     string
 		verifier Verifier
-		wantErr bool
+		wantErr  bool
 	}{
 		{
 			name: "root CA",
-			verifier:ltvVerifier{
+			verifier: ltvVerifier{
 				certs:  []*x509.Certificate{rootCA},
 				ltvMap: nil,
 			},
-			wantErr:false,
+			wantErr: false,
 		},
 		{
 			name: "intermediate CA without ltv info",
-			verifier:ltvVerifier{
+			verifier: ltvVerifier{
 				certs:  []*x509.Certificate{rootCA, intermediateCA},
 				ltvMap: nil,
 			},
@@ -42,8 +42,8 @@ func TestVerifyLTV(t *testing.T) {
 		},
 		{
 			name: "intermediate CA with nil ltv",
-			verifier:ltvVerifier{
-				certs:  []*x509.Certificate{rootCA, intermediateCA},
+			verifier: ltvVerifier{
+				certs: []*x509.Certificate{rootCA, intermediateCA},
 				ltvMap: map[string]*LTV{
 					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): nil,
 				},
@@ -52,8 +52,8 @@ func TestVerifyLTV(t *testing.T) {
 		},
 		{
 			name: "intermediate CA with nil ocsp",
-			verifier:ltvVerifier{
-				certs:  []*x509.Certificate{rootCA, intermediateCA},
+			verifier: ltvVerifier{
+				certs: []*x509.Certificate{rootCA, intermediateCA},
 				ltvMap: map[string]*LTV{
 					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
 						Ocsp: nil,
@@ -64,8 +64,8 @@ func TestVerifyLTV(t *testing.T) {
 		},
 		{
 			name: "intermediate CA with crl",
-			verifier:ltvVerifier{
-				certs:  []*x509.Certificate{rootCA, intermediateCA},
+			verifier: ltvVerifier{
+				certs: []*x509.Certificate{rootCA, intermediateCA},
 				ltvMap: map[string]*LTV{
 					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
 						Crl: []byte("test"),
@@ -76,11 +76,11 @@ func TestVerifyLTV(t *testing.T) {
 		},
 		{
 			name: "intermediate CA with ocsp response",
-			verifier:ltvVerifier{
-				certs:  []*x509.Certificate{rootCA, intermediateCA},
+			verifier: ltvVerifier{
+				certs: []*x509.Certificate{rootCA, intermediateCA},
 				ltvMap: map[string]*LTV{
 					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
-						Ocsp:                 intermediateCAOCSPFile,
+						Ocsp: intermediateCAOCSPFile,
 					},
 				},
 			},
@@ -88,11 +88,11 @@ func TestVerifyLTV(t *testing.T) {
 		},
 		{
 			name: "intermediate CA with ocsp response and different ca order",
-			verifier:ltvVerifier{
-				certs:  []*x509.Certificate{intermediateCA, rootCA},
+			verifier: ltvVerifier{
+				certs: []*x509.Certificate{intermediateCA, rootCA},
 				ltvMap: map[string]*LTV{
 					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
-						Ocsp:                 intermediateCAOCSPFile,
+						Ocsp: intermediateCAOCSPFile,
 					},
 				},
 			},
@@ -100,11 +100,11 @@ func TestVerifyLTV(t *testing.T) {
 		},
 		{
 			name: "intermediate CA with wrong ocsp response",
-			verifier:ltvVerifier{
-				certs:  []*x509.Certificate{rootCA, intermediateCA},
+			verifier: ltvVerifier{
+				certs: []*x509.Certificate{rootCA, intermediateCA},
 				ltvMap: map[string]*LTV{
 					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
-						Ocsp:                 tsaCAOCSPFile,
+						Ocsp: tsaCAOCSPFile,
 					},
 				},
 			},
@@ -112,8 +112,8 @@ func TestVerifyLTV(t *testing.T) {
 		},
 		{
 			name: "revoked ca",
-			verifier:ltvVerifier{
-				certs:  []*x509.Certificate{silverCA, revokedIntermediateCA},
+			verifier: ltvVerifier{
+				certs: []*x509.Certificate{silverCA, revokedIntermediateCA},
 				ltvMap: map[string]*LTV{
 					fmt.Sprintf("%x", sha256.Sum256(revokedIntermediateCA.Raw)): {
 						Ocsp: revokedIntermediateOCSPFile,

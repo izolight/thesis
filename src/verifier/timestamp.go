@@ -18,15 +18,15 @@ func (t timestampError) Error() string {
 }
 
 type TimestampVerifier struct {
-	data       chan[]byte
-	notAfter chan time.Time
+	data       chan []byte
+	notAfter   chan time.Time
 	timestamps []*Timestamped
 }
 
-func NewTimestampVerifier(timestamps []*Timestamped) *TimestampVerifier{
+func NewTimestampVerifier(timestamps []*Timestamped) *TimestampVerifier {
 	return &TimestampVerifier{
 		data:       make(chan []byte, 1),
-		notAfter: make(chan time.Time, 1),
+		notAfter:   make(chan time.Time, 1),
 		timestamps: timestamps,
 	}
 }
@@ -36,7 +36,7 @@ func (t *TimestampVerifier) sendData(data []byte) {
 }
 
 func (t *TimestampVerifier) getNotAfter() time.Time {
-	return <- t.notAfter
+	return <-t.notAfter
 }
 
 func verifyTimestamp(t *Timestamped, data []byte) (*time.Time, error) {
@@ -63,12 +63,12 @@ func (t *TimestampVerifier) Verify() error {
 		return ErrNoTimestamps
 	}
 
-	for i := len(t.timestamps)-1; i >= 0; i-- {
+	for i := len(t.timestamps) - 1; i >= 0; i-- {
 		hashData := []byte{}
 		// during last signature the data is not in the previous(next) signature,
 		// so we need to block until the data arrives
 		if i == 0 {
-			hashData = <- t.data
+			hashData = <-t.data
 		} else {
 			var err error
 			hashData, err = proto.Marshal(t.timestamps[i-1])

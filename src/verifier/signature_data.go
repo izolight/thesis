@@ -11,12 +11,12 @@ import (
 )
 
 type signatureDataVerifier struct {
-	data SignatureData
+	data         SignatureData
 	documentHash []byte
-	nonce chan string
+	nonce        chan string
 }
 
-func NewSignatureDataVerifier(data SignatureData, documentHash []byte) *signatureDataVerifier{
+func NewSignatureDataVerifier(data SignatureData, documentHash []byte) *signatureDataVerifier {
 	return &signatureDataVerifier{
 		data:         data,
 		documentHash: documentHash,
@@ -32,7 +32,7 @@ func (s *signatureDataVerifier) Verify() error {
 	if !bytes.Equal(s.documentHash, s.data.DocumentHash) {
 		return fmt.Errorf("document hash and signature didn't match")
 	}
-	macAlgo,err := s.data.MacAlgorithm.Algorithm()
+	macAlgo, err := s.data.MacAlgorithm.Algorithm()
 	if err != nil {
 		return err
 	}
@@ -41,7 +41,7 @@ func (s *signatureDataVerifier) Verify() error {
 	allMacs := append(s.data.OtherMacs, mac)
 	sort.Sort(macs(allMacs))
 
-	hashAlgo,err := s.data.HashAlgorithm.Algorithm()
+	hashAlgo, err := s.data.HashAlgorithm.Algorithm()
 	if err != nil {
 		return err
 	}

@@ -10,14 +10,14 @@ import (
 )
 
 type idTokenVerifier struct {
-	token []byte
-	issuer string
+	token    []byte
+	issuer   string
 	clientId string
-	nonce chan string
+	nonce    chan string
 	notAfter func() time.Time
-	key jose.JSONWebKey
-	ltv map[string]*LTV
-	ctx context.Context
+	key      jose.JSONWebKey
+	ltv      map[string]*LTV
+	ctx      context.Context
 }
 
 func NewIDTokenVerifier(signatureData *SignatureData, cfg *config, notAfter time.Time) (*idTokenVerifier, error) {
@@ -25,11 +25,11 @@ func NewIDTokenVerifier(signatureData *SignatureData, cfg *config, notAfter time
 		token:    signatureData.IdToken,
 		issuer:   cfg.issuer,
 		clientId: cfg.clientId,
-		nonce: make(chan string, 1),
+		nonce:    make(chan string, 1),
 		notAfter: notAfter.Local,
 		ltv:      signatureData.LtvIdp,
-		ctx: context.Background(),
-		key: jose.JSONWebKey{},
+		ctx:      context.Background(),
+		key:      jose.JSONWebKey{},
 	}
 	if err := i.key.UnmarshalJSON(signatureData.JwkIdp); err != nil {
 		return nil, fmt.Errorf("could not unmarshal jwk: %w", err)
@@ -53,7 +53,7 @@ func (i *idTokenVerifier) getNonce() string {
 func (i *idTokenVerifier) Verify() error {
 	cfg := &oidc.Config{
 		ClientID: i.clientId,
-		Now: i.notAfter,
+		Now:      i.notAfter,
 	}
 	verifier := oidc.NewVerifier(i.issuer, i, cfg)
 	idToken, err := verifier.Verify(i.ctx, string(i.token))
@@ -84,4 +84,3 @@ func (i *idTokenVerifier) Verify() error {
 
 	return nil
 }
-

@@ -7,12 +7,12 @@ import (
 )
 
 type verifyRequest struct {
-	Hash string `json:"hash"`
-	Signature string `json:"signature"`// base64 encoded protobuf file
+	Hash      string `json:"hash"`
+	Signature string `json:"signature"` // base64 encoded protobuf file
 }
 
 type verifyResponse struct {
-	Valid bool `json:"valid"`
+	Valid bool   `json:"valid"`
 	Error string `json:"error,omitempty"`
 }
 

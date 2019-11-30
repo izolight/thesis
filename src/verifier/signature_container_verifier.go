@@ -9,7 +9,7 @@ import (
 
 type SignatureContainerVerifier struct {
 	container *SignatureContainer
-	data chan SignatureData
+	data      chan SignatureData
 }
 
 func NewSignatureContainerVerifier(c *SignatureContainer) *SignatureContainerVerifier {
@@ -20,7 +20,7 @@ func NewSignatureContainerVerifier(c *SignatureContainer) *SignatureContainerVer
 }
 
 func (s SignatureContainerVerifier) Verify() error {
-	p7, err :=pkcs7.Parse(s.container.EnvelopedSignatureDataPkcs7)
+	p7, err := pkcs7.Parse(s.container.EnvelopedSignatureDataPkcs7)
 	if err != nil {
 		return fmt.Errorf("could not decode signature container: %w", err)
 	}
