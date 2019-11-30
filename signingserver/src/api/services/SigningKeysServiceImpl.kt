@@ -123,7 +123,8 @@ class SigningKeysServiceImpl : ISigningKeysService {
         }
     }
 
-    suspend fun extractCrlUrl(signedCertificate: X509CertificateHolder): Url {
+    private suspend fun extractCrlUrl(signedCertificate: X509CertificateHolder): Url {
+        // TODO this is not optimal: only one crl url is extracted, and there is no error handling
         return Url(
             withContext(Dispatchers.IO) {
                 (CRLDistPoint.getInstance(
