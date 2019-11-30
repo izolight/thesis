@@ -31,8 +31,7 @@ func NewIDTokenVerifier(signatureData *SignatureData, cfg *config, notAfter time
 		ctx: context.Background(),
 		key: jose.JSONWebKey{},
 	}
-	err := i.key.UnmarshalJSON(signatureData.JwkIdp)
-	if err != nil {
+	if err := i.key.UnmarshalJSON(signatureData.JwkIdp); err != nil {
 		return nil, fmt.Errorf("could not unmarshal jwk: %w", err)
 	}
 	return i, nil
@@ -79,8 +78,7 @@ func (i *idTokenVerifier) Verify() error {
 		certs:  i.key.Certificates,
 		ltvMap: i.ltv,
 	}
-	err = l.Verify()
-	if err != nil {
+	if err = l.Verify(); err != nil {
 		return fmt.Errorf("ltv information for id token not valid: %w", err)
 	}
 

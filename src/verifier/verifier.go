@@ -35,8 +35,7 @@ func verifySignatureFile(in verifyRequest) error {
 	timestampVerifier := NewTimestampVerifier(signatureFile.GetTimestamps())
 	go func() {
 		wg.Add(1)
-		err := timestampVerifier.Verify()
-		if err != nil {
+		if err := timestampVerifier.Verify(); err != nil {
 			errors <- fmt.Errorf("could not verify timestamps: %w", err)
 		}
 		wg.Done()
@@ -51,8 +50,7 @@ func verifySignatureFile(in verifyRequest) error {
 	signatureContainerVerifier := NewSignatureContainerVerifier(signatureFile.SignatureContainer)
 	go func() {
 		wg.Add(1)
-		err := signatureContainerVerifier.Verify()
-		if err != nil {
+		if err := signatureContainerVerifier.Verify(); err != nil {
 			errors <- fmt.Errorf("could not verify signatureContainer: %w", err)
 		}
 		wg.Done()
@@ -63,8 +61,7 @@ func verifySignatureFile(in verifyRequest) error {
 	signatureDataVerifier := NewSignatureDataVerifier(signatureData, []byte(in.Hash))
 	go func() {
 		wg.Add(1)
-		err := signatureDataVerifier.Verify()
-		if err != nil {
+		if err := signatureDataVerifier.Verify(); err != nil {
 			errors <- fmt.Errorf("could not verify signatureData: %w", err)
 		}
 		wg.Done()
@@ -76,8 +73,7 @@ func verifySignatureFile(in verifyRequest) error {
 	}
 	go func() {
 		wg.Add(1)
-		err := idTokenVerifier.Verify()
-		if err != nil {
+		if err := idTokenVerifier.Verify(); err != nil {
 			errors <- fmt.Errorf("could not verify id token: %w", err)
 		}
 		wg.Done()

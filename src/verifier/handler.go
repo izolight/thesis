@@ -37,16 +37,14 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(out)
 		return
 	}
-	err = json.Unmarshal(body, &in)
-	if err != nil {
+	if err = json.Unmarshal(body, &in); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		resp.Error = err.Error()
 		out, _ := json.Marshal(resp)
 		w.Write(out)
 		return
 	}
-	err = verifySignatureFile(in)
-	if err != nil {
+	if err = verifySignatureFile(in); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		resp.Error = err.Error()
 		out, _ := json.Marshal(resp)

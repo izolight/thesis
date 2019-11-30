@@ -32,8 +32,7 @@ func TestGenerateTimestamped(t *testing.T) {
 		t.Fatalf("could not marshal timestmaped: %s", err)
 	}
 
-	err = ioutil.WriteFile("testdata/hello_world_response.tsr.data", msg, 0644)
-	if err != nil {
+	if err = ioutil.WriteFile("testdata/hello_world_response.tsr.data", msg, 0644); err != nil {
 		t.Fatalf("could not write file: %s", err)
 	}
 }

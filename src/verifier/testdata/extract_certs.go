@@ -28,8 +28,7 @@ func main() {
 			log.Fatalf("could not encode pem: %s", err)
 		}
 		filename := cert.Subject.CommonName + ".pem"
-		err := ioutil.WriteFile(filename, buf.Bytes(), 0644)
-		if err != nil {
+		if err := ioutil.WriteFile(filename, buf.Bytes(), 0644); err != nil {
 			log.Fatalf("could not write file %s: %s", filename, err)
 		}
 	}

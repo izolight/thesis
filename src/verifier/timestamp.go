@@ -52,8 +52,7 @@ func verifyTimestamp(t *Timestamped, data []byte) (*time.Time, error) {
 	if err = l.Verify(); err != nil {
 		return nil, fmt.Errorf("ltv information for timestamp not valid: %w", err)
 	}
-	err = verifyHash(data, ts.HashedMessage, ts.HashAlgorithm)
-	if err != nil {
+	if err = verifyHash(data, ts.HashedMessage, ts.HashAlgorithm); err != nil {
 		return nil, fmt.Errorf("could not verify hash: %w", err)
 	}
 	return &ts.Time, nil
