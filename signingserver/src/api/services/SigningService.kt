@@ -47,7 +47,7 @@ interface ISigningKeysService {
 
 
 interface ICertificateAuthorityService {
-    fun signCSR(certificateSigningRequest: PKCS10CertificationRequest): JcaX509CertificateHolder
+    suspend fun signCSR(certificateSigningRequest: PKCS10CertificationRequest): JcaX509CertificateHolder
 }
 
 

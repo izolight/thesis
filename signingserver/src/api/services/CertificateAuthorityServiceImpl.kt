@@ -9,7 +9,6 @@ import io.ktor.client.request.post
 import io.ktor.client.request.url
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import kotlinx.coroutines.runBlocking
 import kotlinx.io.StringWriter
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -62,70 +61,104 @@ class CertificateAuthorityServiceImpl : ICertificateAuthorityService {
         }
     }
 
-    private fun authenticateCertificateRequest(request: Valid<CertificateRequest>): Request {
-        with(
-            json.toJson(
-                CertificateRequest.serializer(),
-                request.value
-            ).toString().toByteArray(Charsets.UTF_8)
-        ) {
-            Base64.getEncoder().also {
-                return Request(
-                    request = it.encodeToString(this),
-                    token = it.encodeToString(
-                        hmacSha256(
-                            hexStringToByteArray(HMAC_KEY),
-                            this
-                        )
-                    )
+    @Serializable
+    data class CfsslBundleStatus(
+        val code: Int,
+        val expiring_SKIs: String,
+        val messages: String,
+        val rebundled: Boolean,
+        val untrusted_root_stores: List<String>
+    )
 
+    @Serializable
+    data class CfsslBundle(
+        val bundle: String,
+        val crl_support: Boolean,
+        val crt: String,
+        val expires: String,
+        val hostnames: List<String>,
+        val issuer: String,
+        val key: String,
+        val key_size: Int,
+        val key_type: String,
+        val ocsp: List<String>,
+        val ocsp_support: Boolean,
+        val root: String,
+        val signature: String,
+        val status: CfsslBundleStatus,
+        val subject: String
+    )
+
+    @Serializable
+    data class CfsslBundleResponse(
+        val success: Boolean,
+        val result: Map<String, String>,
+        val errors: List<ResponseMessage>,
+        val messages: List<ResponseMessage>
+    )
+
+    private fun authenticateCertificateRequest(request: Valid<CertificateRequest>) = with(
+        json.toJson(
+            CertificateRequest.serializer(),
+            request.value
+        ).toString().toByteArray(Charsets.UTF_8)
+    ) {
+        Request(
+            request = Base64.getEncoder().encodeToString(this),
+            token = Base64.getEncoder().encodeToString(
+                hmacSha256(
+                    hexStringToByteArray(HMAC_KEY),
+                    this
                 )
-            }
-        }
-    }
-
-    override fun signCSR(certificateSigningRequest: PKCS10CertificationRequest): JcaX509CertificateHolder {
-        val response = runBlocking {
-            HttpClient { defaultConfig() }.use {
-                it.post<Validatable<CfsslResponse>> {
-                    url(CA_URL)
-                    contentType(ContentType.Application.Json)
-                    body = authenticateCertificateRequest(
-                        when (val req = CertificateRequest(
-                            certificate_request = StringWriter().also { writer ->
-                                PemWriter(writer).also { p ->
-                                    MiscPEMGenerator(certificateSigningRequest).also { generator ->
-                                        p.writeObject(generator)
-                                    }
-                                    p.close()
-                                }
-                            }.toString()
-                        ).validate()) {
-                            is Valid -> req
-                            is Invalid -> throw req.error
-                        }
-                    )
-                }
-            }
-        }
-        when (val validatedResponse = response.validate()) {
-            is Valid ->
-                return pemToCertificate(
-                    validatedResponse.value.result["certificate"]
-                        ?: throw InvalidJSONException("Missing certificate in CA response")
-                )
-            is Invalid -> throw validatedResponse.error
-        }
-    }
-
-    private fun pemToCertificate(pem: String): JcaX509CertificateHolder {
-        return JcaX509CertificateHolder(
-            CertificateFactory.getInstance("X.509")
-                .generateCertificate(
-                    ByteArrayInputStream(
-                        pem.toByteArray(Charsets.UTF_8)
-                    )
-                ) as X509Certificate
+            )
         )
     }
+
+    override suspend fun signCSR(certificateSigningRequest: PKCS10CertificationRequest) = when (
+        val validatedResponse = HttpClient { defaultConfig() }.use {
+            it.post<CfsslResponse> {
+                url(CA_URL)
+                contentType(ContentType.Application.Json)
+                body = authenticateCertificateRequest(
+                    when (val req = CertificateRequest(
+                        certificate_request = StringWriter().also { writer ->
+                            PemWriter(writer).also { p ->
+                                MiscPEMGenerator(certificateSigningRequest).also { generator ->
+                                    p.writeObject(generator)
+                                }
+                                p.close()
+                            }
+                        }.toString()
+                    ).validate()) {
+                        is Valid -> req
+                        is Invalid -> throw req.error
+                    }
+                )
+            }
+        }.validate()
+        ) {
+        is Valid -> pemToCertificate(
+            validatedResponse.value.result["certificate"]
+                ?: throw InvalidJSONException("Missing certificate in CA response")
+        )
+        is Invalid -> throw validatedResponse.error
+    }
+
+    private fun pemToCertificate(pem: String) = JcaX509CertificateHolder(
+        CertificateFactory.getInstance("X.509")
+            .generateCertificate(
+                ByteArrayInputStream(
+                    pem.toByteArray(Charsets.UTF_8)
+                )
+            ) as X509Certificate
+    )
+
+//    suspend fun fetchBundle(pem: String) = when (
+//        HttpClient {
+//            defaultConfig()
+//        }.use {
+//            it.post <
+//
+//        }
+//        )
 }
