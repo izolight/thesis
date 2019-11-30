@@ -33,12 +33,12 @@ func verifySignatureFile(in verifyRequest) error {
 	wg := sync.WaitGroup{}
 
 	timestampVerifier := NewTimestampVerifier(signatureFile.GetTimestamps())
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
+		defer wg.Done()
 		if err := timestampVerifier.Verify(); err != nil {
 			errors <- fmt.Errorf("could not verify timestamps: %w", err)
 		}
-		wg.Done()
 	}()
 
 	data, err := proto.Marshal(signatureFile.SignatureContainer)
@@ -48,35 +48,35 @@ func verifySignatureFile(in verifyRequest) error {
 	timestampVerifier.sendData(data)
 
 	signatureContainerVerifier := NewSignatureContainerVerifier(signatureFile.SignatureContainer)
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
+		defer wg.Done()
 		if err := signatureContainerVerifier.Verify(); err != nil {
 			errors <- fmt.Errorf("could not verify signatureContainer: %w", err)
 		}
-		wg.Done()
 	}()
 
 	signatureData := signatureContainerVerifier.getSignatureData()
 
 	signatureDataVerifier := NewSignatureDataVerifier(signatureData, []byte(in.Hash))
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
+		defer wg.Done()
 		if err := signatureDataVerifier.Verify(); err != nil {
 			errors <- fmt.Errorf("could not verify signatureData: %w", err)
 		}
-		wg.Done()
 	}()
 
 	idTokenVerifier, err := NewIDTokenVerifier(&signatureData, &cfg, timestampVerifier.getNotAfter())
 	if err != nil {
 		return fmt.Errorf("could not create id token verifier: %w", err)
 	}
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
+		defer wg.Done()
 		if err := idTokenVerifier.Verify(); err != nil {
 			errors <- fmt.Errorf("could not verify id token: %w", err)
 		}
-		wg.Done()
 	}()
 	signatureDataVerifier.sendNonce(idTokenVerifier.getNonce())
 
