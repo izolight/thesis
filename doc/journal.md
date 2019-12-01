@@ -129,4 +129,10 @@
     - CRL & OCSP holen
     - PKCS7 bauen
     - Über Bouncycastle fluchen
+    
+#### 01.12.19
+- Arbeiten am Signing Server
+    - CRL & OCSP in PKCS7 einbauen
+    - CA Cert Bundle in PKCS7 einbauen
+
 
