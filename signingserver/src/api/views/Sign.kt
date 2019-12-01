@@ -20,6 +20,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import org.koin.ktor.ext.inject
 import org.slf4j.LoggerFactory
+import java.io.File
 
 fun Routing.sign() {
     val oidcService by inject<IOIDCService>()
@@ -67,8 +68,9 @@ fun Routing.sign() {
                 )
                 when (val subjectInformation = SigningKeySubjectInformation.fromIdToken(jwtValidationResult.idToken)) {
                     is Either.Success -> {
-                        val signingKeyCSR = signingKeyService.generateSigningKey(subjectInformation.value)
-                        val cert = caService.signCSR(signingKeyCSR)
+                        val cert = caService.signCSR(
+                            signingKeyService.generateSigningKey(subjectInformation.value)
+                        )
                         val bundle = caService.fetchBundle(cert)
 
 //                        TODO("other hashes, macced, sorted")
@@ -91,12 +93,22 @@ fun Routing.sign() {
                             signatureData.toByteArray(),
                             cert,
                             bundle
-                        )
+                        ).encoded
 
+                        val timestampOfSignatureData = tsaService.stamp(pkcs7)
+                        val signatureContainer = Signature.SignatureContainer.newBuilder()
+                            .setEnvelopedSignatureDataPkcs7(ByteString.copyFrom(pkcs7))
+                            .build()
+                        val signatureFile = Signature.SignatureFile.newBuilder()
+                            .setSignatureContainer(signatureContainer)
+                            .addTimestamps(
+                                Signature.Timestamped.newBuilder()
+                                    .setRfc3161Timestamp(ByteString.copyFrom(timestampOfSignatureData))
+                                    .build()
+                            )
+                            .build()
+                        File("/tmp/signaturefile").writeBytes(signatureFile.toByteArray())
                         println()
-
-//                        val timestampOfSignatureData = tsaService.stamp(stuff)
-
                     }
                     is Either.Error -> throw subjectInformation.e
                 }
