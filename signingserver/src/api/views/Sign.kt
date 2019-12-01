@@ -69,7 +69,7 @@ fun Routing.sign() {
                     is Either.Success -> {
                         val signingKeyCSR = signingKeyService.generateSigningKey(subjectInformation.value)
                         val cert = caService.signCSR(signingKeyCSR)
-                        signingKeyService.signToPkcs7(subjectInformation.value, "asdf".toByteArray(Charsets.UTF_8), cert)
+                        val bundle = caService.fetchBundle(cert)
 
 //                        TODO("other hashes, macced, sorted")
                         val signatureData = Signature.SignatureData.newBuilder()
@@ -79,14 +79,21 @@ fun Routing.sign() {
                             .setMacAlgorithm(Signature.MACAlgorithm.HMAC_SHA2_256)
                             .setSignatureLevel(Signature.SignatureLevel.ADVANCED)
                             .setIdToken(ByteString.copyFromUtf8(input.value.id_token))
-                            .setJwkIdp(
-                                0,
+                            .addJwkIdp(
                                 ByteString.copyFromUtf8(
                                     oidcService.marshalJwk(jwtValidationResult.jwk)
-
-                                ))
+                                )
+                            )
                             .build()
 
+                        val pkcs7 = signingKeyService.signToPkcs7(
+                            subjectInformation.value,
+                            signatureData.toByteArray(),
+                            cert,
+                            bundle
+                        )
+
+                        println()
 
 //                        val timestampOfSignatureData = tsaService.stamp(stuff)
 
