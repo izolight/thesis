@@ -41,7 +41,8 @@ interface ISigningKeysService {
     suspend fun signToPkcs7(
         subjectInformation: SigningKeySubjectInformation,
         dataToSign: ByteArray,
-        signedCertificate: X509CertificateHolder
+        signedCertificate: X509CertificateHolder,
+        issuingCert: X509CertificateHolder
     ): CMSSignedData
 }
 

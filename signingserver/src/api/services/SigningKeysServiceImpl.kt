@@ -23,6 +23,7 @@ import org.bouncycastle.cert.jcajce.JcaX509CRLHolder
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils
 import org.bouncycastle.cert.ocsp.CertificateID
 import org.bouncycastle.cert.ocsp.OCSPReqBuilder
+import org.bouncycastle.cert.ocsp.OCSPResp
 import org.bouncycastle.cms.CMSProcessableByteArray
 import org.bouncycastle.cms.CMSSignedDataGenerator
 import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder
@@ -92,31 +93,37 @@ class SigningKeysServiceImpl : ISigningKeysService {
         ).build(this.contentSignerBuilder.build(keyPair.private)) ?: throw CryptoException("Unable to construct CSR")
     }
 
-    // TODO: get and insert certificate chain and ocsp
+    // TODO: get and insert certificate chain
     override suspend fun signToPkcs7(
         subjectInformation: SigningKeySubjectInformation,
         dataToSign: ByteArray,
-        signedCertificate: X509CertificateHolder
+        signedCertificate: X509CertificateHolder,
+        issuingCert: X509CertificateHolder
     ) = CMSSignedDataGenerator().also {
-        val x = retrieveOcsp(signedCertificate)
-        // TODO include ocsp in pkcs7
         it.addSignerInfoGenerator(
             JcaSignerInfoGeneratorBuilder(
                 JcaDigestCalculatorProviderBuilder()
-//                    .setProvider(Constants.CRYPTO_PROVIDER)
                     .build()
             ).build(
                 JcaContentSignerBuilder(Constants.SIGNATURE_ALGORITHM)
-//                    .setProvider(Constants.CRYPTO_PROVIDER)
                     .build(this.keyCache.get(subjectInformation)!!.private),
                 signedCertificate
             )
         )
         it.addCertificates(
-            JcaCertStore(listOf(signedCertificate))
+            JcaCertStore(
+                listOf(
+                    signedCertificate,
+                    issuingCert
+                )
+            )
         )
         it.addCRL(
             retrieveCrl(signedCertificate)
+        )
+        it.addOtherRevocationInfo(
+            OCSPObjectIdentifiers.id_pkix_ocsp,
+            retrieveOcsp(signedCertificate).toASN1Structure()
         )
     }.generate(CMSProcessableByteArray(dataToSign))
 
@@ -197,7 +204,8 @@ class SigningKeysServiceImpl : ISigningKeysService {
     suspend fun retrieveOcsp(signedCertificate: X509CertificateHolder) = HttpClient {
         defaultConfig()
     }.use {
-        it.post<ByteArray> {
+        //        it.post<ByteArray> {
+        it.post<OCSPResp> {
             url(extractOcspUrl(signedCertificate))
             body = ByteArrayContent(
                 bytes = constructOcspRequest(signedCertificate).encoded.also { bytes ->
