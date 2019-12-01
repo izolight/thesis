@@ -2,6 +2,7 @@ package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
 
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.Either
 import com.auth0.jwt.interfaces.DecodedJWT
+import kotlinx.coroutines.Deferred
 import org.bouncycastle.cert.X509CertificateHolder
 import org.bouncycastle.cert.jcajce.JcaCertStore
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder
@@ -43,14 +44,14 @@ interface ISigningKeysService {
         subjectInformation: SigningKeySubjectInformation,
         dataToSign: ByteArray,
         signedCertificate: X509CertificateHolder,
-        bundle: JcaCertStore
+        bundle: Deferred<JcaCertStore>
     ): CMSSignedData
 }
 
 
 interface ICertificateAuthorityService {
     suspend fun signCSR(certificateSigningRequest: PKCS10CertificationRequest): JcaX509CertificateHolder
-    suspend fun fetchBundle(cert: JcaX509CertificateHolder): JcaCertStore
+    suspend fun fetchBundleAsync(cert: JcaX509CertificateHolder): Deferred<JcaCertStore>
 }
 
 

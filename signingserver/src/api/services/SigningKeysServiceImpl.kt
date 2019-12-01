@@ -9,8 +9,7 @@ import io.ktor.client.request.url
 import io.ktor.http.ContentType
 import io.ktor.http.Url
 import io.ktor.http.content.ByteArrayContent
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import kotlinx.serialization.Serializable
 import org.bouncycastle.asn1.DEROctetString
 import org.bouncycastle.asn1.ocsp.OCSPObjectIdentifiers
@@ -98,8 +97,10 @@ class SigningKeysServiceImpl : ISigningKeysService {
         subjectInformation: SigningKeySubjectInformation,
         dataToSign: ByteArray,
         signedCertificate: X509CertificateHolder,
-        bundle: JcaCertStore
+        bundle: Deferred<JcaCertStore>
     ) = CMSSignedDataGenerator().also {
+        val crl = retrieveCrlAsync(signedCertificate)
+        val ocsp = retrieveOcspAsync(signedCertificate)
         it.addSignerInfoGenerator(
             JcaSignerInfoGeneratorBuilder(
                 JcaDigestCalculatorProviderBuilder()
@@ -110,15 +111,15 @@ class SigningKeysServiceImpl : ISigningKeysService {
                 signedCertificate
             )
         )
-        it.addCertificates(
-            bundle
-        )
         it.addCRL(
-            retrieveCrl(signedCertificate)
+            crl.await()
         )
         it.addOtherRevocationInfo(
             OCSPObjectIdentifiers.id_pkix_ocsp,
-            retrieveOcsp(signedCertificate).toASN1Structure()
+            ocsp.await().toASN1Structure()
+        )
+        it.addCertificates(
+            bundle.await()
         )
     }.generate(CMSProcessableByteArray(dataToSign))
 
@@ -154,23 +155,30 @@ class SigningKeysServiceImpl : ISigningKeysService {
         }
     )
 
-    suspend fun retrieveCrl(signedCertificate: X509CertificateHolder) = when (
-        val response = HttpClient {
-            defaultConfig()
-        }.use {
-            it.get<CfsslCrlResponse> {
-                url(extractCrlUrl(signedCertificate))
+    suspend fun retrieveCrlAsync(signedCertificate: X509CertificateHolder): Deferred<JcaX509CRLHolder> =
+        coroutineScope {
+            async {
+                when (
+                    val response = HttpClient {
+                        defaultConfig()
+                    }.use {
+                        it.get<CfsslCrlResponse> {
+                            url(extractCrlUrl(signedCertificate))
+                        }
+                    }.validate()
+                    ) {
+                    is Valid -> JcaX509CRLHolder(
+                        CertificateFactory.getInstance("X.509").generateCRL(
+                            ByteArrayInputStream(
+                                Base64.getDecoder().decode(response.value.result)
+                            )
+                        ) as X509CRL
+                    )
+                    is Invalid -> throw response.error
+                }
             }
-        }.validate()) {
-        is Valid -> JcaX509CRLHolder(
-            CertificateFactory.getInstance("X.509").generateCRL(
-                ByteArrayInputStream(
-                    Base64.getDecoder().decode(response.value.result)
-                )
-            ) as X509CRL
-        )
-        is Invalid -> throw response.error
-    }
+        }
+
 
     private fun constructOcspRequest(signedCertificate: X509CertificateHolder) = OCSPReqBuilder()
         .addRequest(
@@ -196,23 +204,27 @@ class SigningKeysServiceImpl : ISigningKeysService {
             )
         ).build()
 
-    suspend fun retrieveOcsp(signedCertificate: X509CertificateHolder) = withContext(Dispatchers.IO) {
-        OCSPResp(
-            HttpClient {
-                defaultConfig()
-            }.use {
-                it.post<ByteArray> {
-                    url(extractOcspUrl(signedCertificate))
-                    body = ByteArrayContent(
-                        bytes = constructOcspRequest(signedCertificate).encoded.also { bytes ->
-                            File("/tmp/ocsp_req").writeBytes(bytes)
-                        },
-                        contentType = ContentType(
-                            "application", "ocsp-request"
-                        )
-                    )
-                }
+    suspend fun retrieveOcspAsync(signedCertificate: X509CertificateHolder) = coroutineScope {
+        async {
+            withContext(Dispatchers.IO) {
+                OCSPResp(
+                    HttpClient {
+                        defaultConfig()
+                    }.use {
+                        it.post<ByteArray> {
+                            url(extractOcspUrl(signedCertificate))
+                            body = ByteArrayContent(
+                                bytes = constructOcspRequest(signedCertificate).encoded.also { bytes ->
+                                    File("/tmp/ocsp_req").writeBytes(bytes)
+                                },
+                                contentType = ContentType(
+                                    "application", "ocsp-request"
+                                )
+                            )
+                        }
+                    }
+                )
             }
-        )
+        }
     }
 }
