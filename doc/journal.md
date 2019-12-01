@@ -134,5 +134,6 @@
 - Arbeiten am Signing Server
     - CRL & OCSP in PKCS7 einbauen
     - CA Cert Bundle in PKCS7 einbauen
+    - Erster Versuch eine Signaturdatei zu bauen
 
 
