@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
 
 data class SigningKeySubjectInformation(val surname: String, val givenName: String, val email: String) {
     companion object Constants {
-        private val logger = LoggerFactory.getLogger(this.javaClass)
+        private val logger = LoggerFactory.getLogger(SigningKeySubjectInformation::class.java)
         const val ORGANISATIONAL_UNIT = "Demo Signing Service"
         const val COUNTRY = "CH"
 
