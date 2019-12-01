@@ -29,7 +29,7 @@ message SignatureData {
     MACAlgorithm mac_algorithm = 4;
     SignatureLevel signature_level = 5;
     bytes id_token = 6;
-    repeated bytes jwk_idp = 7;
+    bytes jwk_idp = 7;
     // maps the fingerprint of the jwk cert to its ltv information
     map<string, LTV> ltv_idp = 8;
 }
