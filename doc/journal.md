@@ -135,5 +135,9 @@
     - CRL & OCSP in PKCS7 einbauen
     - CA Cert Bundle in PKCS7 einbauen
     - Erster Versuch eine Signaturdatei zu bauen
+    - TSA Anfrage anpassen so dass Certs in der Antwort mitgeliefert werden
+    - Signaturdateiformat wesentlich vereinfachen
+    - Multisignaturen wesentlich vereinfachen
+    - Soweit möglich http Anfragen parallelisieren (coroutines)
 
 
