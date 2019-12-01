@@ -43,7 +43,7 @@ message SignatureFile {
     // pkcs7 enveloped and signed,
     // containing CA chain,
     // and if ltv is enabled CRL and OCSP as well
-    SignatureData signature_data_in_pkcs7 = 1;
+    bytes signature_data_in_pkcs7 = 1;
     // pkcs7 enveloped rfc3161 timestamp (not signed, just enveloped)
     // along with CA chain
     // and if ltv is enabled CRL and OCSP as well
