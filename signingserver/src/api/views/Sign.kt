@@ -74,8 +74,15 @@ fun Routing.sign() {
                         val bundle = caService.fetchBundle(cert)
 
 //                        TODO("other hashes, macced, sorted")
+                        input.value.hashes.map { s -> ByteString.copyFrom(hmacSha256(salt, hexStringToByteArray(s))) }
                         val signatureData = Signature.SignatureData.newBuilder()
-                            .setDocumentHash(ByteString.copyFrom(hexStringToByteArray(input.value.hashes[0])))
+                            .addAllSaltedDocumentHash(
+                                input.value.hashes.map { s ->
+                                    ByteString.copyFrom(
+                                        hmacSha256(salt, hexStringToByteArray(s))
+                                    )
+                                }
+                            )
                             .setHashAlgorithm(Signature.HashAlgorithm.SHA2_256)
                             .setMacKey(ByteString.copyFrom(salt))
                             .setMacAlgorithm(Signature.MACAlgorithm.HMAC_SHA2_256)
@@ -96,17 +103,11 @@ fun Routing.sign() {
                         ).encoded
 
                         val timestampOfSignatureData = tsaService.stamp(pkcs7)
-                        val signatureContainer = Signature.SignatureContainer.newBuilder()
-                            .setEnvelopedSignatureDataPkcs7(ByteString.copyFrom(pkcs7))
-                            .build()
                         val signatureFile = Signature.SignatureFile.newBuilder()
-                            .setSignatureContainer(signatureContainer)
-                            .addTimestamps(
-                                Signature.Timestamped.newBuilder()
-                                    .setRfc3161Timestamp(ByteString.copyFrom(timestampOfSignatureData))
-                                    .build()
-                            )
+                            .setSignatureDataInPkcs7(ByteString.copyFrom(pkcs7))
+                                // TODO add pkcs7 enveloped timestamp
                             .build()
+
                         File("/tmp/signaturefile").writeBytes(signatureFile.toByteArray())
                         println()
                     }
