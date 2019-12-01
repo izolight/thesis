@@ -24,7 +24,7 @@ enum SignatureLevel {
 
 message SignatureData {
     repeated bytes salted_document_hash = 1;
-    HashAlgorithm hash_algorithm = 2;
+    HashAlgorithm hash_algorithm = 2; // for generating the oid nonce
     bytes mac_key = 3;
     MACAlgorithm mac_algorithm = 4;
     SignatureLevel signature_level = 5;
