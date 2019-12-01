@@ -76,7 +76,7 @@ fun Routing.sign() {
                                     .setMacAlgorithm(Signature.MACAlgorithm.HMAC_SHA2_256)
                                     .setSignatureLevel(Signature.SignatureLevel.ADVANCED)
                                     .setIdToken(ByteString.copyFromUtf8(input.value.id_token))
-                                    .addJwkIdp(
+                                    .setJwkIdp(
                                         ByteString.copyFromUtf8(
                                             oidcService.marshalJwk(jwtValidationResult.jwk)
                                         )
