@@ -23,25 +23,15 @@ enum SignatureLevel {
 }
 
 message SignatureData {
-    bytes document_hash = 1;
+    repeated bytes salted_document_hash = 1;
     HashAlgorithm hash_algorithm = 2;
     bytes mac_key = 3;
     MACAlgorithm mac_algorithm = 4;
-    repeated bytes other_macs = 5;
-    SignatureLevel signature_level = 6;
-    bytes id_token = 7;
-    repeated bytes jwk_idp = 8;
-    map<string, LTV> ltv_idp = 9; // maps the fingerprint of the cert to the ltv information
-}
-
-message Timestamped {
-    bytes rfc3161_timestamp = 1; // pkcs#7 wrapped
-    map<string, LTV> ltv_timestamp = 2; // maps the fingerprint of the cert to the ltv information
-}
-
-message SignatureContainer {
-    bytes enveloped_signature_data_pkcs7 = 1; // pkcs#7 DER encoded bytes
-    map<string, LTV> ltv_signing = 2; // maps the fingerprint of the cert to the ltv information
+    SignatureLevel signature_level = 5;
+    bytes id_token = 6;
+    repeated bytes jwk_idp = 7;
+    // maps the fingerprint of the jwk cert to its ltv information
+    map<string, LTV> ltv_idp = 8;
 }
 
 message LTV {
@@ -50,6 +40,14 @@ message LTV {
 }
 
 message SignatureFile {
-    SignatureContainer signature_container = 1;
-    repeated Timestamped timestamps = 2; // this is for renewal of the signature, new timestamps, timestamp the old one
+    // pkcs7 enveloped and signed,
+    // containing CA chain,
+    // and if ltv is enabled CRL and OCSP as well
+    SignatureData signature_data_in_pkcs7 = 1;
+    // pkcs7 enveloped rfc3161 timestamp (not signed, just enveloped)
+    // along with CA chain
+    // and if ltv is enabled CRL and OCSP as well
+    // each later timestamp authenticates a former one
+    // thus forming a chain for archival
+    repeated bytes rfc3161_in_pkcs7 = 2;
 }
