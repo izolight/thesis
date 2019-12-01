@@ -2,6 +2,7 @@ package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -26,25 +27,24 @@ class ExpireableCacheDefaultImpl<T, U> : IExpireableCache<T, U> {
 
     override fun set(key: T, value: U) {
         this.storage[key] = ExpirableEntry(System.currentTimeMillis(), value)
-        this.cycle()
+        GlobalScope.launch {
+            cycle()
+        }
     }
 
     override fun get(key: T): U? {
-        this.cycle()
+        runBlocking {
+            cycle()
+        }
         return this.storage[key]?.value
     }
 
-    override fun exists(key: T): Boolean {
-        return this.storage.contains(key)
-    }
+    override fun exists(key: T) = this.storage.contains(key)
 
-    private fun isTimeToCycle(): Boolean {
-        return System.currentTimeMillis() > this.lastCycleTime + CYCLE_TIME_MILLISECONDS
-    }
+    private fun isTimeToCycle() = System.currentTimeMillis() > this.lastCycleTime + CYCLE_TIME_MILLISECONDS
 
-    private fun cycle() {
+    private suspend fun cycle() {
         if (isTimeToCycle() && !cycleLock.isLocked) {
-            GlobalScope.launch {
                 cycleLock.withLock {
                     val now = System.currentTimeMillis()
                     storage.forEach { (key, value) ->
@@ -54,7 +54,6 @@ class ExpireableCacheDefaultImpl<T, U> : IExpireableCache<T, U> {
                     }
                     lastCycleTime = System.currentTimeMillis()
                 }
-            }
         }
     }
 }
