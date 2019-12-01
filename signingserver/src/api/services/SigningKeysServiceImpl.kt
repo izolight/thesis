@@ -98,7 +98,7 @@ class SigningKeysServiceImpl : ISigningKeysService {
         subjectInformation: SigningKeySubjectInformation,
         dataToSign: ByteArray,
         signedCertificate: X509CertificateHolder,
-        issuingCert: X509CertificateHolder
+        bundle: JcaCertStore
     ) = CMSSignedDataGenerator().also {
         it.addSignerInfoGenerator(
             JcaSignerInfoGeneratorBuilder(
@@ -111,12 +111,7 @@ class SigningKeysServiceImpl : ISigningKeysService {
             )
         )
         it.addCertificates(
-            JcaCertStore(
-                listOf(
-                    signedCertificate,
-                    issuingCert
-                )
-            )
+            bundle
         )
         it.addCRL(
             retrieveCrl(signedCertificate)
