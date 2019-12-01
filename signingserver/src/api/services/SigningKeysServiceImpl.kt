@@ -201,20 +201,23 @@ class SigningKeysServiceImpl : ISigningKeysService {
             )
         ).build()
 
-    suspend fun retrieveOcsp(signedCertificate: X509CertificateHolder) = HttpClient {
-        defaultConfig()
-    }.use {
-        //        it.post<ByteArray> {
-        it.post<OCSPResp> {
-            url(extractOcspUrl(signedCertificate))
-            body = ByteArrayContent(
-                bytes = constructOcspRequest(signedCertificate).encoded.also { bytes ->
-                    File("/tmp/ocsp_req").writeBytes(bytes)
-                },
-                contentType = ContentType(
-                    "application", "ocsp-request"
-                )
-            )
-        }
+    suspend fun retrieveOcsp(signedCertificate: X509CertificateHolder) = withContext(Dispatchers.IO) {
+        OCSPResp(
+            HttpClient {
+                defaultConfig()
+            }.use {
+                it.post<ByteArray> {
+                    url(extractOcspUrl(signedCertificate))
+                    body = ByteArrayContent(
+                        bytes = constructOcspRequest(signedCertificate).encoded.also { bytes ->
+                            File("/tmp/ocsp_req").writeBytes(bytes)
+                        },
+                        contentType = ContentType(
+                            "application", "ocsp-request"
+                        )
+                    )
+                }
+            }
+        )
     }
 }
