@@ -8,11 +8,11 @@ import (
 )
 
 type SignatureContainerVerifier struct {
-	container *SignatureContainer
+	container []byte
 	data      chan SignatureData
 }
 
-func NewSignatureContainerVerifier(c *SignatureContainer) *SignatureContainerVerifier {
+func NewSignatureContainerVerifier(c []byte) *SignatureContainerVerifier {
 	return &SignatureContainerVerifier{
 		container: c,
 		data:      make(chan SignatureData, 1),
@@ -20,7 +20,7 @@ func NewSignatureContainerVerifier(c *SignatureContainer) *SignatureContainerVer
 }
 
 func (s SignatureContainerVerifier) Verify() error {
-	p7, err := pkcs7.Parse(s.container.EnvelopedSignatureDataPkcs7)
+	p7, err := pkcs7.Parse(s.container)
 	if err != nil {
 		return fmt.Errorf("could not decode signature container: %w", err)
 	}
@@ -38,12 +38,12 @@ func (s SignatureContainerVerifier) Verify() error {
 		return fmt.Errorf("could not verify pcks7 signature container: %w", err)
 	}
 
-	l := ltvVerifier{
-		certs:  p7.Certificates,
-		ltvMap: s.container.LtvSigning,
+	l := LTVVerifier{
+		Certs: p7.Certificates,
+		//LTVData: s.container,
 	}
 	if err := l.Verify(); err != nil {
-		return fmt.Errorf("ltv information for signature is not valid: %w", err)
+		return fmt.Errorf("verifyLTV information for signature is not valid: %w", err)
 	}
 	return nil
 }

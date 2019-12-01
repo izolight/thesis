@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"sort"
 )
 
 type signatureDataVerifier struct {
@@ -29,17 +28,22 @@ func (s *signatureDataVerifier) sendNonce(nonce string) {
 }
 
 func (s *signatureDataVerifier) Verify() error {
-	if !bytes.Equal(s.documentHash, s.data.DocumentHash) {
-		return fmt.Errorf("document hash and signature didn't match")
-	}
 	macAlgo, err := s.data.MacAlgorithm.Algorithm()
 	if err != nil {
 		return err
 	}
 	macer := hmac.New(macAlgo.New, s.data.MacKey)
 	mac := macer.Sum(s.documentHash)
-	allMacs := append(s.data.OtherMacs, mac)
-	sort.Sort(macs(allMacs))
+	foundMAC := false
+	for _, m := range s.data.SaltedDocumentHash {
+		if bytes.Equal(mac, m) {
+			foundMAC = true
+			break
+		}
+	}
+	if !foundMAC {
+		return errors.New("document hash not found")
+	}
 
 	hashAlgo, err := s.data.HashAlgorithm.Algorithm()
 	if err != nil {
@@ -47,8 +51,8 @@ func (s *signatureDataVerifier) Verify() error {
 	}
 
 	hasher := hashAlgo.New()
-	for i := range allMacs {
-		hasher.Write(allMacs[i])
+	for _, m := range s.data.SaltedDocumentHash {
+		hasher.Write(m)
 	}
 	computedNonce := hasher.Sum(nil)
 	nonce, err := hex.DecodeString(<-s.nonce)

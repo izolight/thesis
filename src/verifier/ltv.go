@@ -8,19 +8,19 @@ import (
 	"golang.org/x/crypto/ocsp"
 )
 
-type ltvVerifier struct {
-	certs  []*x509.Certificate
-	ltvMap map[string]*LTV
+type LTVVerifier struct {
+	Certs   []*x509.Certificate
+	LTVData map[string]*LTV
 }
 
-func (l ltvVerifier) Verify() error {
-	for _, cert := range l.certs {
+func (l LTVVerifier) Verify() error {
+	for _, cert := range l.Certs {
 		// check if is root CA -> no ocsp/crl possible
 		if err := cert.CheckSignatureFrom(cert); err == nil {
 			continue
 		}
 		var issuingCA *x509.Certificate
-		for _, issuing := range l.certs {
+		for _, issuing := range l.Certs {
 			if err := cert.CheckSignatureFrom(issuing); err == nil {
 				issuingCA = issuing
 				break
@@ -28,14 +28,14 @@ func (l ltvVerifier) Verify() error {
 		}
 
 		fingerprint := fmt.Sprintf("%x", sha256.Sum256(cert.Raw))
-		ltv, ok := l.ltvMap[fingerprint]
+		ltv, ok := l.LTVData[fingerprint]
 		if !ok || ltv == nil {
-			return fmt.Errorf("no ltv information for certificate with fingerprint %s", fingerprint)
+			return fmt.Errorf("no verifyLTV information for certificate with fingerprint %s", fingerprint)
 		}
 		// check first for ocsp and only fallback to crl
 		if ltv.Ocsp == nil {
 			if ltv.Crl == nil {
-				return fmt.Errorf("no ltv information for certificate with fingerprint %s", fingerprint)
+				return fmt.Errorf("no verifyLTV information for certificate with fingerprint %s", fingerprint)
 			}
 			return errors.New("crl not supported yet")
 			// TODO: verify crl

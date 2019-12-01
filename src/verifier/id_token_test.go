@@ -1,8 +1,9 @@
-package verifier
+package verifier_test
 
 import (
 	"crypto/sha256"
 	"fmt"
+	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier"
 	"testing"
 	"time"
 )
@@ -16,7 +17,7 @@ func TestVerifyIDToken(t *testing.T) {
 	tsaCA := parsePEM(t, "SwissSign ZertES TSA UNIT CH-2018.pem")
 
 	jwkFile := readFile(t, "jwk.json")
-	ltv := map[string]*LTV{
+	ltv := map[string]*verifier.LTV{
 		fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
 			Ocsp: intermediateCAOCSPFile,
 		},
@@ -32,7 +33,7 @@ func TestVerifyIDToken(t *testing.T) {
 		clientId string
 		notAfter time.Time
 		key      []byte
-		ltv      map[string]*LTV
+		ltv      map[string]*verifier.LTV
 	}
 	tests := []struct {
 		name    string
@@ -95,7 +96,7 @@ func TestVerifyIDToken(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v, err := NewIDTokenVerifier(nil, nil, time.Now())
+			v, err := verifier.NewIDTokenVerifier(nil, nil, time.Now())
 			if err != nil {
 				t.Errorf("NewIDTokenVerifier error = %v, wantErr %v", err, tt.wantErr)
 			}

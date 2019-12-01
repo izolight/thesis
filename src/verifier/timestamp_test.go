@@ -1,9 +1,9 @@
-package verifier
+package verifier_test
 
 import (
 	"crypto/sha256"
 	"fmt"
-	"github.com/golang/protobuf/proto"
+	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier"
 	"io/ioutil"
 	"testing"
 )
@@ -13,51 +13,55 @@ func TestVerifyTimestamp(t *testing.T) {
 	intermediateCAOCSPFile := readFile(t, "SwissSign TSA Platinum CA 2017 - G22.pem.ocsp")
 	tsaCA := parsePEM(t, "SwissSign ZertES TSA UNIT CH-2018.pem")
 	tsaCAOCSPFile := readFile(t, "SwissSign ZertES TSA UNIT CH-2018.pem.ocsp")
-	timestampedFile := readFile(t, "hello_world_response.tsr.data")
-	timestamped := &Timestamped{}
-	if err := proto.Unmarshal(timestampedFile, timestamped); err != nil {
-		t.Fatal(err)
+	//timestampedFile := readFile(t, "hello_world_response.tsr.data")
+
+	type args struct {
+		data []byte
+		timestamps [][]byte
+		verifyLTV bool
+		ltvData map[string]*verifier.LTV
 	}
 
 	tests := []struct {
 		name       string
-		data       []byte
-		timestamps []*Timestamped
+		args args
 		wantErr    bool
 	}{
 		{
 			name: "valid single timestamp",
-
-			data: []byte("hello world\n"),
-			timestamps: []*Timestamped{
-				{
-					Rfc3161Timestamp: readFile(t, "hello_world_response.tsr"),
-					LtvTimestamp: map[string]*LTV{
-						fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
-							Ocsp: intermediateCAOCSPFile,
-						},
-						fmt.Sprintf("%x", sha256.Sum256(tsaCA.Raw)): {
-							Ocsp: tsaCAOCSPFile,
-						},
+			args: args{
+				data: []byte("hello world\n"),
+				timestamps: [][]byte{
+					readFile(t, "hello_world_response.tsr"),
+				},
+				verifyLTV: true,
+				ltvData: map[string]*verifier.LTV{
+					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
+						Ocsp: intermediateCAOCSPFile,
+					},
+					fmt.Sprintf("%x", sha256.Sum256(tsaCA.Raw)): {
+						Ocsp: tsaCAOCSPFile,
 					},
 				},
 			},
+
 			wantErr: false,
 		},
 		{
 			name: "nested timestamp",
-			data: []byte("hello world\n"),
-			timestamps: []*Timestamped{
-				timestamped,
-				{
-					Rfc3161Timestamp: readFile(t, "hello_world_response.tsr.data_response.tsr"),
-					LtvTimestamp: map[string]*LTV{
-						fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
-							Ocsp: intermediateCAOCSPFile,
-						},
-						fmt.Sprintf("%x", sha256.Sum256(tsaCA.Raw)): {
-							Ocsp: tsaCAOCSPFile,
-						},
+			args: args{
+				data: []byte("hello world\n"),
+				timestamps: [][]byte{
+					readFile(t, "hello_world_response.tsr"),
+					readFile(t, "hello_world_response.tsr.data_response.tsr"),
+				},
+				verifyLTV: true,
+				ltvData: map[string]*verifier.LTV{
+					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
+						Ocsp: intermediateCAOCSPFile,
+					},
+					fmt.Sprintf("%x", sha256.Sum256(tsaCA.Raw)): {
+						Ocsp: tsaCAOCSPFile,
 					},
 				},
 			},
@@ -65,27 +69,29 @@ func TestVerifyTimestamp(t *testing.T) {
 		},
 		{
 			name: "hash mismatch",
-			data: []byte("hello world"),
-			timestamps: []*Timestamped{
-				{
-					Rfc3161Timestamp: readFile(t, "hello_world_response.tsr"),
-					LtvTimestamp:     map[string]*LTV{},
+			args: args{
+				data: []byte("hello world"),
+				timestamps: [][]byte{
+					readFile(t, "hello_world_response.tsr"),
 				},
+				verifyLTV:false,
 			},
 			wantErr: true,
 		},
 		{
 			name:       "no timestamps",
-			data:       []byte("hello world"),
-			timestamps: []*Timestamped{},
+			args: args{
+				data:       []byte("hello world"),
+				verifyLTV:  false,
+			},
 			wantErr:    true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			verifier := NewTimestampVerifier(tt.timestamps)
-			verifier.sendData(tt.data)
+			verifier := verifier.NewTimestampVerifier(tt.args.timestamps, tt.args.verifyLTV, tt.args.ltvData)
+			verifier.SendData(tt.args.data)
 			if err := verifier.Verify(); err != nil != tt.wantErr {
 				t.Errorf("Verify() error = %v, wantErr %v", err, tt.wantErr)
 			}

@@ -32,7 +32,8 @@ func verifySignatureFile(in verifyRequest) error {
 	errors := make(chan error)
 	wg := sync.WaitGroup{}
 
-	timestampVerifier := NewTimestampVerifier(signatureFile.GetTimestamps())
+	// TODO add ltv verifying
+	timestampVerifier := NewTimestampVerifier(signatureFile.GetRfc3161InPkcs7(), false, nil)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -41,13 +42,9 @@ func verifySignatureFile(in verifyRequest) error {
 		}
 	}()
 
-	data, err := proto.Marshal(signatureFile.SignatureContainer)
-	if err != nil {
-		return fmt.Errorf("could not marshal signature Data: %w", err)
-	}
-	timestampVerifier.sendData(data)
+	timestampVerifier.SendData(signatureFile.SignatureDataInPkcs7)
 
-	signatureContainerVerifier := NewSignatureContainerVerifier(signatureFile.SignatureContainer)
+	signatureContainerVerifier := NewSignatureContainerVerifier(signatureFile.SignatureDataInPkcs7)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()

@@ -2,7 +2,6 @@ package verifier
 
 import (
 	"fmt"
-	"github.com/golang/protobuf/proto"
 	"go.mozilla.org/pkcs7"
 	"time"
 )
@@ -20,18 +19,22 @@ func (t timestampError) Error() string {
 type TimestampVerifier struct {
 	data       chan []byte
 	notAfter   chan time.Time
-	timestamps []*Timestamped
+	timestamps [][]byte
+	verifyLTV  bool
+	ltvData map[string]*LTV
 }
 
-func NewTimestampVerifier(timestamps []*Timestamped) *TimestampVerifier {
+func NewTimestampVerifier(timestamps [][]byte, verifyLTV bool, ltvData map[string]*LTV) *TimestampVerifier {
 	return &TimestampVerifier{
 		data:       make(chan []byte, 1),
 		notAfter:   make(chan time.Time, 1),
 		timestamps: timestamps,
+		verifyLTV:  verifyLTV,
+		ltvData:ltvData,
 	}
 }
 
-func (t *TimestampVerifier) sendData(data []byte) {
+func (t *TimestampVerifier) SendData(data []byte) {
 	t.data <- data
 }
 
@@ -39,19 +42,21 @@ func (t *TimestampVerifier) getNotAfter() time.Time {
 	return <-t.notAfter
 }
 
-func verifyTimestamp(t *Timestamped, data []byte) (*time.Time, error) {
-	ts, err := pkcs7.ParseTSResponse(t.Rfc3161Timestamp)
+func (t *TimestampVerifier) verifyTimestamp(timestamp []byte, data []byte) (*time.Time, error) {
+	ts, err := pkcs7.ParseTSResponse(timestamp)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse timestamp response: %w", err)
 	}
-	l := ltvVerifier{
-		certs:  ts.Certificates,
-		ltvMap: t.LtvTimestamp,
+	if t.verifyLTV {
+		l := LTVVerifier{
+			Certs:   ts.Certificates,
+			LTVData: t.ltvData,
+		}
+		if err = l.Verify(); err != nil {
+			return nil, fmt.Errorf("verifyLTV information for timestamp not valid: %w", err)
+		}
 	}
 
-	if err = l.Verify(); err != nil {
-		return nil, fmt.Errorf("ltv information for timestamp not valid: %w", err)
-	}
 	if err = verifyHash(data, ts.HashedMessage, ts.HashAlgorithm); err != nil {
 		return nil, fmt.Errorf("could not verify hash: %w", err)
 	}
@@ -64,19 +69,20 @@ func (t *TimestampVerifier) Verify() error {
 	}
 
 	for i := len(t.timestamps) - 1; i >= 0; i-- {
-		hashData := []byte{}
+		var hashData []byte
 		// during last signature the data is not in the previous(next) signature,
 		// so we need to block until the data arrives
 		if i == 0 {
 			hashData = <-t.data
 		} else {
-			var err error
-			hashData, err = proto.Marshal(t.timestamps[i-1])
-			if err != nil {
-				return fmt.Errorf("could not marshal timestamp: %w", err)
-			}
+			hashData = t.timestamps[i-1]
+			//var err error
+			//hashData, err = proto.Marshal(t.timestamps[i-1])
+			//if err != nil {
+			//	return fmt.Errorf("could not marshal timestamp: %w", err)
+			//}
 		}
-		notAfter, err := verifyTimestamp(t.timestamps[i], hashData)
+		notAfter, err := t.verifyTimestamp(t.timestamps[i], hashData)
 		if err != nil {
 			return fmt.Errorf("could not verify timestamp: %w", err)
 		}

@@ -1,10 +1,11 @@
-package verifier
+package verifier_test
 
 import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier"
 	"testing"
 )
 
@@ -21,30 +22,30 @@ func TestVerifyLTV(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		verifier Verifier
+		verifier verifier.Verifier
 		wantErr  bool
 	}{
 		{
 			name: "root CA",
-			verifier: ltvVerifier{
-				certs:  []*x509.Certificate{rootCA},
-				ltvMap: nil,
+			verifier: verifier.LTVVerifier{
+				Certs:   []*x509.Certificate{rootCA},
+				LTVData: nil,
 			},
 			wantErr: false,
 		},
 		{
-			name: "intermediate CA without ltv info",
-			verifier: ltvVerifier{
-				certs:  []*x509.Certificate{rootCA, intermediateCA},
-				ltvMap: nil,
+			name: "intermediate CA without verifyLTV info",
+			verifier: verifier.LTVVerifier{
+				Certs:   []*x509.Certificate{rootCA, intermediateCA},
+				LTVData: nil,
 			},
 			wantErr: true,
 		},
 		{
-			name: "intermediate CA with nil ltv",
-			verifier: ltvVerifier{
-				certs: []*x509.Certificate{rootCA, intermediateCA},
-				ltvMap: map[string]*LTV{
+			name: "intermediate CA with nil verifyLTV",
+			verifier: verifier.LTVVerifier{
+				Certs: []*x509.Certificate{rootCA, intermediateCA},
+				LTVData: map[string]*verifier.LTV{
 					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): nil,
 				},
 			},
@@ -52,9 +53,9 @@ func TestVerifyLTV(t *testing.T) {
 		},
 		{
 			name: "intermediate CA with nil ocsp",
-			verifier: ltvVerifier{
-				certs: []*x509.Certificate{rootCA, intermediateCA},
-				ltvMap: map[string]*LTV{
+			verifier: verifier.LTVVerifier{
+				Certs: []*x509.Certificate{rootCA, intermediateCA},
+				LTVData: map[string]*verifier.LTV{
 					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
 						Ocsp: nil,
 					},
@@ -64,9 +65,9 @@ func TestVerifyLTV(t *testing.T) {
 		},
 		{
 			name: "intermediate CA with crl",
-			verifier: ltvVerifier{
-				certs: []*x509.Certificate{rootCA, intermediateCA},
-				ltvMap: map[string]*LTV{
+			verifier: verifier.LTVVerifier{
+				Certs: []*x509.Certificate{rootCA, intermediateCA},
+				LTVData: map[string]*verifier.LTV{
 					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
 						Crl: []byte("test"),
 					},
@@ -76,9 +77,9 @@ func TestVerifyLTV(t *testing.T) {
 		},
 		{
 			name: "intermediate CA with ocsp response",
-			verifier: ltvVerifier{
-				certs: []*x509.Certificate{rootCA, intermediateCA},
-				ltvMap: map[string]*LTV{
+			verifier: verifier.LTVVerifier{
+				Certs: []*x509.Certificate{rootCA, intermediateCA},
+				LTVData: map[string]*verifier.LTV{
 					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
 						Ocsp: intermediateCAOCSPFile,
 					},
@@ -88,9 +89,9 @@ func TestVerifyLTV(t *testing.T) {
 		},
 		{
 			name: "intermediate CA with ocsp response and different ca order",
-			verifier: ltvVerifier{
-				certs: []*x509.Certificate{intermediateCA, rootCA},
-				ltvMap: map[string]*LTV{
+			verifier: verifier.LTVVerifier{
+				Certs: []*x509.Certificate{intermediateCA, rootCA},
+				LTVData: map[string]*verifier.LTV{
 					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
 						Ocsp: intermediateCAOCSPFile,
 					},
@@ -100,9 +101,9 @@ func TestVerifyLTV(t *testing.T) {
 		},
 		{
 			name: "intermediate CA with wrong ocsp response",
-			verifier: ltvVerifier{
-				certs: []*x509.Certificate{rootCA, intermediateCA},
-				ltvMap: map[string]*LTV{
+			verifier: verifier.LTVVerifier{
+				Certs: []*x509.Certificate{rootCA, intermediateCA},
+				LTVData: map[string]*verifier.LTV{
 					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
 						Ocsp: tsaCAOCSPFile,
 					},
@@ -112,9 +113,9 @@ func TestVerifyLTV(t *testing.T) {
 		},
 		{
 			name: "revoked ca",
-			verifier: ltvVerifier{
-				certs: []*x509.Certificate{silverCA, revokedIntermediateCA},
-				ltvMap: map[string]*LTV{
+			verifier: verifier.LTVVerifier{
+				Certs: []*x509.Certificate{silverCA, revokedIntermediateCA},
+				LTVData: map[string]*verifier.LTV{
 					fmt.Sprintf("%x", sha256.Sum256(revokedIntermediateCA.Raw)): {
 						Ocsp: revokedIntermediateOCSPFile,
 					},

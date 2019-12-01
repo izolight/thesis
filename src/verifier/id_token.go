@@ -74,12 +74,12 @@ func (i *idTokenVerifier) Verify() error {
 	if !emailClaims.EmailVerified {
 		return errors.New("e-mail was not verified")
 	}
-	l := ltvVerifier{
-		certs:  i.key.Certificates,
-		ltvMap: i.ltv,
+	l := LTVVerifier{
+		Certs:   i.key.Certificates,
+		LTVData: i.ltv,
 	}
 	if err = l.Verify(); err != nil {
-		return fmt.Errorf("ltv information for id token not valid: %w", err)
+		return fmt.Errorf("verifyLTV information for id token not valid: %w", err)
 	}
 
 	return nil
