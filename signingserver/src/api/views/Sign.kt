@@ -82,8 +82,7 @@ fun Routing.sign() {
                                         )
                                     )
                                     .build().toByteArray(),
-                                it,
-                                caService.fetchBundleAsync(it)
+                                it
                             ).encoded.also { pkcs7Signature ->
                                 Signature.SignatureFile.newBuilder()
                                     .setSignatureDataInPkcs7(pkcs7Signature.toByteString())

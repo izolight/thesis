@@ -9,13 +9,10 @@ import io.ktor.client.request.post
 import io.ktor.client.request.url
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.io.StringWriter
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
-import org.bouncycastle.cert.jcajce.JcaCertStore
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder
 import org.bouncycastle.openssl.MiscPEMGenerator
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter
@@ -166,20 +163,6 @@ class CertificateAuthorityServiceImpl : ICertificateAuthorityService {
     }
 
 
-    override suspend fun fetchBundleAsync(cert: JcaX509CertificateHolder) = coroutineScope {
-        async {
-            JcaCertStore(
-                HttpClient {
-                    defaultConfig()
-                }.use {
-                    it.post<CfsslBundleResponse> {
-                        url(CA_BUNDLE_URL)
-                        contentType(ContentType.Application.Json)
-                        body = CfsslBundleRequest(certificate = certificateToPem(cert))
-                    }.result.allCerts()
-                })
-        }
-    }
 }
 
 fun String.splitWithDelimiters(delimiter: String): List<String> =
