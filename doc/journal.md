@@ -139,5 +139,9 @@
     - Signaturdateiformat wesentlich vereinfachen
     - Multisignaturen wesentlich vereinfachen
     - Soweit möglich http Anfragen parallelisieren (coroutines)
+    
+#### 02.12.19
+- Verbessern Dokumentation des Login-Prozesses
+- Fehler beheben in der Signing Server Implementation
 
 
