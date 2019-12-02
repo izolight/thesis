@@ -6,14 +6,12 @@ import org.bouncycastle.crypto.params.HKDFParameters
 import java.security.SecureRandom
 
 interface ISecretService {
-//    fun getSecret(): ByteArray
     fun hkdf(salt: ByteArray, length: Int = 64): ByteArray
 }
 
 
 class SecretServiceDefaultImpl : ISecretService {
-    private val secret = ByteArray(32).also { SecureRandom().nextBytes(it) }
-//    override fun getSecret(): ByteArray = this.secret.copyOf()
+    private val secret = ByteArray(64).also { SecureRandom().nextBytes(it) }
     override fun hkdf(salt: ByteArray, length: Int): ByteArray = ByteArray(length).also {
         HKDFBytesGenerator(SHA256Digest()).also { hkdf ->
             hkdf.init(
