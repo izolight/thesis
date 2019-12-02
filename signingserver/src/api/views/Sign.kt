@@ -34,18 +34,19 @@ fun Routing.sign() {
     }
 
     fun validateSalt(signingRequest: Valid<SigningRequest>): ByteArray {
-        val hmacKey = secretService.getSecret()
-        val concatenatedHashes = signingRequest.value.hashes.joinToString("").toByteArray()
-        val salt = hmacSha256(hmacKey, concatenatedHashes)
-        val saltAsHexString = byteArrayToHexString(salt)
-
-        if (saltAsHexString != signingRequest.value.salt) {
-            throw InvalidDataException(
-                "Salt mismatch"
-            )
-        } else {
-            return salt
-        }
+        TODO()
+//        val hmacKey = secretService.getSecret()
+//        val concatenatedHashes = signingRequest.value.hashes.joinToString("").toByteArray()
+//        val salt = hmacSha256(hmacKey, concatenatedHashes)
+//        val saltAsHexString = byteArrayToHexString(salt)
+//
+//        if (saltAsHexString != signingRequest.value.salt) {
+//            throw InvalidDataException(
+//                "Salt mismatch"
+//            )
+//        } else {
+//            return salt
+//        }
     }
 
     post(URLs.SIGN) {

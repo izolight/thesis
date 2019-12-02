@@ -10,7 +10,7 @@ data class SubmittedHashes(val hashes: List<String>) : Validatable<SubmittedHash
             checkForInsaneAmountsOfHashes()
             checkForValidSha256Values()
             checkForDuplicates()
-            Valid(SubmittedHashes(this.hashes.sorted()))
+            Valid(this)
         } catch (e: InvalidJSONException) {
             Invalid(e)
         }
