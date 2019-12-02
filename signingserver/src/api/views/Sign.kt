@@ -21,6 +21,7 @@ fun Routing.sign() {
     val signingKeyService by inject<ISigningKeysService>()
     val caService by inject<ICertificateAuthorityService>()
     val tsaService by inject<ITimestampingService>()
+    val signatureHoldingService by inject<ISignaturesHoldingService>()
 
     post(URLs.SIGN) {
         when (val input = call.receive<SigningRequest>().validate()) {
@@ -36,8 +37,7 @@ fun Routing.sign() {
 
                 val jwtValidationResult = oidcService.validateIdToken(input.value.id_token)
                 val maskedHashes = maskHashes(sortedHashes, salt)
-                val oidcNonce = calculateOidcNonce(maskedHashes.concatenate())
-                if(oidcNonce != jwtValidationResult.idToken.getClaim("nonce").asString()) {
+                if (calculateOidcNonce(maskedHashes.concatenate()) != jwtValidationResult.idToken.getClaim("nonce").asString()) {
                     throw InvalidDataException("Nonce mismatch")
                 }
 
@@ -71,9 +71,23 @@ fun Routing.sign() {
                                     .build()
                             }.also { signatureFile ->
                                 File("/tmp/signaturefile").writeBytes(signatureFile)
+                                signatureHoldingService.generateId().also { id ->
+                                    signatureHoldingService.set(id, signatureFile)
+                                    // TODO respond with signature url
+                                    // how to build url
+                                    //https://stackoverflow.com/questions/58876250/location-uri-with-201-response-in-ktor
+//                                    call.respond(
+//                                        SigningResponse(
+//                                            signature =
+//
+//                                        )
+
+//                                    )
+
+
+                                }
                             }
                         }
-                        println()
                     }
                     is Either.Error -> throw subjectInformation.e
                 }

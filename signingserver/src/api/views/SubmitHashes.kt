@@ -15,10 +15,8 @@ import io.ktor.response.respond
 import io.ktor.routing.Routing
 import io.ktor.routing.post
 import org.koin.ktor.ext.inject
-import org.slf4j.LoggerFactory
 
 fun Routing.postHashes() {
-    val logger = LoggerFactory.getLogger(this.javaClass)
     val nonceGenerator by inject<INonceGeneratorService>()
     val secretService by inject<ISecretService>()
     val oidcService by inject<IOIDCService>()
