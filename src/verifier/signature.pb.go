@@ -110,7 +110,7 @@ type SignatureData struct {
 	SignatureLevel     SignatureLevel `protobuf:"varint,5,opt,name=signature_level,json=signatureLevel,proto3,enum=SignatureLevel" json:"signature_level,omitempty"`
 	IdToken            []byte         `protobuf:"bytes,6,opt,name=id_token,json=idToken,proto3" json:"id_token,omitempty"`
 	JwkIdp             []byte         `protobuf:"bytes,7,opt,name=jwk_idp,json=jwkIdp,proto3" json:"jwk_idp,omitempty"`
-	// maps the fingerprint of the jwk cert to its ltv information
+	// maps the fingerprint of the jwk cert to its ltvData information
 	LtvIdp               map[string]*LTV `protobuf:"bytes,8,rep,name=ltv_idp,json=ltvIdp,proto3" json:"ltv_idp,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
 	XXX_unrecognized     []byte          `json:"-"`
@@ -246,11 +246,11 @@ func (m *LTV) GetCrl() []byte {
 type SignatureFile struct {
 	// pkcs7 enveloped and signed,
 	// containing CA chain,
-	// and if ltv is enabled CRL and OCSP as well
+	// and if ltvData is enabled CRL and OCSP as well
 	SignatureDataInPkcs7 []byte `protobuf:"bytes,1,opt,name=signature_data_in_pkcs7,json=signatureDataInPkcs7,proto3" json:"signature_data_in_pkcs7,omitempty"`
 	// pkcs7 enveloped rfc3161 timestamp (not signed, just enveloped)
 	// along with CA chain
-	// and if ltv is enabled CRL and OCSP as well
+	// and if ltvData is enabled CRL and OCSP as well
 	// each later timestamp authenticates a former one
 	// thus forming a chain for archival
 	Rfc3161InPkcs7       [][]byte `protobuf:"bytes,2,rep,name=rfc3161_in_pkcs7,json=rfc3161InPkcs7,proto3" json:"rfc3161_in_pkcs7,omitempty"`

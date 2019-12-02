@@ -11,15 +11,15 @@ type Verifier interface {
 	Verify() error
 }
 
-type config struct {
-	issuer   string
-	clientId string
+type Config struct {
+	Issuer   string
+	ClientId string
 }
 
 var (
-	cfg = config{
-		issuer:   "",
-		clientId: "",
+	cfg = Config{
+		Issuer:   "",
+		ClientId: "",
 	}
 )
 
@@ -32,7 +32,7 @@ func verifySignatureFile(in verifyRequest) error {
 	errors := make(chan error)
 	wg := sync.WaitGroup{}
 
-	// TODO add ltv verifying
+	// TODO add ltvData verifying
 	timestampVerifier := NewTimestampVerifier(signatureFile.GetRfc3161InPkcs7(), false, nil)
 	wg.Add(1)
 	go func() {
@@ -64,7 +64,7 @@ func verifySignatureFile(in verifyRequest) error {
 		}
 	}()
 
-	idTokenVerifier, err := NewIDTokenVerifier(&signatureData, &cfg, timestampVerifier.getNotAfter())
+	idTokenVerifier, err := NewIDTokenVerifier(&signatureData, &cfg, timestampVerifier.getNotAfter(), false)
 	if err != nil {
 		return fmt.Errorf("could not create id token verifier: %w", err)
 	}

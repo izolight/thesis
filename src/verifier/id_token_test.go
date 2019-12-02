@@ -34,6 +34,7 @@ func TestVerifyIDToken(t *testing.T) {
 		notAfter time.Time
 		key      []byte
 		ltv      map[string]*verifier.LTV
+		verifyLTV bool
 	}
 	tests := []struct {
 		name    string
@@ -50,6 +51,7 @@ func TestVerifyIDToken(t *testing.T) {
 				notAfter: time.Unix(1575021202, 0),
 				key:      jwkFile,
 				ltv:      ltv,
+				verifyLTV: true,
 			},
 			wantErr: false,
 		},
@@ -63,6 +65,7 @@ func TestVerifyIDToken(t *testing.T) {
 				notAfter: time.Now(),
 				key:      jwkFile,
 				ltv:      ltv,
+				verifyLTV: true,
 			},
 			wantErr: true,
 		},
@@ -76,6 +79,7 @@ func TestVerifyIDToken(t *testing.T) {
 				notAfter: time.Unix(1575021202, 0),
 				key:      jwkFile,
 				ltv:      ltv,
+				verifyLTV: true,
 			},
 			wantErr: true,
 		},
@@ -89,6 +93,7 @@ func TestVerifyIDToken(t *testing.T) {
 				notAfter: time.Unix(1575021202, 0),
 				key:      jwkFile,
 				ltv:      ltv,
+				verifyLTV: true,
 			},
 			wantErr: true,
 		},
@@ -96,9 +101,18 @@ func TestVerifyIDToken(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v, err := verifier.NewIDTokenVerifier(nil, nil, time.Now())
+			cfg := &verifier.Config{
+				Issuer:   tt.args.issuer,
+				ClientId: tt.args.clientId,
+			}
+			signatureData := &verifier.SignatureData{
+				IdToken:              tt.args.token,
+				JwkIdp:               tt.args.key,
+				LtvIdp:               tt.args.ltv,
+			}
+			v, err := verifier.NewIDTokenVerifier(signatureData, cfg, tt.args.notAfter, tt.args.verifyLTV)
 			if err != nil {
-				t.Errorf("NewIDTokenVerifier error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("NewIDTokenVerifier error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if err := v.Verify(); err != nil != tt.wantErr {
 				t.Errorf("Verify() error = %v, wantErr %v", err, tt.wantErr)

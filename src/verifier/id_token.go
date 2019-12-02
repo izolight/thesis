@@ -10,24 +10,29 @@ import (
 )
 
 type idTokenVerifier struct {
-	token    []byte
-	issuer   string
-	clientId string
-	nonce    chan string
-	notAfter func() time.Time
-	key      jose.JSONWebKey
-	ltv      map[string]*LTV
-	ctx      context.Context
+	token     []byte
+	issuer    string
+	clientId  string
+	nonce     chan string
+	notAfter  func() time.Time
+	key       jose.JSONWebKey
+	ltvData   map[string]*LTV
+	verifyLTV bool
+	ctx       context.Context
 }
 
-func NewIDTokenVerifier(signatureData *SignatureData, cfg *config, notAfter time.Time) (*idTokenVerifier, error) {
+func NewIDTokenVerifier(signatureData *SignatureData, cfg *Config, notAfter time.Time, verifyLTV bool) (*idTokenVerifier, error) {
+	if signatureData == nil || cfg == nil {
+		return nil, errors.New("signature data or cfg can't be nil")
+	}
 	i := &idTokenVerifier{
 		token:    signatureData.IdToken,
-		issuer:   cfg.issuer,
-		clientId: cfg.clientId,
+		issuer:   cfg.Issuer,
+		clientId: cfg.ClientId,
 		nonce:    make(chan string, 1),
 		notAfter: notAfter.Local,
-		ltv:      signatureData.LtvIdp,
+		ltvData:  signatureData.LtvIdp,
+		verifyLTV: verifyLTV,
 		ctx:      context.Background(),
 		key:      jose.JSONWebKey{},
 	}
@@ -74,12 +79,14 @@ func (i *idTokenVerifier) Verify() error {
 	if !emailClaims.EmailVerified {
 		return errors.New("e-mail was not verified")
 	}
-	l := LTVVerifier{
-		Certs:   i.key.Certificates,
-		LTVData: i.ltv,
-	}
-	if err = l.Verify(); err != nil {
-		return fmt.Errorf("verifyLTV information for id token not valid: %w", err)
+	if i.verifyLTV {
+		l := LTVVerifier{
+			Certs:   i.key.Certificates,
+			LTVData: i.ltvData,
+		}
+		if err = l.Verify(); err != nil {
+			return fmt.Errorf("verifyLTV information for id token not valid: %w", err)
+		}
 	}
 
 	return nil

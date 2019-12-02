@@ -12,7 +12,7 @@ func TestGenerateTimestamped(t *testing.T) {
 //	tsaCA := parsePEM(t, "SwissSign ZertES TSA UNIT CH-2018.pem")
 //	tsaCAOCSPFile := readFile(t, "SwissSign ZertES TSA UNIT CH-2018.pem.ocsp")
 
-	// TODO readd ltv
+	// TODO readd ltvData
 	ts := data
 
 /*	LtvTimestamp := map[string]*verifier.LTV{
