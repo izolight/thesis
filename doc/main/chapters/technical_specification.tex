@@ -48,7 +48,7 @@ Next, the nonce is calculated by masking each hash with the salt by using a \gls
 and hashing this list with a secure hash algorithm.
 
 
-\[ nonce = H(\{\ HMAC(salt, h) \ \ \forall \ h \in sorted(hashes)\ \})) \]
+\[ nonce = H(\{\ HMAC(salt, h) \ \ \forall \ h \in sorted(hashes)\ \}) \]
 
 
 \paragraph{Purpose of the salt}
