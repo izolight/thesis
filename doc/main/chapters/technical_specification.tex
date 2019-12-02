@@ -134,20 +134,13 @@ After this step, the \texttt{seed} is not used anymore and should be discarded.
 
 \subsubsection{Verification of hashes, seed and salt}\label{subsubsec:verificationhashesseedsalt}
 Upon receiving a well-formed request in the format described in~\ref{subsubsec:signrequest},
-and having verified the id\_token as described in~\cite[Section~7.2]{rfc7519},
 the signing server performs no fewer than the following checks:
 \begin{enumerate}
+	\item Verifying the id\_token as described in~\cite[Section~7.2]{rfc7519}
 	\item Checking the length of the seed and salt values
-	\item Checking that the salt matches the calculation described in~
+	\item Checking that the salt and nonce match the calculation described in~\ref{subsec:pre-login}
 \end{enumerate}
-
-
-
-
-
-
-
-
+These verifications are paramount to the safety of the system.
 
 \begin{figure}
 	\begin{center}
