@@ -2,6 +2,7 @@ package verifier
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 )
@@ -23,50 +24,42 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 		Valid: false,
 	}
 	if r.Body == nil {
-		w.WriteHeader(http.StatusBadRequest)
-		resp.Error = "No request body"
-		out, _ := json.Marshal(resp)
-		w.Write(out)
+		errorHandler(w, errors.New("no request body"), http.StatusBadRequest)
 		return
 	}
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		resp.Error = err.Error()
-		out, _ := json.Marshal(resp)
-		w.Write(out)
+		errorHandler(w, err, http.StatusInternalServerError)
 		return
 	}
 	if err = json.Unmarshal(body, &in); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		resp.Error = err.Error()
-		out, _ := json.Marshal(resp)
-		w.Write(out)
+		errorHandler(w, err, http.StatusBadRequest)
 		return
 	}
 	file, err := decodeSignatureFile(in)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		resp.Error = err.Error()
-		out, _ := json.Marshal(resp)
-		w.Write(out)
+		errorHandler(w, err, http.StatusBadRequest)
 		return
 	}
 	if err = verifySignatureFile(file, in.Hash); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		resp.Error = err.Error()
-		out, _ := json.Marshal(resp)
-		w.Write(out)
+		errorHandler(w, err, http.StatusInternalServerError)
 		return
 	}
 	resp.Valid = true
 	out, err := json.Marshal(resp)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		resp.Error = err.Error()
-		out, _ := json.Marshal(resp)
-		w.Write(out)
+		errorHandler(w, err, http.StatusInternalServerError)
 		return
 	}
+	w.Write(out)
+}
+
+func errorHandler(w http.ResponseWriter, err error, code int) {
+	w.WriteHeader(code)
+	resp := verifyResponse{
+		Valid: false,
+		Error: err.Error(),
+	}
+	out,_ := json.Marshal(resp)
 	w.Write(out)
 }
