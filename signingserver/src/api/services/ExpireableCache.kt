@@ -13,7 +13,7 @@ interface IExpireableCache<T, U> {
     fun exists(key: T): Boolean
 }
 
-class ExpireableCacheDefaultImpl<T, U> : IExpireableCache<T, U> {
+open class ExpireableCacheDefaultImpl<T, U> : IExpireableCache<T, U> {
     companion object {
         const val CYCLE_TIME_MILLISECONDS = 60 * 1000
         const val EXPIRATION_TIME_MILLISECONDS = 15 * 60 * 1000
