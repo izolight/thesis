@@ -50,6 +50,9 @@ and hashing this list with a secure hash algorithm.
 
 \[ nonce = H(\{\ HMAC(salt, h) \ \ \forall \ h \in sorted(hashes)\ \}) \]
 
+The nonce needs to be derived from the list of salted hashes because
+only the salted hashes will be included in the signature file.
+
 
 \paragraph{Purpose of the salt}
 The salt is used to mask the document hashes in the \gls{OIDC} nonce from the \gls{IDP}.
