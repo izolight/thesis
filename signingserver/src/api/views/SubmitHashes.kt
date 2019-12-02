@@ -39,14 +39,14 @@ fun Routing.postHashes() {
 
                 val maskedHashes = ByteArrayOutputStream(
                     // pre-allocate buffer
-                    sortedHashes.fold(0) { acc: Int, s: String -> acc + (s.length * 2) }
+                    sortedHashes.sumBy { it.length }
                 ).also {
-                        sortedHashes.map { h ->
-                            it.write(
-                                hmacSha256(salt, hexStringToByteArray(h))
-                            )
-                        }
-                    }.toByteArray()
+                    sortedHashes.map { h ->
+                        it.write(
+                            hmacSha256(salt, hexStringToByteArray(h))
+                        )
+                    }
+                }.toByteArray()
 
                 val oidcNonce = byteArrayToHexString(hmacSha256(salt, maskedHashes))
 
@@ -58,7 +58,7 @@ fun Routing.postHashes() {
 
                 call.respond(
                     HashesSubmissionResponse(
-                        mapOf(Config.OIDC_IDP_NAME to idpRedirect.toString()),
+                        providers = mapOf(Config.OIDC_IDP_NAME to idpRedirect.toString()),
                         salt = byteArrayToHexString(salt),
                         seed = byteArrayToHexString(seed)
                     )
