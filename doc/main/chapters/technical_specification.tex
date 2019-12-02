@@ -27,27 +27,70 @@ For a high-level overview of these phases, see figure~\ref{fig:highlevelprotocol
 In this phase the signer provides a list of hashes to signing service
 (this list may consist of just one entry in case the signer wishes to sign a single document).
 
-Then, the signing service generates a random \texttt{seed} value.
-This \texttt{seed}, together with a \texttt{secret} known to the server only,
-is be used to calculate the key that is used to generate a \gls{HMAC} of the sorted list of hashes.
-The resulting \gls{HMAC} is used as a \texttt{salt} for the hashes in the \gls{OIDC} nonce.
-The key consists of the \texttt{secret} appended to the \texttt{seed}.
+Then, the signing service generates a random \texttt{seed}.
+
+\[ seed = random() \]
+
+This \texttt{seed}, together with a static \texttt{secret} known to the server only,
+is used to calculate the key that is used to generate a \gls{HMAC}
+of the sorted list\footnote{The list has to be sorted,
+otherwise the same hash values in a different order would produce different \gls{HMAC}s.} of hashes.
+The key is calculated using a \gls{HKDF} as specified in RFC~5869~\cite{rfc5869}.
+
+\[ hmacKey = HKDF(seed, staticServerSecret) \]
+
+From the key obtained from the \gls{HKDF} and the document hashes,
+a salt value is derived by using a \gls{HMAC} as specified in RFC~2104~\cite{rfc2104}.
+
+\[ salt = HMAC(hmacKey, sorted(hashes)) \]
+
+Next, the nonce is calculated by masking each hash with the salt by using a \gls{HMAC},
+and hashing this list with a secure hash algorithm.
+
+
+\[ nonce = H(\{\ HMAC(salt, h) \ \ \forall \ h \in sorted(hashes)\ \})) \]
+
 
 \paragraph{Purpose of the salt}
-The salt is used to mask the document hashes in the \gls{OIDC} nonce both from the \gls{IDP},
-so that it doesn't know whether two people sign the same document(s),
-and the recipient of the signature, as they need a list of all hashes that have been signed together
-in order to be able to verify the signature.
+The salt is used to mask the document hashes in the \gls{OIDC} nonce from the \gls{IDP}.
+This way the \gls{IDP} cannot learn whether two people sign the same document(s).
+If we wouldn't salt the hashes, the \gls{OIDC} nonce would be the same for the same sorted list of hashes,
+and the \gls{IDP} could detect when two people sign the same document(s).
+
+While someone could argue that the IDP server learning about different people signing the same document
+isn't much of a security problem, we want to ensure that each involved party is given the absolute minimum
+of information necessary for them to fulfil their role\footnote{as specified in the non-functional requirements, "Protection of Information"}.
+
+In addition to shielding the hashes from the \gls{IDP},
+the salt masks the document hashes from recipients of multi-file signatures.
+When multiple files are signed at once, all of the hashes are included in the resulting signature file.
+However, since someone could receive only a subset of the files that were signed together,
+they could learn the document hashes of the other files.
+(For example, a company signing a thousand invoices at once but sending each customer only their invoice.)
+
+Again, this shouldn't be a significant problem but again, we don't want to allow this.
+So we include only the salted hashes in the signature file, and the salt itself.
+
+Since the verifier is in possession of the document(s), they can calculate their respective hashes,
+and then derive the salted hash(es) themselves since the salt is included in the signature file.
+Then they can check whether their document hash(es) are in the list of salted hashes.
+This way, they can verify their document(s) without learning anything about the other documents,
+not even their hash values.
 
 \paragraph{Purpose of the seed}
-The \texttt{seed} is used as a \gls{CSRF} protection mechanism without the need for the server to keep any state.
+The seed is necessary in order to obtain a different \gls{HMAC} key for every request
+despite using the same static secret on the server,
+and in order to strengthen the \gls{HKDF} as recommended in RFC~5869~\cite[Section 3.1]{rfc5869}.
+Furthermore, the seed is used as a \gls{CSRF} protection mechanism without the need for the server to keep any state.
 If no such \texttt{seed} were used for generating the salt,
-the signing server would be required to keep it in memory and attach it to the users session,
-in order to be able to verify whether the hashes or the salt weren't replaced while generating the \gls{OIDC} nonce
-(thus establishing the secure link between the document hashes and the authentication).
-If the signing server didn't verify this, it would enable attackers to skip the Pre-Login step (see~\ref{subsec:pre-login}).
+the signing server would be forced to keep the \gls{CSRF} token in memory and link it to the users session,
+in order to be able to check whether the hashes or the salt were replaced somewhere in the \gls{OIDC} authentication implicit flow
+(and as such, establishing the secure link between the document hashes and the authentication).
+If the signing server didn't verify this,
+it would allow for skipping the Pre-Login step (see~\ref{subsec:pre-login})
+and proceeding directly to the Post-Login step (\ref{subsec:post-login}) as seen from the signing service.
 
-The server than returns a list of \gls{IDP} choices as well as the \texttt{seed} and the \texttt{salt} to the client.
+The server then returns a list of \gls{IDP} choices as well as the \texttt{seed} and the \texttt{salt} to the client.
 
 For a sequence diagram of this phase, see figure~\ref{fig:seedgenerationstep}.
 
@@ -60,11 +103,11 @@ For a sequence diagram of this phase, see figure~\ref{fig:seedgenerationstep}.
 \end{figure}
 
 \subsection{Login}\label{subsec:login}
-The client generates the nonce used for the \gls{OIDC} request,
-consisting of the hash of the sorted list of \gls{HMAC}s of the hashes with the \texttt{salt} as key.
+TODO update graphic: no client-side generating anything because no one likes to write javascript
 For a graphical representation of this, see figure~\ref{fig:noncegenerationstep}.
-Next, the client chooses an \gls{IDP}, and adds the nonce they just generated to the request parameters and then follows the link.
-The client then authenticates with the \gls{IDP} and receives their ID token as seen in figure~\ref{fig:oidcauthenticationstep}.
+
+Having received a list of \gls{IDP}s from the server, the client chooses an \gls{IDP} and follows the link.
+The user then authenticates with the \gls{IDP} and receives their ID token as seen in figure~\ref{fig:oidcauthenticationstep}.
 
 \begin{figure}
 	\begin{center}
@@ -85,8 +128,25 @@ The client then authenticates with the \gls{IDP} and receives their ID token as 
 \subsection{Post-Login}\label{subsec:post-login}
 As shown in figure~\ref{fig:tokenverificationstep},
 the client sends the ID token, the list of hashes, the \texttt{seed} and the \texttt{salt} to the signing service.
-The signing service then verifies the \texttt{salt}, OIDC nonce and ID token.
+The signing service then verifies the \texttt{salt}, OIDC nonce and ID token as described in~\ref{subsubsec:verificationhashesseedsalt}.
 After this step, the \texttt{seed} is not used anymore and should be discarded.
+
+
+\subsubsection{Verification of hashes, seed and salt}\label{subsubsec:verificationhashesseedsalt}
+Upon receiving a well-formed request in the format described in~\ref{subsubsec:signrequest},
+and having verified the id\_token as described in~\cite[Section~7.2]{rfc7519},
+the signing server performs no fewer than the following checks:
+\begin{enumerate}
+	\item Checking the length of the seed and salt values
+	\item Checking that the salt matches the calculation described in~
+\end{enumerate}
+
+
+
+
+
+
+
 
 
 \begin{figure}
@@ -205,16 +265,27 @@ The examples are given for illustration purposes and are not normative.
 \subsection{Signing Service}
 The signing service offers the following endpoints:
 
-\begin{longtable}{|l|l|l|}
+\begin{longtable}{|l|l|l|l|}
 	\hline
-	\textbf{Endpoint} & \textbf{Method} & \textbf{Description} \\ \hline
-	/api/v1/login & POST & Send hashes to sign, receive list of OIDC providers \\ \hline
-	/api/v1/sign & POST & Send hashes to sign, receive signature URL \\ \hline
-	/api/v1/signatures/:id & GET & Retrieve signature file \\ \hline
+	\textbf{No.} & \textbf{Endpoint} & \textbf{Method} & \textbf{Description} \\ \hline
+	1 & /api/v1/login & POST & Send hashes to sign, receive list of OIDC providers \\ \hline
+	2 & /api/v1/sign & POST & Send hashes to sign, receive signature URL \\ \hline
+	3 & /api/v1/signatures/:id & GET & Retrieve signature file \\ \hline
 \caption{Endpoints offered by the Signing Service}
 \end{longtable}
 
+In the most common case, the client application will call these endpoints in the order listed:
+\begin{enumerate}
+	\item The user submits the hashes of the documents they wish to sign and receives a list of IDPs
+	\item After authentication with the IDP, the user submits the hashes again, this time the server will begin construction of the signature file
+	\item After the signature is created, the user downloads the file to their device
+\end{enumerate}
+
+But, the order in which these endpoints are used is not enforced by the API except for what is required with the \gls{OIDC} implicit flow,
+and the linkage of the id\_token with the signing.
+
 \subsubsection{Client errors}
+\label{apiclienterrors}
 If a malformed request is sent by the client, the signing server will respond with a 400 client error code,
 and a message indicating the cause of failure.
 This format of returning errors is the same for all endpoints of the signing server.
@@ -237,7 +308,7 @@ Sample Error Response:
 \end{lstlisting}
 
 \subsubsection{login}
-Input:
+This endpoint is used for submitting the hashes the user wishes to sign.
 
 \begin{longtable}{|l|l|l|l|}
 	\hline
@@ -246,7 +317,9 @@ Input:
     \caption{Input to the login endpoint}
 \end{longtable}
 
-Duplicates in the list of hashes are not allowed and will be rejected by the API with a 4xx client error code.
+Duplicates in the list of hashes are not allowed and are rejected by the API as described in~\ref{apiclienterrors}.
+The length of each hash is checked, and if they don't match the hashing algorithm used the request is rejected as well.
+The encoding of the hashes is checked, and if they don't appear to be a string of sane hex numbers the request is rejected.
 
 Output:
 
@@ -288,8 +361,9 @@ Content-Type: application/json
 }
 \end{lstlisting}
 
-\subsubsection{sign}
-Input:
+\subsubsection{sign}\label{subsubsec:signrequest}
+After having authenticated with the IDP, the client application calls the signing endpoint.
+This is where the actual signature file is being assembled by the signing server.
 
 \begin{longtable}{|l|l|l|l|}
 	\hline
@@ -300,6 +374,14 @@ Input:
 	hashes & MANDATORY & List<String> & Hashes of the documents to be signed \\ \hline
 	\caption{Input to the signing endpoint}
 \end{longtable}
+
+The signing server performs no fewer than the following checks, and if any of them fail to pass,
+the server rejects the request as described in as described in~\ref{apiclienterrors}.
+\begin{itemize}
+    \item The input \gls{JSON} is checked against the expected format
+	\item The \gls{JWT} id\_token is verified as described in~\cite[Section~7.2]{rfc7519}
+	\item The seed, salt, hashes, and the nonce in the id\_token are verified as described in~\ref{}
+\end{itemize}
 
 Output:
 
