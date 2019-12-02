@@ -1,12 +1,25 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis.api.utils
 
+import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
 
-const val SHA256 = "SHA-256"
+fun sha256(input: ByteArray): ByteArray = MessageDigest.getInstance("SHA-256").digest(input)
 
-fun sha256(values: List<String>): String {
-    val bytes = values.joinToString().toByteArray()
-    val digester = MessageDigest.getInstance(SHA256)
-    val digest = digester.digest(bytes)
-    return digest.fold("", { acc, it -> acc + "%02x".format(it) })
-}
+fun calculateSalt(hmacKey: ByteArray, sortedHashes: List<String>): ByteArray = hmacSha256(
+    hmacKey,
+    hexStringToByteArray(
+        sortedHashes.joinToString("")
+    )
+)
+
+fun calculateOidcNonce(maskedHashes: ByteArray): String = byteArrayToHexString(sha256(maskedHashes))
+
+fun maskHashes(sortedHashes: List<String>, salt: ByteArray): List<ByteArray> =
+    sortedHashes.map { h -> hmacSha256(salt, hexStringToByteArray(h)) }
+
+fun List<ByteArray>.concatenate(): ByteArray = ByteArrayOutputStream(
+    this.sumBy { it.size }
+).also {
+    this.map { array -> it.write(array) }
+}.toByteArray()
+

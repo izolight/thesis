@@ -7,7 +7,6 @@ import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.SigningRequest
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.Valid
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.*
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.*
-import com.auth0.jwt.interfaces.DecodedJWT
 import com.google.protobuf.ByteString
 import io.ktor.application.call
 import io.ktor.request.receive
@@ -23,54 +22,35 @@ fun Routing.sign() {
     val caService by inject<ICertificateAuthorityService>()
     val tsaService by inject<ITimestampingService>()
 
-    fun validateOidcNonce(idToken: DecodedJWT, salt: ByteArray, concatenatedHashes: ByteArray) {
-        val oidcNonce = hmacSha256(salt, concatenatedHashes)
-        val oidcNonceAsHexString = byteArrayToHexString(oidcNonce)
-        if (idToken.getClaim("nonce").asString() != oidcNonceAsHexString) {
-            throw InvalidDataException(
-                "Nonce mismatch"
-            )
-        }
-    }
-
-    fun validateSalt(signingRequest: Valid<SigningRequest>): ByteArray {
-        TODO()
-//        val hmacKey = secretService.getSecret()
-//        val concatenatedHashes = signingRequest.value.hashes.joinToString("").toByteArray()
-//        val salt = hmacSha256(hmacKey, concatenatedHashes)
-//        val saltAsHexString = byteArrayToHexString(salt)
-//
-//        if (saltAsHexString != signingRequest.value.salt) {
-//            throw InvalidDataException(
-//                "Salt mismatch"
-//            )
-//        } else {
-//            return salt
-//        }
-    }
-
     post(URLs.SIGN) {
         when (val input = call.receive<SigningRequest>().validate()) {
             is Valid -> {
-                val salt = validateSalt(input)
-                val jwtValidationResult = oidcService.validateIdToken(input.value.id_token)
-                validateOidcNonce(
-                    jwtValidationResult.idToken,
-                    salt,
-                    input.value.hashes.joinToString("").toByteArray(Charsets.UTF_8)
+                val sortedHashes = input.value.hashes.sorted()
+                val salt = calculateSalt(
+                    secretService.hkdf(hexStringToByteArray(input.value.seed)),
+                    sortedHashes
                 )
+                if (byteArrayToHexString(salt) != input.value.salt) {
+                    throw InvalidDataException("Salt mismatch")
+                }
+
+                val jwtValidationResult = oidcService.validateIdToken(input.value.id_token)
+                val maskedHashes = maskHashes(sortedHashes, salt)
+                val oidcNonce = calculateOidcNonce(maskedHashes.concatenate())
+                if(oidcNonce != jwtValidationResult.idToken.getClaim("nonce").asString()) {
+                    throw InvalidDataException("Nonce mismatch")
+                }
+
                 when (val subjectInformation = SigningKeySubjectInformation.fromIdToken(jwtValidationResult.idToken)) {
                     is Either.Success -> {
                         caService.signCSR(
                             signingKeyService.generateSigningKey(subjectInformation.value)
-                        ).also {
+                        ).also { certificateHolder ->
                             signingKeyService.signToPkcs7(
                                 subjectInformation.value,
                                 Signature.SignatureData.newBuilder()
                                     .addAllSaltedDocumentHash(
-                                        input.value.hashes.map { s ->
-                                            hmacSha256(salt, hexStringToByteArray(s)).toByteString()
-                                        }
+                                        maskedHashes.map { it.toByteString() }
                                     )
                                     .setHashAlgorithm(Signature.HashAlgorithm.SHA2_256)
                                     .setMacKey(salt.toByteString())
@@ -83,7 +63,7 @@ fun Routing.sign() {
                                         )
                                     )
                                     .build().toByteArray(),
-                                it
+                                certificateHolder
                             ).encoded.also { pkcs7Signature ->
                                 Signature.SignatureFile.newBuilder()
                                     .setSignatureDataInPkcs7(pkcs7Signature.toByteString())
