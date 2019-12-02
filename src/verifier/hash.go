@@ -3,13 +3,18 @@ package verifier
 import (
 	"bytes"
 	"crypto"
-	"errors"
 	"fmt"
 )
 
-var (
-	ErrHashMismatch = errors.New("Hashes didn't match")
+const (
+	ErrHashMismatch = hashError("Hashes didn't match")
 )
+
+type hashError string
+
+func (h hashError) Error() string {
+	return string(h)
+}
 
 func verifyHash(data []byte, hash []byte, algorithm crypto.Hash) error {
 	if len(hash) != algorithm.Size() {

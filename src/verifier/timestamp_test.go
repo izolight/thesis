@@ -2,6 +2,7 @@ package verifier_test
 
 import (
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier"
 	"io/ioutil"
@@ -13,7 +14,15 @@ func TestVerifyTimestamp(t *testing.T) {
 	intermediateCAOCSPFile := readFile(t, "SwissSign TSA Platinum CA 2017 - G22.pem.ocsp")
 	tsaCA := parsePEM(t, "SwissSign ZertES TSA UNIT CH-2018.pem")
 	tsaCAOCSPFile := readFile(t, "SwissSign ZertES TSA UNIT CH-2018.pem.ocsp")
-	//timestampedFile := readFile(t, "hello_world_response.tsr.data")
+
+	ltvData := map[string]*verifier.LTV{
+		fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
+			Ocsp: intermediateCAOCSPFile,
+		},
+		fmt.Sprintf("%x", sha256.Sum256(tsaCA.Raw)): {
+			Ocsp: tsaCAOCSPFile,
+		},
+	}
 
 	type args struct {
 		data []byte
@@ -21,11 +30,11 @@ func TestVerifyTimestamp(t *testing.T) {
 		verifyLTV bool
 		ltvData map[string]*verifier.LTV
 	}
-
 	tests := []struct {
 		name       string
 		args args
 		wantErr    bool
+		expectedErr error
 	}{
 		{
 			name: "valid single timestamp",
@@ -35,14 +44,7 @@ func TestVerifyTimestamp(t *testing.T) {
 					readFile(t, "hello_world_response.tsr"),
 				},
 				verifyLTV: true,
-				ltvData: map[string]*verifier.LTV{
-					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
-						Ocsp: intermediateCAOCSPFile,
-					},
-					fmt.Sprintf("%x", sha256.Sum256(tsaCA.Raw)): {
-						Ocsp: tsaCAOCSPFile,
-					},
-				},
+				ltvData: ltvData,
 			},
 
 			wantErr: false,
@@ -53,19 +55,23 @@ func TestVerifyTimestamp(t *testing.T) {
 				data: []byte("hello world\n"),
 				timestamps: [][]byte{
 					readFile(t, "hello_world_response.tsr"),
-					readFile(t, "hello_world_response.tsr.data_response.tsr"),
+					readFile(t, "hello_world_response.tsr_response.tsr"),
 				},
 				verifyLTV: true,
-				ltvData: map[string]*verifier.LTV{
-					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
-						Ocsp: intermediateCAOCSPFile,
-					},
-					fmt.Sprintf("%x", sha256.Sum256(tsaCA.Raw)): {
-						Ocsp: tsaCAOCSPFile,
-					},
-				},
+				ltvData: ltvData,
 			},
 			wantErr: false,
+		},
+		{
+			name: "missing inner timestamp",
+			args:args{
+				data:       []byte("hello world\n"),
+				timestamps: [][]byte{
+					readFile(t, "hello_world_response.tsr_response.tsr"),
+				},
+				verifyLTV:  false,
+			},
+			wantErr: true,
 		},
 		{
 			name: "hash mismatch",
@@ -77,6 +83,7 @@ func TestVerifyTimestamp(t *testing.T) {
 				verifyLTV:false,
 			},
 			wantErr: true,
+			expectedErr: verifier.ErrHashMismatch,
 		},
 		{
 			name:       "no timestamps",
@@ -85,6 +92,7 @@ func TestVerifyTimestamp(t *testing.T) {
 				verifyLTV:  false,
 			},
 			wantErr:    true,
+			expectedErr: verifier.ErrNoTimestamps,
 		},
 	}
 
@@ -92,8 +100,13 @@ func TestVerifyTimestamp(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			verifier := verifier.NewTimestampVerifier(tt.args.timestamps, tt.args.verifyLTV, tt.args.ltvData)
 			verifier.SendData(tt.args.data)
-			if err := verifier.Verify(); err != nil != tt.wantErr {
+			err := verifier.Verify()
+			if err != nil != tt.wantErr {
 				t.Errorf("Verify() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if tt.wantErr && !errors.Is(err, tt.expectedErr) && tt.expectedErr != nil {
+				t.Errorf("expected %s, got %s", tt.expectedErr, err)
 			}
 		})
 	}
