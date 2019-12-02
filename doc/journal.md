@@ -80,25 +80,37 @@
 
 #### 15.11.19
 - Arbeiten am Verifier-Programm
+    - beginn timestamp verifizierung
+    - beginn ocsp verifizierung
+    - beginn ltv verifierung
+    - scripts um ocsp/timestamps zu generieren
 - Arbeiten am Signing Server
 
 
 #### 18.11.19
 - Setup gitlab ci
+    - template kopiert um pdf zu bauen(funktionier noch nicht)
 - Beginn der Arbeit am Verifier-Programm
+    - beginn id token verifizerung (test JWTs via okta)
 
 
 #### 19.11.19
 - Arbeit am Verifier-Programm
+    - erste schritte um asynchron zu verifizieren
+    - hash überprüfung
 
 #### 20.11.19
 - Arbeit am Verifier-Programm
+    - optimierungen timestamp verifizierung
 
 #### 22.11.19
 - Arbeit am Signing Server: JWTs validieren
 - Problem mit JWKS erkannt (kein X.509)
 - Setup eigene CA mit OCSP Responder
+    - pki mit rest api via cfssl
+    - root & intermediate ca + ocsp responder
 - Setup eigener OIDC IDP
+    - eigener idp mit hydra
 
 #### 27.11.19
 - Arbeiten am Signing Server: 
@@ -106,7 +118,8 @@
     - Anpassen OIDC Code an eigenen IdP
     - OIDC Tests mit eigenem IdP
 - IdP fixen
-- Hydra IDP zurückbauen und ersetzen mit Keycloak
+    - hydra nur mässig brauchbar, da nur oidc provider ohne user verwaltung
+    - rückbau von hydra und ersetzen mit keycloak
 
 #### 28.11.19
 - Keycloak IDP an Signing Server anbinden
@@ -115,6 +128,10 @@
 
 #### 29.11.19
 - Arbeiten am Verifier
+    - add offline jwt verifizerung
+    - eigene id tokens für jwt verifizerung
+    - beginn signatur verifizierung
+    - alle verifier zusammenhängen
 - Arbeiten am Signing Server
     - CSR Fixen (subjectAltName ist immer eine Liste)
     - CA anbinden
@@ -129,6 +146,9 @@
     - CRL & OCSP holen
     - PKCS7 bauen
     - Über Bouncycastle fluchen
+- Arbeiten am Verifier
+    - Verbesserungen für concurrent verifying
+- CA fixes für korrektes CA bundle
     
 #### 01.12.19
 - Arbeiten am Signing Server
@@ -139,6 +159,8 @@
     - Signaturdateiformat wesentlich vereinfachen
     - Multisignaturen wesentlich vereinfachen
     - Soweit möglich http Anfragen parallelisieren (coroutines)
+- Arbeiten am Verifier
+    - anpassungen auf neues signaturformat
     
 #### 02.12.19
 - Verbessern Dokumentation des Login-Prozesses
