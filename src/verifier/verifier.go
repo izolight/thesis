@@ -23,17 +23,12 @@ var (
 	}
 )
 
-func verifySignatureFile(in verifyRequest) error {
-	signatureFile, err := decodeSignatureFile(in)
-	if err != nil {
-		return fmt.Errorf("could not decode signature file: %w", err)
-	}
-
+func verifySignatureFile(file *SignatureFile, hash string) error {
 	errors := make(chan error)
 	wg := sync.WaitGroup{}
 
 	// TODO add ltvData verifying
-	timestampVerifier := NewTimestampVerifier(signatureFile.GetRfc3161InPkcs7(), false, nil)
+	timestampVerifier := NewTimestampVerifier(file.GetRfc3161InPkcs7(), false, nil)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -42,9 +37,9 @@ func verifySignatureFile(in verifyRequest) error {
 		}
 	}()
 
-	timestampVerifier.SendData(signatureFile.SignatureDataInPkcs7)
+	timestampVerifier.SendData(file.SignatureDataInPkcs7)
 
-	signatureContainerVerifier := NewSignatureContainerVerifier(signatureFile.SignatureDataInPkcs7)
+	signatureContainerVerifier := NewSignatureContainerVerifier(file.SignatureDataInPkcs7)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -55,7 +50,7 @@ func verifySignatureFile(in verifyRequest) error {
 
 	signatureData := signatureContainerVerifier.getSignatureData()
 
-	signatureDataVerifier := NewSignatureDataVerifier(signatureData, []byte(in.Hash))
+	signatureDataVerifier := NewSignatureDataVerifier(signatureData, []byte(hash))
 	wg.Add(1)
 	go func() {
 		defer wg.Done()

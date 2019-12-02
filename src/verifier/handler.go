@@ -44,7 +44,15 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(out)
 		return
 	}
-	if err = verifySignatureFile(in); err != nil {
+	file, err := decodeSignatureFile(in)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		resp.Error = err.Error()
+		out, _ := json.Marshal(resp)
+		w.Write(out)
+		return
+	}
+	if err = verifySignatureFile(file, in.Hash); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		resp.Error = err.Error()
 		out, _ := json.Marshal(resp)
