@@ -6,21 +6,21 @@ In this section, we provide an explanation of the protocol and the values used i
 The protocol of our signing service consists of five main phases:
 
 \begin{itemize}
-	\item Pre-Login (see~\ref{subsec:pre-login})
-	\item Login (see~\ref{subsec:login})
-	\item Post-Login (see~\ref{subsec:post-login})
-	\item Signature Generation (see~\ref{subsec:signature-generation})
-	\item Signature Verification (see~\ref{subsec:signature-verification})
+    \item Pre-Login (see~\ref{subsec:pre-login})
+    \item Login (see~\ref{subsec:login})
+    \item Post-Login (see~\ref{subsec:post-login})
+    \item Signature Generation (see~\ref{subsec:signature-generation})
+    \item Signature Verification (see~\ref{subsec:signature-verification})
 \end{itemize}
 
 For a high-level overview of these phases, see figure~\ref{fig:highlevelprotocoloverview}.
 
 \begin{figure}
-	\begin{center}
-		\includegraphics[scale=0.5]{images/protocol_signature_generation_high_level.png}
-		\caption{High-level protocol overview}
-		\label{fig:highlevelprotocoloverview}
-	\end{center}
+    \begin{center}
+        \includegraphics[scale=0.5]{images/protocol_signature_generation_high_level.png}
+        \caption{High-level protocol overview}
+        \label{fig:highlevelprotocoloverview}
+    \end{center}
 \end{figure}
 
 \subsection{Pre-Login}\label{subsec:pre-login}
@@ -98,11 +98,11 @@ The server then returns a list of \gls{IDP} choices as well as the \texttt{seed}
 For a sequence diagram of this phase, see figure~\ref{fig:seedgenerationstep}.
 
 \begin{figure}
-	\begin{center}
-		\includegraphics[scale=0.5]{images/protocol_step1_seed_generation.png}
-		\caption{Seed generation step}
-		\label{fig:seedgenerationstep}
-	\end{center}
+    \begin{center}
+        \includegraphics[scale=0.5]{images/protocol_step1_seed_generation.png}
+        \caption{Seed generation step}
+        \label{fig:seedgenerationstep}
+    \end{center}
 \end{figure}
 
 \subsection{Login}\label{subsec:login}
@@ -113,19 +113,19 @@ Having received a list of \gls{IDP}s from the server, the client chooses an \gls
 The user then authenticates with the \gls{IDP} and receives their ID token as seen in figure~\ref{fig:oidcauthenticationstep}.
 
 \begin{figure}
-	\begin{center}
-		\includegraphics[scale=0.5]{images/protocol_step2_nonce_generation.png}
-		\caption{Nonce generation step}
-		\label{fig:noncegenerationstep}
-	\end{center}
+    \begin{center}
+        \includegraphics[scale=0.5]{images/protocol_step2_nonce_generation.png}
+        \caption{Nonce generation step}
+        \label{fig:noncegenerationstep}
+    \end{center}
 \end{figure}
 
 \begin{figure}
-	\begin{center}
-		\includegraphics[scale=0.5]{images/protocol_step3_oidc_authentication.png}
-		\caption{OIDC authentication step}
-		\label{fig:oidcauthenticationstep}
-	\end{center}
+    \begin{center}
+        \includegraphics[scale=0.5]{images/protocol_step3_oidc_authentication.png}
+        \caption{OIDC authentication step}
+        \label{fig:oidcauthenticationstep}
+    \end{center}
 \end{figure}
 
 \subsection{Post-Login}\label{subsec:post-login}
@@ -139,18 +139,18 @@ After this step, the \texttt{seed} is not used anymore and should be discarded.
 Upon receiving a well-formed request in the format described in~\ref{subsubsec:signrequest},
 the signing server performs no fewer than the following checks:
 \begin{enumerate}
-	\item Verifying the id\_token as described in~\cite[Section~7.2]{rfc7519}
-	\item Checking the length of the seed and salt values
-	\item Checking that the salt and nonce match the calculation described in~\ref{subsec:pre-login}
+    \item Verifying the id\_token as described in~\cite[Section~7.2]{rfc7519}
+    \item Checking the length of the seed and salt values
+    \item Checking that the salt and nonce match the calculation described in~\ref{subsec:pre-login}
 \end{enumerate}
 These verifications are paramount to the safety of the system.
 
 \begin{figure}
-	\begin{center}
-		\includegraphics[scale=0.5]{images/protocol_step4_id_token_verification.png}
-		\caption{Token verification step}
-		\label{fig:tokenverificationstep}
-	\end{center}
+    \begin{center}
+        \includegraphics[scale=0.5]{images/protocol_step4_id_token_verification.png}
+        \caption{Token verification step}
+        \label{fig:tokenverificationstep}
+    \end{center}
 \end{figure}
 
 \subsection{Signature Generation}\label{subsec:signature-generation}
@@ -171,11 +171,11 @@ TODO update this figure since we no longer loop
 See figure~\ref{fig:signaturegenerationstep} for a sequence diagram of this process.
 
 \begin{figure}
-	\begin{center}
-		\includegraphics[scale=0.45]{images/protocol_step5_signature_generation.png}
-		\caption{Signature generation step}
-		\label{fig:signaturegenerationstep}
-	\end{center}
+    \begin{center}
+        \includegraphics[scale=0.45]{images/protocol_step5_signature_generation.png}
+        \caption{Signature generation step}
+        \label{fig:signaturegenerationstep}
+    \end{center}
 \end{figure}
 
 \subsection{Signature Verification}\label{subsec:signature-verification}
@@ -186,11 +186,11 @@ or offline (figure~\ref{fig:offlinesignatureverificationprotocol}).
 For online verification, the user simply uploads the list of hashes and the signature file to the verification service.
 
 \begin{figure}
-	\begin{center}
-		\includegraphics[scale=0.5]{images/protocol_online_verification_high_level.png}
-		\caption{Online Signature Verification Protocol}
-		\label{fig:onlinesignatureverificationprotocol}
-	\end{center}
+    \begin{center}
+        \includegraphics[scale=0.5]{images/protocol_online_verification_high_level.png}
+        \caption{Online Signature Verification Protocol}
+        \label{fig:onlinesignatureverificationprotocol}
+    \end{center}
 \end{figure}
 
 For the offline verification, the user downloads the verification programme and starts it.
@@ -199,45 +199,45 @@ but to their own copy of the verification service running on their computer with
 instead of a remote verification service.
 
 \begin{figure}
-	\begin{center}
-		\includegraphics[scale=0.5]{images/protocol_offline_verification_high_level.png}
-		\caption{Offline Signature Verification Protocol}
-		\label{fig:offlinesignatureverificationprotocol}
-	\end{center}
+    \begin{center}
+        \includegraphics[scale=0.5]{images/protocol_offline_verification_high_level.png}
+        \caption{Offline Signature Verification Protocol}
+        \label{fig:offlinesignatureverificationprotocol}
+    \end{center}
 \end{figure}
 
 To verify a signature,
 the verifier first needs to verify the chain of signed timestamps and their respective \gls{CA} chains (figure~\ref{fig:timestampverificationstep}).
 
 \begin{figure}
-	\begin{center}
-		% TODO update this figure since we no longer loop
-		\includegraphics[scale=0.5]{images/protocol_verification_step1_timestamp.png}
-		\caption{Timestamp verification step}
-		\label{fig:timestampverificationstep}
-	\end{center}
+    \begin{center}
+        % TODO update this figure since we no longer loop
+        \includegraphics[scale=0.5]{images/protocol_verification_step1_timestamp.png}
+        \caption{Timestamp verification step}
+        \label{fig:timestampverificationstep}
+    \end{center}
 \end{figure}
 
 The signature itself can then be verified (figure~\ref{fig:signaturegenerationstep}), along with
 the certificate chain for the signing certificate.
 
 \begin{figure}
-	\begin{center}
-		\includegraphics[scale=0.5]{images/protocol_verification_step2_signature.png}
-		\caption{Signature verification step}
-		\label{fig:signatureverificationstep}
-	\end{center}
+    \begin{center}
+        \includegraphics[scale=0.5]{images/protocol_verification_step2_signature.png}
+        \caption{Signature verification step}
+        \label{fig:signatureverificationstep}
+    \end{center}
 \end{figure}
 
 Then, the ID token itself needs to be verified,
 as well as the certificate chain of the key used to sign the ID token (figure~\ref{fig:idtokenverification}).
 
 \begin{figure}
-	\begin{center}
-		\includegraphics[scale=0.5]{images/protocol_verification_step3_id_token.png}
-		\caption{ID token verification}
-		\label{fig:idtokenverification}
-	\end{center}
+    \begin{center}
+        \includegraphics[scale=0.5]{images/protocol_verification_step3_id_token.png}
+        \caption{ID token verification}
+        \label{fig:idtokenverification}
+    \end{center}
 \end{figure}
 
 In order to verify the link of the document hashes with the ID token,
@@ -248,11 +248,11 @@ At last, the hash of the document must match the included hash.
 Figure~\ref{fig:signaturedataverification} illustrates this process.
 
 \begin{figure}
-	\begin{center}
-		\includegraphics[scale=0.5]{images/protocol_verification_step4_signature_data.png}
-		\caption{Signature data verification}
-		\label{fig:signaturedataverification}
-	\end{center}
+    \begin{center}
+        \includegraphics[scale=0.5]{images/protocol_verification_step4_signature_data.png}
+        \caption{Signature data verification}
+        \label{fig:signaturedataverification}
+    \end{center}
 \end{figure}
 
 \section{REST API}\label{sec:rest-api}
@@ -264,19 +264,19 @@ The examples are given for illustration purposes and are not normative.
 The signing service offers the following endpoints:
 
 \begin{longtable}{|l|l|l|l|}
-	\hline
-	\textbf{No.} & \textbf{Endpoint} & \textbf{Method} & \textbf{Description} \\ \hline
-	1 & /api/v1/login & POST & Send hashes to sign, receive list of OIDC providers \\ \hline
-	2 & /api/v1/sign & POST & Send hashes to sign, receive signature URL \\ \hline
-	3 & /api/v1/signatures/:id & GET & Retrieve signature file \\ \hline
-\caption{Endpoints offered by the Signing Service}
+    \hline
+    \textbf{No.} & \textbf{Endpoint} & \textbf{Method} & \textbf{Description} \\ \hline
+    1 & /api/v1/login & POST & Send hashes to sign, receive list of OIDC providers \\ \hline
+    2 & /api/v1/sign & POST & Send hashes to sign, receive signature URL \\ \hline
+    3 & /api/v1/signatures/:id & GET & Retrieve signature file \\ \hline
+    \caption{Endpoints offered by the Signing Service}
 \end{longtable}
 
 In the most common case, the client application will call these endpoints in the order listed:
 \begin{enumerate}
-	\item The user submits the hashes of the documents they wish to sign and receives a list of IDPs
-	\item After authentication with the IDP, the user submits the hashes again, this time the server will begin construction of the signature file
-	\item After the signature is created, the user downloads the file to their device
+    \item The user submits the hashes of the documents they wish to sign and receives a list of IDPs
+    \item After authentication with the IDP, the user submits the hashes again, this time the server will begin construction of the signature file
+    \item After the signature is created, the user downloads the file to their device
 \end{enumerate}
 
 But, the order in which these endpoints are used is not enforced by the API except for what is required with the \gls{OIDC} implicit flow,
@@ -289,29 +289,29 @@ and a message indicating the cause of failure.
 This format of returning errors is the same for all endpoints of the signing server.
 
 \begin{longtable}{|l|l|l|l|}
-	\hline
-	\textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
+    \hline
+    \textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
     message & MANDATORY & String & Reason for rejection of request \\ \hline
-	\caption{Output in case of invalid input}
+    \caption{Output in case of invalid input}
 \end{longtable}
 
 Sample Error Response:
 \begin{lstlisting}[caption={Error response}, captionpos=b, language=JavaScript, label={lst:hashesresponse}]
-	HTTP/1.1 400 Bad Request
-	Content-Type: application/json
+    HTTP/1.1 400 Bad Request
+    Content-Type: application/json
 
-	{
-             "message": "Invalid hash length"
-	}
+    {
+    "message": "Invalid hash length"
+    }
 \end{lstlisting}
 
 \subsubsection{login}
 This endpoint is used for submitting the hashes the user wishes to sign.
 
 \begin{longtable}{|l|l|l|l|}
-	\hline
-	\textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
-	hashes & MANDATORY & List<String> & Hashes of the documents to be signed \\ \hline
+    \hline
+    \textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
+    hashes & MANDATORY & List<String> & Hashes of the documents to be signed \\ \hline
     \caption{Input to the login endpoint}
 \end{longtable}
 
@@ -322,41 +322,41 @@ The encoding of the hashes is checked, and if they don't appear to be a string o
 Output:
 
 \begin{longtable}{|l|l|l|l|}
-	\hline
-	\textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
-	providers & MANDATORY & Map<String, Url> & List of providers with the redirect url \\ \hline
-	seed & MANDATORY & String & Seed for generating the salt \\ \hline
-	salt & MANDATORY & String & Salt for generating the OIDC nonce \\ \hline
-	\caption{Output of the login endpoint}
+    \hline
+    \textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
+    providers & MANDATORY & Map<String, Url> & List of providers with the redirect url \\ \hline
+    seed & MANDATORY & String & Seed for generating the salt \\ \hline
+    salt & MANDATORY & String & Salt for generating the OIDC nonce \\ \hline
+    \caption{Output of the login endpoint}
 \end{longtable}
 
 Sample Request:
 \begin{lstlisting}[caption={login request}, captionpos=b, language=JavaScript, label={lst:hashesrequest}]
-POST /api/v1/hashes HTTP/1.1
-Host: service.example.org
-Content-Type: application/json
+    POST /api/v1/hashes HTTP/1.1
+    Host: service.example.org
+    Content-Type: application/json
 
-{
-  "hashes": [
-	  "e8a96e6203b9c0df058ba862abc63d9c520157faef6d5d54e54e526b0a85b2be",
-	  "0b9a7fd3e612061a7fe6d834e102a143170f33d0e8c5a8eb79416aa3eb53c0d6"
-  ]
-}
+    {
+    "hashes": [
+    "e8a96e6203b9c0df058ba862abc63d9c520157faef6d5d54e54e526b0a85b2be",
+    "0b9a7fd3e612061a7fe6d834e102a143170f33d0e8c5a8eb79416aa3eb53c0d6"
+    ]
+    }
 \end{lstlisting}
 
 Sample Response:
 \begin{lstlisting}[caption={login response}, captionpos=b, language=JavaScript, label={lst:hashesresponse}]
-HTTP/1.1 201 Created
-Content-Type: application/json
+    HTTP/1.1 201 Created
+    Content-Type: application/json
 
-{
-  "providers": {
-  	"SwissID": "https://...&nonce=6cd7ef99e5e79d68d681e5d097b7f805381c4d013152fa3f26d06bd728ae49fa",
-	"Google": "https://...&nonce=6cd7ef99e5e79d68d681e5d097b7f805381c4d013152fa3f26d06bd728ae49fa"
-  },
-  "seed": "84c97acc49335faa0266fb29b4228205e9400a85a10faa68ec30cf894e1730ed",
-  "salt": "cfb663431af5e2d68be48867f93e86e477cd7eeefc10b16a51c238d2c810561b"
-}
+    {
+    "providers": {
+    "SwissID": "https://...&nonce=6cd7ef99e5e79d68d681e5d097b7f805381c4d013152fa3f26d06bd728ae49fa",
+    "Google": "https://...&nonce=6cd7ef99e5e79d68d681e5d097b7f805381c4d013152fa3f26d06bd728ae49fa"
+    },
+    "seed": "84c97acc49335faa0266fb29b4228205e9400a85a10faa68ec30cf894e1730ed",
+    "salt": "cfb663431af5e2d68be48867f93e86e477cd7eeefc10b16a51c238d2c810561b"
+    }
 \end{lstlisting}
 
 \subsubsection{sign}\label{subsubsec:signrequest}
@@ -364,161 +364,157 @@ After having authenticated with the IDP, the client application calls the signin
 This is where the actual signature file is being assembled by the signing server.
 
 \begin{longtable}{|l|l|l|l|}
-	\hline
-	\textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
-	id\_token & MANDATORY & string & OIDC ID token \\ \hline
-	seed & MANDATORY & String & Seed for generating the salt \\ \hline
-	salt & MANDATORY & String & Salt for generating the OIDC nonce \\ \hline
-	hashes & MANDATORY & List<String> & Hashes of the documents to be signed \\ \hline
-	\caption{Input to the signing endpoint}
+    \hline
+    \textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
+    id\_token & MANDATORY & string & OIDC ID token \\ \hline
+    seed & MANDATORY & String & Seed for generating the salt \\ \hline
+    salt & MANDATORY & String & Salt for generating the OIDC nonce \\ \hline
+    hashes & MANDATORY & List<String> & Hashes of the documents to be signed \\ \hline
+    \caption{Input to the signing endpoint}
 \end{longtable}
 
-The signing server performs no fewer than the following checks, and if any of them fail to pass,
-the server rejects the request as described in as described in~\ref{apiclienterrors}.
-\begin{itemize}
-    \item The input \gls{JSON} is checked against the expected format
-	\item The \gls{JWT} id\_token is verified as described in~\cite[Section~7.2]{rfc7519}
-	\item The seed, salt, hashes, and the nonce in the id\_token are verified as described in~\ref{}
-\end{itemize}
+The signing server performs the checks described in \ref{subsubsec:verificationhashesseedsalt},
+and if any of them fail to pass,
+the server rejects the request as described in~\ref{apiclienterrors}.
 
 Output:
 
 \begin{longtable}{|l|l|l|l|}
-	\hline
-	\textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
-	signature url & MANDATORY & Url & Url to the generated signature file\\ \hline
-	\caption{Output of the signing endpoint}
+    \hline
+    \textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
+    signature url & MANDATORY & Url & Url to the generated signature file\\ \hline
+    \caption{Output of the signing endpoint}
 \end{longtable}
 
 Sample Request:
 \begin{lstlisting}[caption={sign request}, captionpos=b, language=JavaScript, label={lst:signrequest}]
-POST /api/v1/sign HTTP/1.1
-Host: service.example.org
-Content-Type: application/json
+    POST /api/v1/sign HTTP/1.1
+    Host: service.example.org
+    Content-Type: application/json
 
-{
-  "idtoken": {...},
-  "seed": "84c97acc49335faa0266fb29b4228205e9400a85a10faa68ec30cf894e1730ed",
-  "salt": "cfb663431af5e2d68be48867f93e86e477cd7eeefc10b16a51c238d2c810561b",
-  "hashes": [
-    "e8a96e6203b9c0df058ba862abc63d9c520157faef6d5d54e54e526b0a85b2be",
-    "0b9a7fd3e612061a7fe6d834e102a143170f33d0e8c5a8eb79416aa3eb53c0d6"
-  ]
-}
+    {
+    "idtoken": {...},
+    "seed": "84c97acc49335faa0266fb29b4228205e9400a85a10faa68ec30cf894e1730ed",
+    "salt": "cfb663431af5e2d68be48867f93e86e477cd7eeefc10b16a51c238d2c810561b",
+    "hashes": [
+        "e8a96e6203b9c0df058ba862abc63d9c520157faef6d5d54e54e526b0a85b2be",
+        "0b9a7fd3e612061a7fe6d834e102a143170f33d0e8c5a8eb79416aa3eb53c0d6"
+        ]
+    }
 \end{lstlisting}
 
 Sample Response:
 
 \begin{lstlisting}[caption={sign response}, captionpos=b, language=JavaScript, label={lst:signresponse}]
-HTTP/1.1 201 Created
-Content-Type: application/json
+    HTTP/1.1 201 Created
+    Content-Type: application/json
 
-{
-	"signature": "https://signingservice.local/api/v1/signatures/0b1131c417cafcc5a5f259d357903026f8e0c4f85e3ca0b68f3d55b8e32a55e8"
-}
+    {
+        "signature": "https://signingservice.local/api/v1/signatures/0b1131ca0b68f3d55b8e32a55e8"
+    }
 \end{lstlisting}
 
 \subsubsection{signatures/:id}
 Input:
 
 \begin{longtable}{|l|l|l|l|}
-	\hline
-	\textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
-	id & MANDATORY & String & id of the hash that was signed \\ \hline
+    \hline
+    \textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
+    id & MANDATORY & String & id of the hash that was signed \\ \hline
     \caption{Input to the signature retrieval endpoint}
 \end{longtable}
 
 Output:
 
 \begin{longtable}{|l|l|l|l|}
-	\hline
-	\textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
-	signature & MANDATORY & String & Base64 encoded signature for the requested hash \\ \hline
-	\caption{Output of the signature retrieval endpoint}
+    \hline
+    \textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
+    signature & MANDATORY & String & Base64 encoded signature for the requested hash \\ \hline
+    \caption{Output of the signature retrieval endpoint}
 \end{longtable}
 
 Sample Request:
 
 \begin{lstlisting}[caption={signature request}, captionpos=b, language=JavaScript, label={lst:signaturerequest}]
-GET /api/v1/signatures/e8a96e62034e526b0a85b2be HTTP/1.1
-Host: service.example.org
+    GET /api/v1/signatures/e8a96e62034e526b0a85b2be HTTP/1.1
+    Host: service.example.org
 \end{lstlisting}
 
 Sample Response:
 
 \begin{lstlisting}[caption={signature response}, captionpos=b, language=JavaScript, label={lst:signatureresponse}]
-HTTP/1.1 200 OK
-Content-Type: application/json
+    HTTP/1.1 200 OK
+    Content-Type: application/json
 
-{
-  "signature": "IyMjIFJFU1QgQVBJIFNwZWNpZmljYXRpb24gU2NyYXRjaHBhZAoKIyMjIyBQcmUtQXV0aCBlbmRw...b2ludCAKIyMjIyMgRW5kcG9pbnQKYGBgUE9TVCAvYXBpL3YxL3NpZ25gYGAK"
-}
+    {
+    "signature": "IyMjIFJFU1QgQVBJIFNwZWNpZmljYXRpb24gU2NyYXRjaHBhZAoKIyMjIyBQcmUtQXV0aCBlbmRw...b2ludCAKIyMjIyMgRW5kcG9pbnQKYGBgUE9TVCAvYXBpL3YxL3NpZ25gYGAK"
+    }
 \end{lstlisting}
 
 \subsection{Verification Service}
 Endpoints:
 
 \begin{longtable}{|l|l|l|}
-	\hline
-	\textbf{Endpoint} & \textbf{Method} & \textbf{Description} \\ \hline
-	/api/v1/verify & POST & Send hash signature file for verification \\ \hline
-	\caption{Overview of endpoints offered by the verification service}
+    \hline
+    \textbf{Endpoint} & \textbf{Method} & \textbf{Description} \\ \hline
+    /api/v1/verify & POST & Send hash signature file for verification \\ \hline
+    \caption{Overview of endpoints offered by the verification service}
 \end{longtable}
 
 \subsubsection{verify}
 Input:
 
 \begin{longtable}{|l|l|l|l|}
-	\hline
-	\textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
-	hash & MANDATORY & String & Hash of the signed document \\ \hline
-	signature & MANDATORY & String & base64 encoded signature file \\ \hline
+    \hline
+    \textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
+    hash & MANDATORY & String & Hash of the signed document \\ \hline
+    signature & MANDATORY & String & base64 encoded signature file \\ \hline
     \caption{Input to the signature verification endpoint}
 \end{longtable}
 
 Output:
 
 \begin{longtable}{|l|l|l|l|}
-	\hline
-	\textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
-	valid & MANDATORY & Boolean & validity of signature \\ \hline
-	error & OPTIONAL & String & error message why the signature is invalid \\ \hline
-	\caption{Output of the signature verification endpoint}
+    \hline
+    \textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
+    valid & MANDATORY & Boolean & validity of signature \\ \hline
+    error & OPTIONAL & String & error message why the signature is invalid \\ \hline
+    \caption{Output of the signature verification endpoint}
 \end{longtable}
 
 Sample Request:
 \begin{lstlisting}[caption={sign request}, captionpos=b, language=JavaScript, label={lst:verifyrequest}]
-POST /api/v1/sign HTTP/1.1
-Host: service.example.org
-Content-Type: application/json
+    POST /api/v1/sign HTTP/1.1
+    Host: service.example.org
+    Content-Type: application/json
 
-{
-  "hash": "e8a96e6203b9c0df058ba862abc63d9c520157faef6d5d54e54e526b0a85b2be",
-  "signature": "IyMjIFJFU1QgQVBJIFNwZWNpZmljYXRpb24gU2NyYXRjaHBhZAoKIyMjIyBQcmUtQXV0aCBlbmRw...b2ludCAKIyMjIyMgRW5kcG9pbnQKYGBgUE9TVCAvYXBpL3YxL3NpZ25gYGAK"
-}
+    {
+    "hash": "e8a96e6203b9c0df058ba862abc63d9c520157faef6d5d54e54e526b0a85b2be",
+    "signature": "IyMjIFJFU1QgQVBJIFNwZWNpZmljYXRpb24gU2NyYXRjaHBhZAoKIyMjIyBQcmUtQXV0aCBlbmRw...b2ludCAKIyMjIyMgRW5kcG9pbnQKYGBgUE9TVCAvYXBpL3YxL3NpZ25gYGAK"
+    }
 \end{lstlisting}
 
 Sample Response:
 
 \begin{lstlisting}[caption={sign response}, captionpos=b, language=JavaScript, label={lst:verifyresponse}]
-HTTP/1.1 200 OK
-Content-Type: application/json
+    HTTP/1.1 200 OK
+    Content-Type: application/json
 
-{
-  "valid": true
-}
+    {
+    "valid": true
+    }
 \end{lstlisting}
 
 Invalid signature:
 
 \begin{lstlisting}[caption={sign response}, captionpos=b, language=JavaScript, label={lst:verifyresponsefailed}]
-HTTP/1.1 200 OK
-Content-Type: application/json
+    HTTP/1.1 200 OK
+    Content-Type: application/json
 
-{
-  "valid": false,
-  "error": "signed hash and provided hash don't match"
-}
+    {
+    "valid": false,
+    "error": "signed hash and provided hash don't match"
+    }
 \end{lstlisting}
 
 \section{Signature File Format}
