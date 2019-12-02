@@ -26,3 +26,8 @@ data class SigningRequest(
         }
     }
 }
+
+@Serializable
+data class SigningResponse(
+    val signature: String
+)
