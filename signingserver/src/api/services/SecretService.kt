@@ -9,8 +9,5 @@ interface ISecretService {
 
 class SecretServiceDefaultImpl : ISecretService {
     private val secret = ByteArray(32).also { SecureRandom().nextBytes(it) }
-    override fun getSecret(): ByteArray {
-        return this.secret.copyOf()
-    }
-
+    override fun getSecret(): ByteArray = this.secret.copyOf()
 }
