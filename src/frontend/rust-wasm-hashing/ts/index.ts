@@ -2,9 +2,10 @@ import {Validate} from "./validate";
 import {processFileButtonHandler} from "./fileInChunkProcessor"
 
 function start(Sha256hasher: typeof import('../pkg')) {
-    const button = document.getElementById("process-file");
-    if (Validate.notNull(button)) {
-        button.onclick = function () {
+    const processFileButton = document.getElementById("process-file");
+    // TODO bind to submit button
+    if (Validate.notNull(processFileButton)) {
+        processFileButton.onclick = function () {
             processFileButtonHandler(new Sha256hasher.Sha256hasher());
         }
     }

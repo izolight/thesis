@@ -56,19 +56,6 @@ class FileInChunksProcessor {
         this.read(this.start, this.end);
     }
 
-    public getFileFromElement(elementId: string): File | undefined {
-        const filesElement = q(elementId) as HTMLInputElement;
-
-        if (Validate.notNull(filesElement.files)) {
-            if (filesElement.files.length < 0) {
-                this.errorCallback("Too few files specified. Please select one file.")
-            } else if (filesElement.files.length > 1) {
-                this.errorCallback("Too many files specified. Please select one file.")
-            } else {
-                return filesElement.files[0];
-            }
-        }
-    }
 
     private getFileReadOnLoadHandler(): FileReaderOnLoadCallback {
         return () => {
@@ -112,30 +99,65 @@ function progressCallback(percentCompleted: number) {
 }
 
 export function processFileButtonHandler(wasmHasher: Sha256hasher) {
-    const startElement = q("start");
-    const startTime = new Date();
-    startElement.innerText = "started at " + dateObjectToTimeString(startTime);
+    const fileList = getFilesFromElement("file");
+    if (Validate.notNullNotUndefined(fileList)) {
+        for (let i = 0; i < fileList.length; i++) {
+            const file = fileList[i];
+            const cardDeck = q('cardarea');
+            if (Validate.notNullNotUndefined(cardDeck)) {
+                const newCard = document.createElement('fubar');
+                newCard.innerHTML = renderCardTemplate(file);
+                if(Validate.notNull(cardDeck.parentNode)) {
+                    cardDeck.parentNode.insertBefore(newCard, cardDeck);
+                }
+            }
 
-    const processor = new FileInChunksProcessor((data) => {
-            wasmHasher.update(new Uint8Array((data)));
-        },
-        errorHandlingCallback,
-        progressCallback,
-        (startTime, endTime, sizeInBytes) => {
-            const hashStr = wasmHasher.hex_digest();
-            wasmHasher.free();
-            const duration = (endTime.getTime() - startTime.getTime()) / 1000;
-            const sizeInMegabytes = sizeInBytes / 1024 / 1024;
-            const megasProSecond = sizeInMegabytes / duration;
-            q("result").innerHTML = `<p>Ended at ${dateObjectToTimeString(endTime)} <br>Got: ${hashStr} <br>${duration} seconds elapsed<br>${megasProSecond.toFixed(2)} MB/s hashing speed</p>`;
+
+            // new FileInChunksProcessor((data) => {
+            //         wasmHasher.update(new Uint8Array((data)));
+            //     },
+            //     errorHandlingCallback,
+            //     progressCallback,
+            //     (startTime, endTime, sizeInBytes) => {
+            //         const hashStr = wasmHasher.hex_digest();
+            //         wasmHasher.free();
+            //         // TODO add hash here
+            //     }
+            // ).processChunks(fileList[i]);
         }
-    );
-    const file = processor.getFileFromElement("file");
-    if (Validate.notNullNotUndefined(file)) {
-        processor.processChunks(file);
     }
+}
+
+function renderCardTemplate(file: File): string {
+    return `<div class="card mb-4 box-shadow">
+            <div class="card-header">
+                <h4 class="my-0 font-weight-normal">FILENAME</h4>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mt-3 mb-4">
+                    <li>Size: FILESIZE KB</li>
+                    <li>Type: FILETYPE</li>
+                </ul>
+                <button type="button" class="btn btn-block btn-danger">Remove file</button>
+            </div>
+        </div>`
+        .replace("FILENAME", file.name)
+        .replace("FILESIZE", (file.size / 1024).toString())
+        .replace("FILETYPE", file.type != "" ? file.type : "Unknown");
 }
 
 function dateObjectToTimeString(date: Date): string {
     return date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + "." + date.getMilliseconds();
+}
+
+function getFilesFromElement(elementId: string): FileList | undefined {
+    const filesElement = q(elementId) as HTMLInputElement;
+
+    if (Validate.notNull(filesElement.files)) {
+        if (filesElement.files.length < 0) {
+            alert("Too few files selected. Please select at least one file.")
+        } else {
+            return filesElement.files;
+        }
+    }
 }

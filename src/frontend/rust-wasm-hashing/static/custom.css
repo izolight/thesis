@@ -20,3 +20,7 @@
 .red-text {
     color: red;
 }
+
+.hide {
+    display: none;
+}
