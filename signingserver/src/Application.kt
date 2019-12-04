@@ -11,11 +11,11 @@ import io.ktor.application.log
 import io.ktor.features.*
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.resources
+import io.ktor.http.content.files
 import io.ktor.http.content.static
 import io.ktor.request.path
 import io.ktor.response.respond
-import io.ktor.response.respondText
+import io.ktor.response.respondRedirect
 import io.ktor.routing.Routing
 import io.ktor.routing.get
 import io.ktor.routing.routing
@@ -106,10 +106,11 @@ fun Application.module() {
 
         // Static feature. Try to access `/static/ktor_logo.svg`
         static("/static") {
-            resources("static")
+            files("resources/static")
         }
 
         root()
+        callback()
         postHashes()
         sign()
 
@@ -118,6 +119,12 @@ fun Application.module() {
 
 fun Routing.root() {
     get("/") {
-        call.respondText("lol generics", contentType = ContentType.Text.Plain)
+        call.respondRedirect("/static/index.html")
+    }
+}
+
+fun Routing.callback() {
+    get("/callback") {
+        call.respondRedirect("/static/callback.html")
     }
 }

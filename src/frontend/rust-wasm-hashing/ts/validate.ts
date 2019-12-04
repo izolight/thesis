@@ -1,7 +1,9 @@
 export class Validate {
+    private static readonly nullmsg = "Error: object was null";
     public static notNull<T>(obj: T): obj is Exclude<T, null> {
         if (obj == null) {
-            throw new ReferenceError(`Error: Object ${obj} was null`);
+            console.trace(this.nullmsg);
+            throw new ReferenceError(this.nullmsg);
         }
         return true;
     }

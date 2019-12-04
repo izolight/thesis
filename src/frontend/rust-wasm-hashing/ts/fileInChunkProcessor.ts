@@ -1,34 +1,18 @@
 import {Validate} from "./validate";
 import {Sha256hasher} from "../pkg";
 import {q} from "./tsQuery";
-
-interface FileChunkDataCallback {
-    (data: Uint8Array): void
-}
-
-interface ErrorCallback {
-    (message: string): void
-}
-
-interface FileReaderOnLoadCallback {
-    (event: ProgressEvent): void
-}
-
-interface ProgressCallback {
-    (percentCompleted: number): void
-}
-
-interface ProcessingCompletedCallback {
-    (): void
-}
-
-interface Callable {
-    (): void
-}
-
-interface Continuable {
-    (next: Callable): void
-}
+import {
+    Callable,
+    ErrorCallback,
+    FileChunkDataCallback,
+    FileReaderOnLoadCallback,
+    PoorPeoplePersistence,
+    PostHashesResponse,
+    ProcessingCompletedCallback,
+    ProgressCallback
+} from "./interfaces";
+import {Http} from "./http";
+import {Queue} from "./callbackHellChainer";
 
 
 class FileInChunksProcessor {
@@ -90,40 +74,6 @@ class FileInChunksProcessor {
     }
 }
 
-class Queue {
-    private readonly queue = Array<Callable>();
-    private continuation: Callable;
-    private started: Boolean = false;
-
-    constructor(continuation: Callable) {
-        this.continuation = continuation;
-    }
-
-    public add(c: Continuable) {
-        if (this.started) {
-            console.log("nope");
-            return;
-        }
-
-        this.queue.push(() => {
-            const next = this.queue.pop();
-            if (next != undefined) {
-                c(next);
-            } else {
-                c(this.continuation);
-            }
-        })
-    }
-
-    public start() {
-        this.started = true;
-        this.queue.reverse();
-        const c = this.queue.pop();
-        if (c != undefined) {
-            c();
-        }
-    }
-}
 
 class TS {
     public static showSubmissionButton(hashList: Array<string>) {
@@ -141,11 +91,51 @@ class TS {
     }
 
     public static submitHashes(hashList: Array<string>) {
-        // TODO
+        Http.request<PostHashesResponse>('POST',
+            '/api/v1/hashes/',
+            JSON.stringify({
+                hashes: hashList
+            }),
+            response => {
+                console.log(response);
+                const p: PoorPeoplePersistence = {
+                    postHashesResponse: response,
+                    hashes: hashList
+                };
+                localStorage.setItem('lolnogenerics', JSON.stringify(p));
+                this.showIdpLoginButtons(response);
+            },
+            err => console.log(`error ${err}`),
+            'application/json');
         console.log(`POST ${hashList}`);
     }
 
-    public static progressCallbackBuilder(file: File, index: number): ProgressCallback {
+    public static showIdpLoginButtons(response: PostHashesResponse) {
+        const inputFilesArea = q("input-files-area");
+        console.log('fu1');
+        if (Validate.notNull(inputFilesArea)) {
+            if (Validate.notNull(inputFilesArea.parentNode)) {
+                console.log('fu2');
+                const template = `<p class="lead">Please select whom to authenticate with</p>
+                         <a href="IDPURL" class="button btn btn-block btn-outline-primary">IDPNAME</a>`;
+                while (inputFilesArea.children.length > 0) {
+                    inputFilesArea.removeChild(inputFilesArea.children[0]);
+                }
+                for (const key in response.providers) {
+                    console.log('fu3');
+                    const newIdpButton = document.createElement('div');
+                    newIdpButton.innerHTML = template
+                        .replace('IDPURL', response.providers[key])
+                        .replace('IDPNAME', key);
+                    inputFilesArea.parentNode.insertBefore(newIdpButton, inputFilesArea);
+                }
+            }
+        }
+    }
+
+
+    public static progressCallbackBuilder(file: File, index: number):
+        ProgressCallback {
         const cardElement = q(`file.${index}`);
         if (Validate.notNull(cardElement)) {
             return (percentCompleted => {
@@ -158,12 +148,17 @@ class TS {
         }
     }
 
-    public static processingCompletedBuilder(next: Callable, hashList: Array<string>, file: File, index: number, wasmHasher: Sha256hasher): Callable {
+    public static processingCompletedBuilder(next: Callable,
+                                             hashList: Array<string>,
+                                             file: File,
+                                             index: number,
+                                             wasmHasher: Sha256hasher
+    ): Callable {
         const cardElement = q(`file.${index}`);
         if (Validate.notNull(cardElement)) {
             return () => {
                 const hash = wasmHasher.hex_digest();
-                hashList.push(hash)
+                hashList.push(hash);
                 cardElement.innerHTML = this.renderCardTemplate(file, hash);
                 next();
             }
@@ -242,13 +237,13 @@ export function processFileButtonHandler(wasmHasher: Sha256hasher) {
             }
 
             hashersQueue.add(
-                (next) => {
+                (next: Callable) => {
                     new FileInChunksProcessor((data) => {
                             wasmHasher.update(new Uint8Array((data)));
                         },
                         TS.errorHandlingCallback,
                         TS.progressCallbackBuilder(file, i),
-                        TS.processingCompletedBuilder(next, hashList, file, i, wasmHasher)
+                        TS.processingCompletedBuilder(next as Callable, hashList, file, i, wasmHasher)
                     ).processChunks(fileList[i]);
                 }
             );
