@@ -3,7 +3,7 @@ import {PoorPeoplePersistence} from "./interfaces";
 import {Http} from "./http";
 
 interface SigningRequest {
-    idtoken: string,
+    id_token: string,
     seed: string,
     salt: string,
     hashes: Array<string>
@@ -19,7 +19,7 @@ export class CB {
         if(Validate.notNull(signingResponseString)) {
             const p: PoorPeoplePersistence = JSON.parse(signingResponseString);
             const req: SigningRequest = {
-                idtoken : this.getIdTokenFromGetParameters(),
+                id_token : this.getIdTokenFromGetParameters(),
                 seed: p.postHashesResponse.seed,
                 salt: p.postHashesResponse.salt,
                 hashes: p.hashes

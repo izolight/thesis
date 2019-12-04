@@ -8,8 +8,10 @@ export class Http {
         contentType?: string
     ) {
         const request = new XMLHttpRequest();
-        const myHost = window.location.href.replace(window.location.pathname, '');
-        request.open(method, `${myHost}/${url}`, true);
+        const myHost = window.location.href.replace(window.location.pathname, '').replace(window.location.hash, '');
+        const targetUrl = `${myHost}/${url}`;
+        console.log(method + " " + targetUrl);
+        request.open(method, targetUrl, true);
         request.onload = function () {
             if (this.status >= 200 && this.status < 400) {
                 callback && callback(JSON.parse(this.response) as T);

@@ -54,7 +54,7 @@ class Config {
             Url("https://keycloak.thesis.izolight.xyz/auth/realms/master/.well-known/openid-configuration")
         const val OIDC_CLIENT_ID = "thesis"
         const val OIDC_CLIENT_SECRET = "0d6079d7-18a5-4f82-a94e-8960aed5dd89"
-        val OIDC_REDIRECT_URI = Url("http://127.0.0.1:8080/callback")
+        val OIDC_REDIRECT_URI = Url("http://localhost:8080/callback")
         val OIDC_SCOPES = listOf("openid", "profile")
         const val OIDC_RESPONSE_TYPE = "id_token"
     }
