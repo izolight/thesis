@@ -1,9 +1,7 @@
 package verifier
 
 import (
-	"encoding/base64"
 	"fmt"
-	"github.com/golang/protobuf/proto"
 	"sync"
 )
 
@@ -23,7 +21,7 @@ var (
 	}
 )
 
-func verifySignatureFile(file *SignatureFile, hash string) error {
+func VerifySignatureFile(file *SignatureFile, hash string) error {
 	errors := make(chan error)
 	wg := sync.WaitGroup{}
 
@@ -50,27 +48,30 @@ func verifySignatureFile(file *SignatureFile, hash string) error {
 
 	signatureData := signatureContainerVerifier.getSignatureData()
 
-	signatureDataVerifier := NewSignatureDataVerifier(signatureData, []byte(hash))
+	signatureDataVerifier, err := NewSignatureDataVerifier(&signatureData, hash)
+	if err != nil {
+		return fmt.Errorf("could not create signature data verifier: %w", err)
+	}
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if err := signatureDataVerifier.Verify(); err != nil {
+		if err := signatureDataVerifier.Verify(false); err != nil {
 			errors <- fmt.Errorf("could not verify signatureData: %w", err)
 		}
 	}()
 
-	idTokenVerifier, err := NewIDTokenVerifier(&signatureData, &cfg, timestampVerifier.getNotAfter(), false)
+	idTokenVerifier, err := NewIDTokenVerifier(&signatureData, &cfg, timestampVerifier.getNotAfter())
 	if err != nil {
 		return fmt.Errorf("could not create id token verifier: %w", err)
 	}
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if err := idTokenVerifier.Verify(); err != nil {
+		if err := idTokenVerifier.Verify(false); err != nil {
 			errors <- fmt.Errorf("could not verify id token: %w", err)
 		}
 	}()
-	signatureDataVerifier.sendNonce(idTokenVerifier.getNonce())
+	signatureDataVerifier.SendNonce(idTokenVerifier.getNonce())
 
 	wg.Wait()
 
@@ -80,16 +81,4 @@ func verifySignatureFile(file *SignatureFile, hash string) error {
 	}
 
 	return nil
-}
-
-func decodeSignatureFile(in verifyRequest) (*SignatureFile, error) {
-	signatureBytes, err := base64.StdEncoding.DecodeString(in.Signature)
-	if err != nil {
-		return nil, fmt.Errorf("could not decode signature: %w", err)
-	}
-	signatureFile := &SignatureFile{}
-	if err := proto.Unmarshal(signatureBytes, signatureFile); err != nil {
-		return nil, fmt.Errorf("could not unmarshal signature to protobuf: %w", err)
-	}
-	return signatureFile, nil
 }

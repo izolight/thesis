@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/gorilla/mux"
 	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier"
 	"log"
 	"net/http"
-	"github.com/gorilla/mux"
 )
 
 func main() {

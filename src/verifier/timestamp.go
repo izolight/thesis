@@ -21,7 +21,7 @@ type TimestampVerifier struct {
 	notAfter   chan time.Time
 	timestamps [][]byte
 	verifyLTV  bool
-	ltvData map[string]*LTV
+	ltvData    map[string]*LTV
 }
 
 func NewTimestampVerifier(timestamps [][]byte, verifyLTV bool, ltvData map[string]*LTV) *TimestampVerifier {
@@ -30,7 +30,7 @@ func NewTimestampVerifier(timestamps [][]byte, verifyLTV bool, ltvData map[strin
 		notAfter:   make(chan time.Time, 1),
 		timestamps: timestamps,
 		verifyLTV:  verifyLTV,
-		ltvData:ltvData,
+		ltvData:    ltvData,
 	}
 }
 

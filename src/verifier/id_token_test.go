@@ -27,13 +27,13 @@ func TestVerifyIDToken(t *testing.T) {
 	}
 
 	type args struct {
-		token    []byte
-		issuer   string
-		nonce    string
-		clientId string
-		notAfter time.Time
-		key      []byte
-		ltv      map[string]*verifier.LTV
+		token     []byte
+		issuer    string
+		nonce     string
+		clientId  string
+		notAfter  time.Time
+		key       []byte
+		ltv       map[string]*verifier.LTV
 		verifyLTV bool
 	}
 	tests := []struct {
@@ -44,13 +44,13 @@ func TestVerifyIDToken(t *testing.T) {
 		{
 			name: "valid id token",
 			args: args{
-				token:    idTokenFile,
-				issuer:   "https://keycloak.thesis.izolight.xyz/auth/realms/master",
-				nonce:    "5093b0fb5a68144fd3fddda5156f232e975c6eb857cba5b5fd9d64b7b31bbe45",
-				clientId: "thesis",
-				notAfter: time.Unix(1575021202, 0),
-				key:      jwkFile,
-				ltv:      ltv,
+				token:     idTokenFile,
+				issuer:    "https://keycloak.thesis.izolight.xyz/auth/realms/master",
+				nonce:     "5093b0fb5a68144fd3fddda5156f232e975c6eb857cba5b5fd9d64b7b31bbe45",
+				clientId:  "thesis",
+				notAfter:  time.Unix(1575021202, 0),
+				key:       jwkFile,
+				ltv:       ltv,
 				verifyLTV: true,
 			},
 			wantErr: false,
@@ -58,13 +58,13 @@ func TestVerifyIDToken(t *testing.T) {
 		{
 			name: "valid , but expired id token (okta)",
 			args: args{
-				token:    idTokenFile,
-				issuer:   "https://keycloak.thesis.izolight.xyz/auth/realms/master",
-				nonce:    "5093b0fb5a68144fd3fddda5156f232e975c6eb857cba5b5fd9d64b7b31bbe45",
-				clientId: "thesis",
-				notAfter: time.Now(),
-				key:      jwkFile,
-				ltv:      ltv,
+				token:     idTokenFile,
+				issuer:    "https://keycloak.thesis.izolight.xyz/auth/realms/master",
+				nonce:     "5093b0fb5a68144fd3fddda5156f232e975c6eb857cba5b5fd9d64b7b31bbe45",
+				clientId:  "thesis",
+				notAfter:  time.Now(),
+				key:       jwkFile,
+				ltv:       ltv,
 				verifyLTV: true,
 			},
 			wantErr: true,
@@ -72,13 +72,13 @@ func TestVerifyIDToken(t *testing.T) {
 		{
 			name: "wrong nonce (okta)",
 			args: args{
-				token:    idTokenFile,
-				issuer:   "https://keycloak.thesis.izolight.xyz/auth/realms/master",
-				nonce:    "5093b0fb5a68144fd3fddda5156f232e975c6eb857cba5b5fd9d64b7b31bbea5",
-				clientId: "thesis",
-				notAfter: time.Unix(1575021202, 0),
-				key:      jwkFile,
-				ltv:      ltv,
+				token:     idTokenFile,
+				issuer:    "https://keycloak.thesis.izolight.xyz/auth/realms/master",
+				nonce:     "5093b0fb5a68144fd3fddda5156f232e975c6eb857cba5b5fd9d64b7b31bbea5",
+				clientId:  "thesis",
+				notAfter:  time.Unix(1575021202, 0),
+				key:       jwkFile,
+				ltv:       ltv,
 				verifyLTV: true,
 			},
 			wantErr: true,
@@ -86,13 +86,13 @@ func TestVerifyIDToken(t *testing.T) {
 		{
 			name: "manipulated id token (okta)",
 			args: args{
-				token:    idTokenManipulatedFile,
-				issuer:   "https://keycloak.thesis.izolight.xyz/auth/realms/master",
-				nonce:    "5093b0fb5a68144fd3fddda5156f232e975c6eb857cba5b5fd9d64b7b31bbea5",
-				clientId: "thesis",
-				notAfter: time.Unix(1575021202, 0),
-				key:      jwkFile,
-				ltv:      ltv,
+				token:     idTokenManipulatedFile,
+				issuer:    "https://keycloak.thesis.izolight.xyz/auth/realms/master",
+				nonce:     "5093b0fb5a68144fd3fddda5156f232e975c6eb857cba5b5fd9d64b7b31bbea5",
+				clientId:  "thesis",
+				notAfter:  time.Unix(1575021202, 0),
+				key:       jwkFile,
+				ltv:       ltv,
 				verifyLTV: true,
 			},
 			wantErr: true,
@@ -106,15 +106,15 @@ func TestVerifyIDToken(t *testing.T) {
 				ClientId: tt.args.clientId,
 			}
 			signatureData := &verifier.SignatureData{
-				IdToken:              tt.args.token,
-				JwkIdp:               tt.args.key,
-				LtvIdp:               tt.args.ltv,
+				IdToken: tt.args.token,
+				JwkIdp:  tt.args.key,
+				LtvIdp:  tt.args.ltv,
 			}
-			v, err := verifier.NewIDTokenVerifier(signatureData, cfg, tt.args.notAfter, tt.args.verifyLTV)
+			v, err := verifier.NewIDTokenVerifier(signatureData, cfg, tt.args.notAfter)
 			if err != nil {
 				t.Fatalf("NewIDTokenVerifier error = %v, wantErr %v", err, tt.wantErr)
 			}
-			if err := v.Verify(); err != nil != tt.wantErr {
+			if err := v.Verify(tt.args.verifyLTV); err != nil != tt.wantErr {
 				t.Errorf("Verify() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

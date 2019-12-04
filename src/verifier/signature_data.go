@@ -10,30 +10,36 @@ import (
 )
 
 type signatureDataVerifier struct {
-	data         SignatureData
+	data         *SignatureData
 	documentHash []byte
 	nonce        chan string
 }
 
-func NewSignatureDataVerifier(data SignatureData, documentHash []byte) *signatureDataVerifier {
-	return &signatureDataVerifier{
-		data:         data,
-		documentHash: documentHash,
-		nonce:        make(chan string, 1),
+func NewSignatureDataVerifier(data *SignatureData, documentHash string) (*signatureDataVerifier, error) {
+	v := &signatureDataVerifier{
+		data:  data,
+		nonce: make(chan string, 1),
 	}
+	hash, err := hex.DecodeString(documentHash)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode document hash: %w", err)
+	}
+	v.documentHash = hash
+	return v, nil
 }
 
-func (s *signatureDataVerifier) sendNonce(nonce string) {
+func (s *signatureDataVerifier) SendNonce(nonce string) {
 	s.nonce <- nonce
 }
 
-func (s *signatureDataVerifier) Verify() error {
+func (s *signatureDataVerifier) Verify(verifyLTV bool) error {
 	macAlgo, err := s.data.MacAlgorithm.Algorithm()
 	if err != nil {
 		return err
 	}
 	macer := hmac.New(macAlgo.New, s.data.MacKey)
-	mac := macer.Sum(s.documentHash)
+	macer.Write(s.documentHash)
+	mac := macer.Sum(nil)
 	foundMAC := false
 	for _, m := range s.data.SaltedDocumentHash {
 		if bytes.Equal(mac, m) {
@@ -64,20 +70,6 @@ func (s *signatureDataVerifier) Verify() error {
 	}
 
 	return nil
-}
-
-type macs [][]byte
-
-func (m macs) Len() int {
-	return len(m)
-}
-
-func (m macs) Less(i, j int) bool {
-	return bytes.Compare(m[i], m[j]) <= 0
-}
-
-func (m macs) Swap(i, j int) {
-	m[i], m[j] = m[j], m[i]
 }
 
 func (m MACAlgorithm) Algorithm() (crypto.Hash, error) {

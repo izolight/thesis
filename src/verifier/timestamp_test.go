@@ -25,15 +25,15 @@ func TestVerifyTimestamp(t *testing.T) {
 	}
 
 	type args struct {
-		data []byte
+		data       []byte
 		timestamps [][]byte
-		verifyLTV bool
-		ltvData map[string]*verifier.LTV
+		verifyLTV  bool
+		ltvData    map[string]*verifier.LTV
 	}
 	tests := []struct {
-		name       string
-		args args
-		wantErr    bool
+		name        string
+		args        args
+		wantErr     bool
 		expectedErr error
 	}{
 		{
@@ -44,7 +44,7 @@ func TestVerifyTimestamp(t *testing.T) {
 					readFile(t, "hello_world_response.tsr"),
 				},
 				verifyLTV: true,
-				ltvData: ltvData,
+				ltvData:   ltvData,
 			},
 
 			wantErr: false,
@@ -58,18 +58,18 @@ func TestVerifyTimestamp(t *testing.T) {
 					readFile(t, "hello_world_response.tsr_response.tsr"),
 				},
 				verifyLTV: true,
-				ltvData: ltvData,
+				ltvData:   ltvData,
 			},
 			wantErr: false,
 		},
 		{
 			name: "missing inner timestamp",
-			args:args{
-				data:       []byte("hello world\n"),
+			args: args{
+				data: []byte("hello world\n"),
 				timestamps: [][]byte{
 					readFile(t, "hello_world_response.tsr_response.tsr"),
 				},
-				verifyLTV:  false,
+				verifyLTV: false,
 			},
 			wantErr: true,
 		},
@@ -80,18 +80,18 @@ func TestVerifyTimestamp(t *testing.T) {
 				timestamps: [][]byte{
 					readFile(t, "hello_world_response.tsr"),
 				},
-				verifyLTV:false,
+				verifyLTV: false,
 			},
-			wantErr: true,
+			wantErr:     true,
 			expectedErr: verifier.ErrHashMismatch,
 		},
 		{
-			name:       "no timestamps",
+			name: "no timestamps",
 			args: args{
-				data:       []byte("hello world"),
-				verifyLTV:  false,
+				data:      []byte("hello world"),
+				verifyLTV: false,
 			},
-			wantErr:    true,
+			wantErr:     true,
 			expectedErr: verifier.ErrNoTimestamps,
 		},
 	}

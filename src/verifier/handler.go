@@ -1,8 +1,11 @@
 package verifier
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/golang/protobuf/proto"
 	"io/ioutil"
 	"net/http"
 )
@@ -36,12 +39,18 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 		errorHandler(w, err, http.StatusBadRequest)
 		return
 	}
-	file, err := decodeSignatureFile(in)
+	signatureBytes, err := base64.StdEncoding.DecodeString(in.Signature)
 	if err != nil {
-		errorHandler(w, err, http.StatusBadRequest)
+		errorHandler(w, fmt.Errorf("could not decode signature: %w", err), http.StatusBadRequest)
 		return
 	}
-	if err = verifySignatureFile(file, in.Hash); err != nil {
+	signatureFile := &SignatureFile{}
+	if err := proto.Unmarshal(signatureBytes, signatureFile); err != nil {
+		errorHandler(w, fmt.Errorf("could not unmarshal signature to protobuf: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	if err = VerifySignatureFile(signatureFile, in.Hash); err != nil {
 		errorHandler(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -60,6 +69,6 @@ func errorHandler(w http.ResponseWriter, err error, code int) {
 		Valid: false,
 		Error: err.Error(),
 	}
-	out,_ := json.Marshal(resp)
+	out, _ := json.Marshal(resp)
 	w.Write(out)
 }

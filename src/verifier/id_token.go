@@ -21,7 +21,7 @@ type idTokenVerifier struct {
 	ctx       context.Context
 }
 
-func NewIDTokenVerifier(signatureData *SignatureData, cfg *Config, notAfter time.Time, verifyLTV bool) (*idTokenVerifier, error) {
+func NewIDTokenVerifier(signatureData *SignatureData, cfg *Config, notAfter time.Time) (*idTokenVerifier, error) {
 	if signatureData == nil || cfg == nil {
 		return nil, errors.New("signature data or cfg can't be nil")
 	}
@@ -32,7 +32,6 @@ func NewIDTokenVerifier(signatureData *SignatureData, cfg *Config, notAfter time
 		nonce:    make(chan string, 1),
 		notAfter: notAfter.Local,
 		ltvData:  signatureData.LtvIdp,
-		verifyLTV: verifyLTV,
 		ctx:      context.Background(),
 		key:      jose.JSONWebKey{},
 	}
@@ -55,7 +54,7 @@ func (i *idTokenVerifier) getNonce() string {
 	return <-i.nonce
 }
 
-func (i *idTokenVerifier) Verify() error {
+func (i *idTokenVerifier) Verify(verifyLTV bool) error {
 	cfg := &oidc.Config{
 		ClientID: i.clientId,
 		Now:      i.notAfter,
@@ -79,7 +78,7 @@ func (i *idTokenVerifier) Verify() error {
 	if !emailClaims.EmailVerified {
 		return errors.New("e-mail was not verified")
 	}
-	if i.verifyLTV {
+	if verifyLTV {
 		l := LTVVerifier{
 			Certs:   i.key.Certificates,
 			LTVData: i.ltvData,
