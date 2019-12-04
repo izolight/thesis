@@ -125,16 +125,107 @@ class Queue {
     }
 }
 
-function errorHandlingCallback(message: string) {
-    const errorElement = q("error");
-    errorElement.innerHTML = `${errorElement.innerHTML} <p>${message}</p>`;
+class TS {
+    public static showSubmissionButton(hashList: Array<string>) {
+        const inputFilesArea = q("input-files-area");
+        if (Validate.notNull(inputFilesArea)) {
+            inputFilesArea.innerHTML = `<p class="lead">Hashing completed. Continue when ready</p>
+                         <button type="button" class="btn btn-block btn-outline-primary" id="submithashes">Submit for signing</button>`;
+            const btn = q("submithashes");
+            if (Validate.notNull(btn)) {
+                (btn as HTMLButtonElement).onclick = _ => {
+                    this.submitHashes(hashList);
+                }
+            }
+        }
+    }
+
+    public static submitHashes(hashList: Array<string>) {
+        // TODO
+        console.log(`POST ${hashList}`);
+    }
+
+    public static progressCallbackBuilder(file: File, index: number): ProgressCallback {
+        const cardElement = q(`file.${index}`);
+        if (Validate.notNull(cardElement)) {
+            return (percentCompleted => {
+                cardElement.innerHTML = this.renderCardTemplate(file, `${percentCompleted}%`);
+            });
+        } else {
+            return (_) => {
+                console.log(`cardElement file.${index} was null, cannot update progress`);
+            }
+        }
+    }
+
+    public static processingCompletedBuilder(next: Callable, hashList: Array<string>, file: File, index: number, wasmHasher: Sha256hasher): Callable {
+        const cardElement = q(`file.${index}`);
+        if (Validate.notNull(cardElement)) {
+            return () => {
+                const hash = wasmHasher.hex_digest();
+                hashList.push(hash)
+                cardElement.innerHTML = this.renderCardTemplate(file, hash);
+                next();
+            }
+        } else {
+            return () => {
+                console.log(`cardElement file.${index} was null, cannot update progress`);
+            }
+        }
+    }
+
+    public static renderCardTemplate(file: File, hashValue: string): string {
+        return `<div class="card mb-4 box-shadow">
+            <div class="card-header">
+                <h5 class="my-0 font-weight-normal">FILENAME</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mt-3 mb-4">
+                    <li>Size: FILESIZE</li>
+                    <li>Type: FILETYPE</li>
+                    <li>Hash: FILEHASH</li>
+                </ul>
+<!--                <button type="button" class="btn btn-block btn-danger">Remove file</button>-->
+            </div>
+        </div>`
+            .replace("FILENAME", file.name)
+            .replace("FILESIZE", file.size < 1024 * 1024 ? `${Math.round(file.size / 1024)} KB` : `${Math.round(file.size / 1024 / 1024)} MB`)
+            .replace("FILETYPE", file.type != "" ? file.type : "Unknown")
+            .replace("FILEHASH", hashValue);
+    }
+
+    public static getFilesFromElement(elementId: string): FileList | undefined {
+        const filesElement = q(elementId) as HTMLInputElement;
+
+        if (Validate.notNull(filesElement.files)) {
+            if (filesElement.files.length < 0) {
+                alert("Too few files selected. Please select at least one file.")
+            } else {
+                this.updateFilesArea("Wait for hashing to finish")
+            }
+            return filesElement.files;
+        }
+    }
+
+    public static updateFilesArea(message: string) {
+        const inputFilesArea = q("input-files-area");
+        if (Validate.notNull(inputFilesArea)) {
+            inputFilesArea.innerHTML = `<p class="lead">${message}</p>`;
+        }
+    }
+
+    public static errorHandlingCallback(message: string) {
+        const errorElement = q("error");
+        errorElement.innerHTML = `${errorElement.innerHTML} <p>${message}</p>`;
+    }
 }
 
+
 export function processFileButtonHandler(wasmHasher: Sha256hasher) {
-    const fileList = getFilesFromElement("file");
+    const fileList = TS.getFilesFromElement("file");
     const hashList = new Array<string>();
     const hashersQueue = new Queue(() => {
-        showSubmissionButton(hashList)
+        TS.showSubmissionButton(hashList)
     });
 
     if (Validate.notNullNotUndefined(fileList)) {
@@ -144,7 +235,7 @@ export function processFileButtonHandler(wasmHasher: Sha256hasher) {
             if (Validate.notNullNotUndefined(cardDeck)) {
                 const newCard = document.createElement('div');
                 newCard.id = `file.${i}`;
-                newCard.innerHTML = renderCardTemplate(file, 'Queued');
+                newCard.innerHTML = TS.renderCardTemplate(file, 'Queued');
                 if (Validate.notNull(cardDeck.parentNode)) {
                     cardDeck.parentNode.insertBefore(newCard, cardDeck);
                 }
@@ -155,9 +246,9 @@ export function processFileButtonHandler(wasmHasher: Sha256hasher) {
                     new FileInChunksProcessor((data) => {
                             wasmHasher.update(new Uint8Array((data)));
                         },
-                        errorHandlingCallback,
-                        progressCallbackBuilder(file, i),
-                        processingCompletedBuilder(next, hashList, file, i, wasmHasher)
+                        TS.errorHandlingCallback,
+                        TS.progressCallbackBuilder(file, i),
+                        TS.processingCompletedBuilder(next, hashList, file, i, wasmHasher)
                     ).processChunks(fileList[i]);
                 }
             );
@@ -166,79 +257,3 @@ export function processFileButtonHandler(wasmHasher: Sha256hasher) {
     }
 }
 
-function showSubmissionButton(hashList: Array<string>) {
-
-}
-
-function progressCallbackBuilder(file: File, index: number): ProgressCallback {
-    const cardElement = q(`file.${index}`);
-    if (Validate.notNull(cardElement)) {
-        return (percentCompleted => {
-            cardElement.innerHTML = renderCardTemplate(file, `${percentCompleted}%`);
-        });
-    } else {
-        return (_) => {
-            console.log(`cardElement file.${index} was null, cannot update progress`);
-        }
-    }
-}
-
-function processingCompletedBuilder(next: Callable, hashList: Array<string>, file: File, index: number, wasmHasher: Sha256hasher): Callable {
-    const cardElement = q(`file.${index}`);
-    if (Validate.notNull(cardElement)) {
-        return () => {
-            const hash = wasmHasher.hex_digest();
-            hashList.push(hash)
-            cardElement.innerHTML = renderCardTemplate(file, hash);
-            next();
-        }
-    } else {
-        return () => {
-            console.log(`cardElement file.${index} was null, cannot update progress`);
-        }
-    }
-}
-
-function renderCardTemplate(file: File, hashValue: string): string {
-    return `<div class="card mb-4 box-shadow">
-            <div class="card-header">
-                <h5 class="my-0 font-weight-normal">FILENAME</h5>
-            </div>
-            <div class="card-body">
-                <ul class="list-unstyled mt-3 mb-4">
-                    <li>Size: FILESIZE KB</li>
-                    <li>Type: FILETYPE</li>
-                    <li>Hash: FILEHASH</li>
-                </ul>
-<!--                <button type="button" class="btn btn-block btn-danger">Remove file</button>-->
-            </div>
-        </div>`
-        .replace("FILENAME", file.name)
-        .replace("FILESIZE", Math.round(file.size / 1024).toString())
-        .replace("FILETYPE", file.type != "" ? file.type : "Unknown")
-        .replace("FILEHASH", hashValue);
-}
-
-function dateObjectToTimeString(date: Date): string {
-    return date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + "." + date.getMilliseconds();
-}
-
-function getFilesFromElement(elementId: string): FileList | undefined {
-    const filesElement = q(elementId) as HTMLInputElement;
-
-    if (Validate.notNull(filesElement.files)) {
-        if (filesElement.files.length < 0) {
-            alert("Too few files selected. Please select at least one file.")
-        } else {
-            updateFilesArea("Wait for hashing to finish")
-        }
-        return filesElement.files;
-    }
-}
-
-function updateFilesArea(message: string) {
-    const inputFilesArea = q("input-files-area");
-    if (Validate.notNull(inputFilesArea)) {
-        inputFilesArea.innerHTML = `<p class="lead">${message}</p>`;
-    }
-}
