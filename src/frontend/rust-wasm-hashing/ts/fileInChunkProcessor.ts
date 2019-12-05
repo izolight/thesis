@@ -75,7 +75,13 @@ class FileInChunksProcessor {
 }
 
 
-class TS {
+export class TS {
+    public static killAllChildren(e: HTMLElement) {
+        while (e.children.length > 0) {
+            e.removeChild(e.children[0]);
+        }
+    }
+
     public static showSubmissionButton(hashList: Array<string>) {
         const inputFilesArea = q("input-files-area");
         if (Validate.notNull(inputFilesArea)) {
@@ -83,7 +89,8 @@ class TS {
                          <button type="button" class="btn btn-block btn-outline-primary" id="submithashes">Submit for signing</button>`;
             const btn = q("submithashes");
             if (Validate.notNull(btn)) {
-                (btn as HTMLButtonElement).onclick = _ => {
+                (btn as HTMLButtonElement).onclick = (_) => {
+                    (btn as HTMLButtonElement).disabled = true;
                     this.submitHashes(hashList);
                 }
             }
@@ -118,9 +125,7 @@ class TS {
                 console.log('fu2');
                 const template = `<p class="lead">Please select whom to authenticate with</p>
                          <a href="IDPURL" class="button btn btn-block btn-outline-primary">IDPNAME</a>`;
-                while (inputFilesArea.children.length > 0) {
-                    inputFilesArea.removeChild(inputFilesArea.children[0]);
-                }
+                this.killAllChildren(inputFilesArea);
                 for (const key in response.providers) {
                     console.log('fu3');
                     const newIdpButton = document.createElement('div');
