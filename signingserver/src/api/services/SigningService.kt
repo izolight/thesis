@@ -38,6 +38,7 @@ data class SigningKeySubjectInformation(val surname: String, val givenName: Stri
 
 interface ISigningKeysService {
     fun generateSigningKey(subjectInformation: SigningKeySubjectInformation): PKCS10CertificationRequest
+    fun destroySigningKey(subjectInformation: SigningKeySubjectInformation)
     suspend fun signToPkcs7(
         subjectInformation: SigningKeySubjectInformation,
         dataToSign: ByteArray,

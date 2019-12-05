@@ -96,6 +96,9 @@ class SigningKeysServiceImpl : ISigningKeysService {
         ).build(this.contentSignerBuilder.build(keyPair.private)) ?: throw CryptoException("Unable to construct CSR")
     }
 
+    override fun destroySigningKey(subjectInformation: SigningKeySubjectInformation) =
+        this.keyCache.remove(subjectInformation)
+
     override suspend fun signToPkcs7(
         subjectInformation: SigningKeySubjectInformation,
         dataToSign: ByteArray,

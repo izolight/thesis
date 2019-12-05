@@ -10,6 +10,7 @@ import kotlinx.coroutines.sync.withLock
 interface IExpireableCache<T, U> {
     fun set(key: T, value: U)
     fun get(key: T): U?
+    fun remove(key: T)
     fun exists(key: T): Boolean
 }
 
@@ -55,5 +56,9 @@ open class ExpireableCacheDefaultImpl<T, U> : IExpireableCache<T, U> {
                     lastCycleTime = System.currentTimeMillis()
                 }
         }
+    }
+
+    override fun remove(key: T) {
+        this.storage.remove(key)
     }
 }
