@@ -1,4 +1,6 @@
 - using rust and webpack template
 - boilerplate because wasm needs to be async
 - production mode build in rust
-- typescript bindings
+- typescript bindings generation
+- manually building urls in ktor is stupid
+- keycloak cookies scaring us into thinking our scheme is broken by automatically creating a new token
