@@ -68,7 +68,7 @@ fun Routing.sign() {
                                 Signature.SignatureFile.newBuilder()
                                     .setSignatureDataInPkcs7(pkcs7Signature.toByteString())
                                     .addRfc3161InPkcs7(tsaService.stamp(pkcs7Signature).toByteString())
-                                    .build()
+                                    .build().toByteArray()
                             }.also { signatureFile ->
                                 File("/tmp/signaturefile").writeBytes(signatureFile)
                                 signatureHoldingService.generateId().also { id ->
