@@ -393,7 +393,7 @@ Sample Request:
     Content-Type: application/json
 
     {
-    "idtoken": {...},
+    "id\_token": {...},
     "seed": "84c97acc49335faa0266fb29b4228205e9400a85a10faa68ec30cf894e1730ed",
     "salt": "cfb663431af5e2d68be48867f93e86e477cd7eeefc10b16a51c238d2c810561b",
     "hashes": [
@@ -424,14 +424,8 @@ Input:
     \caption{Input to the signature retrieval endpoint}
 \end{longtable}
 
-Output:
+Output: Binary data, meant to be presented to the user as a file download
 
-\begin{longtable}{|l|l|l|l|}
-    \hline
-    \textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
-    signature & MANDATORY & String & Base64 encoded signature for the requested hash \\ \hline
-    \caption{Output of the signature retrieval endpoint}
-\end{longtable}
 
 Sample Request:
 
@@ -444,11 +438,10 @@ Sample Response:
 
 \begin{lstlisting}[caption={signature response}, captionpos=b, language=JavaScript, label={lst:signatureresponse}]
     HTTP/1.1 200 OK
-    Content-Type: application/json
+    Content-Type: application/octet-stream
+    Content-Disposition: attachment; filename="signaturefile"
 
-    {
-    "signature": "IyMjIFJFU1QgQVBJIFNwZWNpZmljYXRpb24gU2NyYXRjaHBhZAoKIyMjIyBQcmUtQXV0aCBlbmRw...b2ludCAKIyMjIyMgRW5kcG9pbnQKYGBgUE9TVCAvYXBpL3YxL3NpZ25gYGAK"
-    }
+    <binary data follows>
 \end{lstlisting}
 
 \subsection{Verification Service}
