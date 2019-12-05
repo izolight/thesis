@@ -1,20 +1,21 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis.api.views
 
 import Signature
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.Invalid
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.InvalidDataException
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.SigningRequest
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.Valid
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.*
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.*
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.*
 import com.google.protobuf.ByteString
 import io.ktor.application.call
+import io.ktor.locations.KtorExperimentalLocationsAPI
+import io.ktor.locations.locations
 import io.ktor.request.receive
+import io.ktor.response.respond
 import io.ktor.routing.Routing
 import io.ktor.routing.post
 import org.koin.ktor.ext.inject
 import java.io.File
 
+@KtorExperimentalLocationsAPI
 fun Routing.sign() {
     val oidcService by inject<IOIDCService>()
     val secretService by inject<ISecretService>()
@@ -23,6 +24,7 @@ fun Routing.sign() {
     val tsaService by inject<ITimestampingService>()
     val signatureHoldingService by inject<ISignaturesHoldingService>()
 
+    // TODO refactor this monster into smaller methods
     post(URLs.SIGN) {
         when (val input = call.receive<SigningRequest>().validate()) {
             is Valid -> {
@@ -70,21 +72,16 @@ fun Routing.sign() {
                                     .addRfc3161InPkcs7(tsaService.stamp(pkcs7Signature).toByteString())
                                     .build().toByteArray()
                             }.also { signatureFile ->
+                                signingKeyService.destroySigningKey(subjectInformation.value)
                                 File("/tmp/signaturefile").writeBytes(signatureFile)
                                 signatureHoldingService.generateId().also { id ->
                                     signatureHoldingService.set(id, signatureFile)
-                                    // TODO respond with signature url
-                                    // how to build url
-                                    //https://stackoverflow.com/questions/58876250/location-uri-with-201-response-in-ktor
-//                                    call.respond(
-//                                        SigningResponse(
-//                                            signature =
-//
-//                                        )
-
-//                                    )
-
-
+                                    call.respond(
+                                        SigningResponse(
+                                            signature =
+                                            "${URLs.BASE_URL}/${locations.href(SignatureRetrievalRequest(id = id))}"
+                                        )
+                                    )
                                 }
                             }
                         }

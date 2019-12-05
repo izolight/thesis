@@ -1,18 +1,20 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis
 
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.ApiError
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.InvalidJSONException
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.InvalidRequestException
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.views.postHashes
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.views.sign
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.views.signature
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
-import io.ktor.application.log
 import io.ktor.features.*
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.files
 import io.ktor.http.content.static
+import io.ktor.locations.KtorExperimentalLocationsAPI
+import io.ktor.locations.Locations
 import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.response.respondRedirect
@@ -33,6 +35,7 @@ fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
 //    io.ktor.server.netty.EngineMain.main(args)
 //}
 
+@KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 @Suppress("unused") // Referenced in application.conf
 fun Application.module() {
@@ -81,10 +84,10 @@ fun Application.module() {
     }
 
     install(StatusPages) {
-        exception<InvalidJSONException> { exception ->
+        exception<InvalidRequestException> { exception ->
             call.respond(
                 HttpStatusCode.BadRequest,
-                ApiError("Invalid JSON: ${exception.message}")
+                ApiError("Invalid request: ${exception.message}")
             )
         }
 
@@ -100,19 +103,17 @@ fun Application.module() {
         }
     }
 
+    install(Locations)
+
     routing {
-        trace { application.log.trace(it.buildText()) }
-
-
-        // Static feature. Try to access `/static/ktor_logo.svg`
-        static("/static") {
-            files("resources/static")
-        }
+//        trace { application.log.trace(it.buildText()) }
 
         root()
+        static()
         callback()
         postHashes()
         sign()
+        signature()
 
     }
 }
@@ -121,6 +122,13 @@ fun Routing.root() {
     get("/") {
         call.respondRedirect("/static/index.html")
     }
+}
+
+fun Routing.static() {
+    static("/static") {
+        files("resources/static")
+    }
+
 }
 
 fun Routing.callback() {
