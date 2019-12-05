@@ -179,3 +179,10 @@
     - OIDC Callback Zielseite
     - Daten in localstorage persistieren
     
+#### 04.12.19
+- Frontend:
+    - Download signature button
+- Cookies in Keycloak deaktivieren
+- Signature Download Endpoint in Signing Server
+
+    
