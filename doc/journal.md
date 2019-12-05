@@ -166,4 +166,16 @@
 - Verbessern Dokumentation des Login-Prozesses
 - Fehler beheben in der Signing Server Implementation
 
-
+#### 03.12.19
+- Beginn Arbeit am Frontend
+    - UI Design (Bootstrap CSS)
+    - File Input entgegennehmen
+    - Integration WASM Hashing Komponenten
+    - Hashing Queue für sequentielles single-threaded hashing
+    
+#### 04.12.19
+- Frontend:
+    - IDP Karussell
+    - OIDC Callback Zielseite
+    - Daten in localstorage persistieren
+    
