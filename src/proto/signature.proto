@@ -40,13 +40,15 @@ message LTV {
 }
 
 message SignatureFile {
-    // pkcs7 enveloped and signed,
+    // cms enveloped and signed,
     // containing CA chain,
-    // and if ltv is enabled CRL and OCSP as well
+    // and if ltv is enabled CRL and OCSP as well,
+    // der encoded
     bytes signature_data = 1;
-    // pkcs7 enveloped rfc3161 timestamp (not signed, just enveloped)
+    // cms enveloped rfc3161 timestamp (not signed, just enveloped)
     // along with CA chain
     // and if ltv is enabled CRL and OCSP as well
+    // der encoded
     // each later timestamp authenticates a former one
     // thus forming a chain for archival
     repeated bytes rfc3161 = 2;
