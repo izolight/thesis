@@ -45,7 +45,7 @@ a salt value is derived by using a \gls{HMAC} as specified in RFC~2104~\cite{rfc
 \[ salt = HMAC(hmacKey, sorted(hashes)) \]
 
 Next, the nonce is calculated by masking each hash with the salt by using a \gls{HMAC},
-and hashing this list with a secure hash algorithm.
+and hashing this list with a secure hash algorithm~\cite{nistsha}.
 
 
 \[ nonce = H(\{\ HMAC(salt, h) \ \ \forall \ h \in sorted(hashes)\ \}) \]
@@ -510,9 +510,85 @@ Invalid signature:
     }
 \end{lstlisting}
 
-\section{Signature File Format}
+\section{Signature File Format}\label{sec:signature-file-format}
+Digital signatures unfortunately aren't very simple.
+Several components have to be put together for them to work.
+TODO better introduction, explain why so many components are needed.
+\subsection{High-Level Overview}\label{subsec:high-level-overview}
+The signature file consists of the following parts, from innermost to outermost:
+
+\begin{itemize}
+    \item The innermost part of the signature file is the information that is being signed.
+    \item This information gets enveloped in a RFC~5652~\cite{rfc5652} \gls{CMS} message along with certificates and revocation information.
+    \item This \gls{CMS} is encoded with \gls{DER}\footnote{We like to think of DER encoding as in German, "DER ENCODING!", the one and only encoding! We thought it was funny.} and added to a Protobuf message.
+    \item A number RFC~3161~\cite{rfc3161} timestamps are added to the same Protobuf message.
+\end{itemize}
+
+In the following subsections each of these parts is explained in more detail.
+
+\subsection{SignatureData: The information that is being signed}\label{subsec:signaturedata:-the-information-that-is-being-signed}
+The information that is being signed is structured as a Protobuf message with the following schema:
+
+\begin{lstlisting}[caption={SignatureData schema}, captionpos=b, label={lst:signaturedataschema}]
+message SignatureData {
+    repeated bytes salted_document_hash = 1;
+    HashAlgorithm hash_algorithm = 2;
+    bytes mac_key = 3;
+    MACAlgorithm mac_algorithm = 4;
+    SignatureLevel signature_level = 5;
+    bytes id_token = 6;
+    bytes jwk_idp = 7;
+    map<string, LTV> ltv_idp = 8;
+}
+\end{lstlisting}
+
+\paragraph{salted\_document\_hash} is a list of salted document hashes.
+The are salted as described in section~\ref{subsec:pre-login}.
+There must be at least one salted hash.
+There cannot be more than 100'000 hashes.
+We limit this so that no one tries encoding arbitrary data in there (like pictures of cats) just because they can.
+
+\paragraph{hash\_algorithm} is the hash algorithm used for the values in \texttt{salted\_document\_hash} as well as the \gls{OIDC} nonce.
+\paragraph{mac\_key} is the key fed to the \gls{HMAC} function specified by \texttt{mac\_algorithm} for masking the hashes.
+For an explanation on that masquerade and why it's done see~\ref{subsec:pre-login}.
+\paragraph{mac\_algorithm} is the specific \gls{HMAC} function that's being used to masquerade the hashes.
+\texttt{mac\_key} is the key that's fed to \texttt{mac\_algorithm}.
+\paragraph{signature\_level} is either qualified or advanced, depending on the \gls{LoA} provided by the \gls{IDP}.
+For qualified signatures, \gls{LoA} 3 or 4 is required.
+\paragraph{id\_token} is the \gls{OIDC} token issued by the \gls{IDP}.
+It must be included into the signature file in order for the verifier to be able to confirm that the user authenticated with the \gls{IDP},
+the linkage between the document hashes submitted to the \gls{IDP}, the authentication and the signature file.
+If this token weren't included the signing server could issue signatures on its own, which we're making impossible.
+\paragraph{jwk\_idp} is the \gls{JWK} according to RFC~7517~\cite{rfc7517} as published by the \gls{IDP}.
+It is included for verification of the signature on the \texttt{id\_token}.
+\paragraph{ltv\_idp} envelops \gls{CRL} and \gls{OCSP} information for the certificates in the \gls{CA} chain of the certificate used by the \gls{IDP} when signing the \gls{OIDC} \texttt{id\_token}.
+This separate protobuf message is necessary because contrary to \gls{CMS}, the \gls{JWK} specification~\cite{rfc7517} doesn't allow for including revocation information.
+Because there may be a number of certificates in the \gls{JWK}, this field is a map of the fingerprint of the certificate to its revocation information.
+The field is optional, it's only needed if \gls{LTV} is desired.
+For more information on \gls{LTV} see~\ref{subsec:long-term-validation}.
+
+\paragraph{Putting it together}
+
+These fields are put into the protobuf message \texttt{SignatureData} (for the schema, see listing~\ref{lst:signaturedataschema}).
+The message is serialised to its binary format.
+Then, a \gls{CMS} message is constructed, enveloping and signing the binary-serialised \texttt{SignatureData} protobuf message.
+The signer certificate along with the \gls{CA} certificate chain is added to the \gls{CMS} message, and if \gls{LTV} is desired,
+their respective \gls{CRL} and \gls{OCSP} responses.
+
+Please note that RFC~5652~\cite{rfc5652} \gls{CMS} messages are required and no older standards
+because they don't allow for including \gls{OCSP} responses, only \gls{CRL}s.
+For more information on including \gls{OCSP} in \gls{CMS} see~\cite[Section 10.2.1, RevocationInfoChoices and OtherRevocationInfoFormat]{rfc5652}.
+
+In summary, we now have serialised the core signature information, signed it, and combined it with certificate information.
+The next step is to timestamp the signature as described in~\ref{subsec:signaturefile:-combining-signed-data-with-timestamps}.
+
+\subsection{SignatureFile: Combining signed data with timestamps}\label{subsec:signaturefile:-combining-signed-data-with-timestamps}
 TODO
-\subsection{Long-Term Validation}
+
+
+
+
+\subsection{Long-Term Validation}\label{subsec:long-term-validation}
 \gls{LTV} allows for the validation of signatures long after the document was signed~\cite{etsipades}.
 
 We need \gls{LTV} for two main reasons:
