@@ -8,6 +8,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 type verifyRequest struct {
@@ -18,6 +19,9 @@ type verifyRequest struct {
 type verifyResponse struct {
 	Valid bool   `json:"valid"`
 	Error string `json:"error,omitempty"`
+	SignerEmail string `json:"signer_email"`
+	SignatureLevel SignatureLevel `json:"signature_level"`
+	SignatureTime time.Time `json:"signature_time"`
 }
 
 func VerifyHandler(w http.ResponseWriter, r *http.Request) {
@@ -50,11 +54,11 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = VerifySignatureFile(signatureFile, in.Hash); err != nil {
+	resp, err = VerifySignatureFile(signatureFile, in.Hash)
+	if err != nil {
 		errorHandler(w, err, http.StatusInternalServerError)
 		return
 	}
-	resp.Valid = true
 	out, err := json.Marshal(resp)
 	if err != nil {
 		errorHandler(w, err, http.StatusInternalServerError)

@@ -10,16 +10,18 @@ import (
 type SignatureContainerVerifier struct {
 	container []byte
 	data      chan SignatureData
+	signerEmail chan string
 }
 
 func NewSignatureContainerVerifier(c []byte) *SignatureContainerVerifier {
 	return &SignatureContainerVerifier{
 		container: c,
 		data:      make(chan SignatureData, 1),
+		signerEmail: make(chan string, 1),
 	}
 }
 
-func (s SignatureContainerVerifier) Verify() error {
+func (s *SignatureContainerVerifier) Verify() error {
 	p7, err := pkcs7.Parse(s.container)
 	if err != nil {
 		return fmt.Errorf("could not decode signature container: %w", err)
@@ -45,9 +47,21 @@ func (s SignatureContainerVerifier) Verify() error {
 	if err := l.Verify(); err != nil {
 		return fmt.Errorf("verifyLTV information for signature is not valid: %w", err)
 	}
+
+	for _, c := range p7.Certificates{
+		if !c.IsCA {
+			s.signerEmail <- c.EmailAddresses[0]
+			break
+		}
+	}
+
 	return nil
 }
 
-func (s *SignatureContainerVerifier) getSignatureData() SignatureData {
+func (s *SignatureContainerVerifier) SignatureData() SignatureData {
 	return <-s.data
+}
+
+func (s *SignatureContainerVerifier) SignerEmail() string {
+	return <-s.signerEmail
 }

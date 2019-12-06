@@ -17,29 +17,25 @@ func (t timestampError) Error() string {
 }
 
 type TimestampVerifier struct {
-	data       chan []byte
-	notAfter   chan time.Time
+	data       []byte
+	signingTime chan(time.Time)
 	timestamps [][]byte
 	verifyLTV  bool
 	ltvData    map[string]*LTV
 }
 
-func NewTimestampVerifier(timestamps [][]byte, verifyLTV bool, ltvData map[string]*LTV) *TimestampVerifier {
+func NewTimestampVerifier(timestamps [][]byte, data []byte, verifyLTV bool, ltvData map[string]*LTV) *TimestampVerifier {
 	return &TimestampVerifier{
-		data:       make(chan []byte, 1),
-		notAfter:   make(chan time.Time, 1),
+		data:       data,
+		signingTime: make(chan time.Time, 1),
 		timestamps: timestamps,
 		verifyLTV:  verifyLTV,
 		ltvData:    ltvData,
 	}
 }
 
-func (t *TimestampVerifier) SendData(data []byte) {
-	t.data <- data
-}
-
-func (t *TimestampVerifier) getNotAfter() time.Time {
-	return <-t.notAfter
+func (t *TimestampVerifier) SigningTime() time.Time {
+	return <- t.signingTime
 }
 
 func (t *TimestampVerifier) verifyTimestamp(timestamp []byte, data []byte) (*time.Time, error) {
@@ -73,7 +69,7 @@ func (t *TimestampVerifier) Verify() error {
 		// during last signature the data is not in the previous(next) signature,
 		// so we need to block until the data arrives
 		if i == 0 {
-			hashData = <-t.data
+			hashData = t.data
 		} else {
 			hashData = t.timestamps[i-1]
 			//var err error
@@ -87,7 +83,7 @@ func (t *TimestampVerifier) Verify() error {
 			return fmt.Errorf("could not verify timestamp: %w", err)
 		}
 		if i == 0 {
-			t.notAfter <- *notAfter
+			t.signingTime <- *notAfter
 		}
 	}
 	return nil
