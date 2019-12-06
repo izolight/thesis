@@ -19,11 +19,11 @@ type verifyRequest struct {
 }
 
 type verifyResponse struct {
-	Valid bool   `json:"valid"`
-	Error string `json:"error,omitempty"`
-	SignerEmail string `json:"signer_email"`
+	Valid          bool           `json:"valid"`
+	Error          string         `json:"error,omitempty"`
+	SignerEmail    string         `json:"signer_email"`
 	SignatureLevel SignatureLevel `json:"signature_level"`
-	SignatureTime time.Time `json:"signature_time"`
+	SignatureTime  time.Time      `json:"signature_time"`
 }
 
 var defaultConfig = Config{
@@ -108,6 +108,6 @@ func newRequestLogger() *log.Entry {
 	requestId := make([]byte, 16)
 	rand.Read(requestId)
 	return log.WithFields(log.Fields{
-		"request_id":  base64.StdEncoding.EncodeToString(requestId),
+		"request_id": base64.StdEncoding.EncodeToString(requestId),
 	})
 }

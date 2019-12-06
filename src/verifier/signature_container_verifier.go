@@ -8,15 +8,15 @@ import (
 )
 
 type SignatureContainerVerifier struct {
-	container []byte
-	data      chan SignatureData
+	container   []byte
+	data        chan SignatureData
 	signerEmail chan string
 }
 
 func NewSignatureContainerVerifier(c []byte) *SignatureContainerVerifier {
 	return &SignatureContainerVerifier{
-		container: c,
-		data:      make(chan SignatureData, 1),
+		container:   c,
+		data:        make(chan SignatureData, 1),
 		signerEmail: make(chan string, 1),
 	}
 }
@@ -48,7 +48,7 @@ func (s *SignatureContainerVerifier) Verify() error {
 		return fmt.Errorf("verifyLTV information for signature is not valid: %w", err)
 	}
 
-	for _, c := range p7.Certificates{
+	for _, c := range p7.Certificates {
 		if !c.IsCA {
 			s.signerEmail <- c.EmailAddresses[0]
 			break

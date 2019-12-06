@@ -23,7 +23,7 @@ func TestVerifySignatureData(t *testing.T) {
 		{
 			name: "valid signature with one document",
 			args: args{
-				hash:  "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+				hash: "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
 			},
 			wantErr: false,
 		},
@@ -74,10 +74,9 @@ func generateNonce(t *testing.T, saltedHashes [][]byte) string {
 func generateFakeSignatureData(t *testing.T, hash string) *verifier.SignatureData {
 	macKey, _ := hex.DecodeString("68267cf6c2869a826d89867fd280bcdd47b33c66ef9695aac1a92e7d2a111c80")
 	return &verifier.SignatureData{
-		HashAlgorithm:  verifier.HashAlgorithm_SHA2_256,
-		MacKey:         macKey,
-		MacAlgorithm:   verifier.MACAlgorithm_HMAC_SHA2_256,
+		HashAlgorithm:      verifier.HashAlgorithm_SHA2_256,
+		MacKey:             macKey,
+		MacAlgorithm:       verifier.MACAlgorithm_HMAC_SHA2_256,
 		SaltedDocumentHash: [][]byte{generateMac(t, hash, macKey)},
-
 	}
 }

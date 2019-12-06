@@ -17,25 +17,25 @@ func (t timestampError) Error() string {
 }
 
 type TimestampVerifier struct {
-	data       []byte
-	signingTime chan(time.Time)
-	timestamps [][]byte
-	verifyLTV  bool
-	ltvData    map[string]*LTV
+	data        []byte
+	signingTime chan (time.Time)
+	timestamps  [][]byte
+	verifyLTV   bool
+	ltvData     map[string]*LTV
 }
 
 func NewTimestampVerifier(timestamps [][]byte, data []byte, verifyLTV bool, ltvData map[string]*LTV) *TimestampVerifier {
 	return &TimestampVerifier{
-		data:       data,
+		data:        data,
 		signingTime: make(chan time.Time, 1),
-		timestamps: timestamps,
-		verifyLTV:  verifyLTV,
-		ltvData:    ltvData,
+		timestamps:  timestamps,
+		verifyLTV:   verifyLTV,
+		ltvData:     ltvData,
 	}
 }
 
 func (t *TimestampVerifier) SigningTime() time.Time {
-	return <- t.signingTime
+	return <-t.signingTime
 }
 
 func (t *TimestampVerifier) verifyTimestamp(timestamp []byte, data []byte) (*time.Time, error) {

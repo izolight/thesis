@@ -15,7 +15,7 @@ type SignatureVerifier struct {
 }
 
 func NewSignatureVerifier(cfg Config) *SignatureVerifier {
-	return &SignatureVerifier{cfg:cfg}
+	return &SignatureVerifier{cfg: cfg}
 }
 
 func (s SignatureVerifier) VerifySignatureFile(file *SignatureFile, hash string) (verifyResponse, error) {
@@ -72,7 +72,6 @@ func (s SignatureVerifier) VerifySignatureFile(file *SignatureFile, hash string)
 			}
 			signatureDataVerifier.SendNonce(idTokenVerifier.getNonce())
 		}()
-
 
 		wg.Wait()
 		responses <- verifyResponse{
