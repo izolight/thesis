@@ -1,5 +1,6 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
 
+import Signature
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.*
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.defaultConfig
 import io.ktor.client.HttpClient
@@ -12,8 +13,11 @@ import io.ktor.http.content.ByteArrayContent
 import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.time.delay
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import org.bouncycastle.asn1.ASN1Encoding
+import org.bouncycastle.asn1.ASN1OutputStream
 import org.bouncycastle.asn1.DEROctetString
 import org.bouncycastle.asn1.ocsp.OCSPObjectIdentifiers
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers
@@ -28,6 +32,7 @@ import org.bouncycastle.cert.ocsp.CertificateID
 import org.bouncycastle.cert.ocsp.OCSPReqBuilder
 import org.bouncycastle.cert.ocsp.OCSPResp
 import org.bouncycastle.cms.CMSProcessableByteArray
+import org.bouncycastle.cms.CMSSignedData
 import org.bouncycastle.cms.CMSSignedDataGenerator
 import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder
 import org.bouncycastle.crypto.CryptoException
@@ -37,18 +42,19 @@ import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder
 import org.bouncycastle.pkcs.PKCS10CertificationRequest
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.SecureRandom
 import java.security.cert.CertificateFactory
 import java.security.cert.X509CRL
+import java.time.Duration
 import java.util.*
 
 
 class Constants {
     companion object {
-        const val CRYPTO_PROVIDER = "BC"
         const val KEY_ALGORITHM = "RSA"
         const val SIGNATURE_ALGORITHM = "SHA256withRSA"
         const val RSA_KEY_BITS = 4096
@@ -57,7 +63,7 @@ class Constants {
 
 class SigningKeysServiceImpl : ISigningKeysService {
     private val keyPairGenerator = KeyPairGenerator.getInstance(Constants.KEY_ALGORITHM)
-    private val keyCache = ExpireableCacheDefaultImpl<SigningKeySubjectInformation, KeyPair>()
+    private val keyCache = HashMap<SigningKeySubjectInformation, KeyPair>()
     private val contentSignerBuilder = JcaContentSignerBuilder(Constants.SIGNATURE_ALGORITHM)
     private val secureRandom = SecureRandom()
 
@@ -96,25 +102,25 @@ class SigningKeysServiceImpl : ISigningKeysService {
         ).build(this.contentSignerBuilder.build(keyPair.private)) ?: throw CryptoException("Unable to construct CSR")
     }
 
-    override fun destroySigningKey(subjectInformation: SigningKeySubjectInformation) =
+    override fun destroySigningKey(subjectInformation: SigningKeySubjectInformation)  {
         this.keyCache.remove(subjectInformation)
+    }
 
     override suspend fun signToPkcs7(
         subjectInformation: SigningKeySubjectInformation,
-        dataToSign: ByteArray,
+        dataToSign: Signature.SignatureData,
         signedCertificate: JcaX509CertificateHolder
-    ) = CMSSignedDataGenerator().also {
+    ): CMSSignedData = CMSSignedDataGenerator().also {
         withContext(Dispatchers.IO) {
             val bundle = async { fetchBundle(signedCertificate) }
             val crl = async { retrieveCrl(signedCertificate) }
-            val ocsp = async { retrieveOcsp(signedCertificate) }
+            val ocsp = async { delay(Duration.ofSeconds(61)); retrieveOcsp(signedCertificate) }
             it.addSignerInfoGenerator(
                 JcaSignerInfoGeneratorBuilder(
-                    JcaDigestCalculatorProviderBuilder()
-                        .build()
+                    JcaDigestCalculatorProviderBuilder().build()
                 ).build(
                     JcaContentSignerBuilder(Constants.SIGNATURE_ALGORITHM)
-                        .build(keyCache.get(subjectInformation)!!.private),
+                        .build(keyCache[subjectInformation]!!.private),
                     signedCertificate
                 )
             )
@@ -122,14 +128,15 @@ class SigningKeysServiceImpl : ISigningKeysService {
                 crl.await()
             )
             it.addOtherRevocationInfo(
-                OCSPObjectIdentifiers.id_pkix_ocsp,
+                OCSPObjectIdentifiers.id_pkix_ocsp_basic,
                 ocsp.await().toASN1Structure()
             )
             it.addCertificates(
                 bundle.await()
             )
         }
-    }.generate(CMSProcessableByteArray(dataToSign))
+    }.generate(CMSProcessableByteArray(dataToSign.toByteArray()), true)
+//    }.generate(CMSEnvelopedDataGenerator(dataToSign.toByteArray(), CMSEnvelopedDataGenerator.), true)
 
 
     @Serializable
@@ -223,6 +230,8 @@ class SigningKeysServiceImpl : ISigningKeysService {
                             "application", "ocsp-request"
                         )
                     )
+                }.also { response ->
+                    File("/tmp/ocsp_resp").writeBytes(response)
                 }
             }
         )
@@ -240,3 +249,10 @@ class SigningKeysServiceImpl : ISigningKeysService {
                 }.result.allCerts()
             })
 }
+
+fun OCSPResp.toDER() = ByteArrayOutputStream().also {
+        ASN1OutputStream.create(it, ASN1Encoding.DER).also { asn1outputStream ->
+            asn1outputStream.writeObject(this.toASN1Structure())
+            asn1outputStream.close()
+        }
+    }.toByteArray()

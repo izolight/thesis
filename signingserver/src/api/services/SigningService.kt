@@ -1,5 +1,6 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
 
+import Signature
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.Either
 import com.auth0.jwt.interfaces.DecodedJWT
 import org.bouncycastle.cert.jcajce.JcaCertStore
@@ -41,7 +42,7 @@ interface ISigningKeysService {
     fun destroySigningKey(subjectInformation: SigningKeySubjectInformation)
     suspend fun signToPkcs7(
         subjectInformation: SigningKeySubjectInformation,
-        dataToSign: ByteArray,
+        dataToSign: Signature.SignatureData,
         signedCertificate: JcaX509CertificateHolder
     ): CMSSignedData
     suspend fun fetchBundle(cert: JcaX509CertificateHolder): JcaCertStore

@@ -12,7 +12,11 @@ import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.Routing
 import io.ktor.routing.post
+import org.bouncycastle.asn1.ASN1Encoding
+import org.bouncycastle.asn1.ASN1OutputStream
+import org.bouncycastle.cms.CMSSignedData
 import org.koin.ktor.ext.inject
+import java.io.ByteArrayOutputStream
 import java.io.File
 
 @KtorExperimentalLocationsAPI
@@ -50,38 +54,30 @@ fun Routing.sign() {
                         ).also { certificateHolder ->
                             signingKeyService.signToPkcs7(
                                 subjectInformation.value,
-                                Signature.SignatureData.newBuilder()
-                                    .addAllSaltedDocumentHash(
-                                        maskedHashes.map { it.toByteString() }
-                                    )
-                                    .setHashAlgorithm(Signature.HashAlgorithm.SHA2_256)
-                                    .setMacKey(salt.toByteString())
-                                    .setMacAlgorithm(Signature.MACAlgorithm.HMAC_SHA2_256)
-                                    .setSignatureLevel(Signature.SignatureLevel.ADVANCED)
-                                    .setIdToken(ByteString.copyFromUtf8(input.value.id_token))
-                                    .setJwkIdp(
-                                        ByteString.copyFromUtf8(
-                                            oidcService.marshalJwk(jwtValidationResult.jwk)
-                                        )
-                                    )
-                                    .build().toByteArray(),
+                                buildSignature(
+                                    maskedHashes,
+                                    salt,
+                                    input.value.id_token,
+                                    oidcService.marshalJwk(jwtValidationResult.jwk)
+                                ),
                                 certificateHolder
-                            ).encoded.also { pkcs7Signature ->
-                                Signature.SignatureFile.newBuilder()
-                                    .setSignatureDataInPkcs7(pkcs7Signature.toByteString())
-                                    .addRfc3161InPkcs7(tsaService.stamp(pkcs7Signature).toByteString())
-                                    .build().toByteArray()
-                            }.also { signatureFile ->
-                                signingKeyService.destroySigningKey(subjectInformation.value)
-                                File("/tmp/signaturefile").writeBytes(signatureFile)
-                                signatureHoldingService.generateId().also { id ->
-                                    signatureHoldingService.set(id, signatureFile)
-                                    call.respond(
-                                        SigningResponse(
-                                            signature =
-                                            "${URLs.BASE_URL}/${locations.href(SignatureRetrievalRequest(id = id))}"
+                            ).toDER().also { pkcs7Signature ->
+                                File("/tmp/innerpkcs7").writeBytes(pkcs7Signature)
+                                buildSignaturefile(
+                                    pkcs7Signature,
+                                    timestamp = tsaService.stamp(pkcs7Signature)
+                                ).also { signatureFile ->
+                                    signingKeyService.destroySigningKey(subjectInformation.value)
+                                    File("/tmp/signaturefile").writeBytes(signatureFile.toByteArray())
+                                    signatureHoldingService.generateId().also { id ->
+                                        signatureHoldingService.set(id, signatureFile.toByteArray())
+                                        call.respond(
+                                            SigningResponse(
+                                                signature =
+                                                "${URLs.BASE_URL}/${locations.href(SignatureRetrievalRequest(id = id))}"
+                                            )
                                         )
-                                    )
+                                    }
                                 }
                             }
                         }
@@ -94,3 +90,34 @@ fun Routing.sign() {
     }
 }
 
+fun buildSignature(
+    maskedHashes: List<ByteArray>,
+    salt: ByteArray,
+    idToken: String,
+    jwk: String
+): Signature.SignatureData = Signature.SignatureData.newBuilder()
+    .addAllSaltedDocumentHash(
+        maskedHashes.map { it.toByteString() }
+    )
+    .setHashAlgorithm(Signature.HashAlgorithm.SHA2_256)
+    .setMacKey(salt.toByteString())
+    .setMacAlgorithm(Signature.MACAlgorithm.HMAC_SHA2_256)
+    .setSignatureLevel(Signature.SignatureLevel.ADVANCED)
+    .setIdToken(ByteString.copyFromUtf8(idToken))
+    .setJwkIdp(ByteString.copyFromUtf8(jwk))
+    .build()
+
+fun buildSignaturefile(
+    pkcs7Signature: ByteArray,
+    timestamp: ByteArray
+): Signature.SignatureFile = Signature.SignatureFile.newBuilder()
+    .setSignatureDataInPkcs7(pkcs7Signature.toByteString())
+    .addRfc3161InPkcs7(timestamp.toByteString()).build()
+
+fun CMSSignedData.toDER(): ByteArray =
+    ByteArrayOutputStream().also {
+        ASN1OutputStream.create(it, ASN1Encoding.DER).also { asn1outputStream ->
+            asn1outputStream.writeObject(this.toASN1Structure())
+            asn1outputStream.close()
+        }
+    }.toByteArray()
