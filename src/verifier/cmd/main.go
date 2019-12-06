@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier"
-	"log"
 	"net/http"
 )
 

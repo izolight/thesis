@@ -8,6 +8,7 @@ require (
 	github.com/gorilla/mux v1.7.3
 	github.com/izolight/go_S-MIME v0.1.1
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
+	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0 // indirect
 	go.mozilla.org/pkcs7 v0.0.0-20180702141046-401d3877331b
 	golang.org/x/crypto v0.0.0-20191029031824-8986dd9e96cf
