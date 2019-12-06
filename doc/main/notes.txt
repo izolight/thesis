@@ -4,3 +4,5 @@
 - typescript bindings generation
 - manually building urls in ktor is stupid
 - keycloak cookies scaring us into thinking our scheme is broken by automatically creating a new token
+- pkcs7 must be der-encoded: include in spec
+- pkcs7 vs cms: otherRevocationInfo aids
