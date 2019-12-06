@@ -5,23 +5,20 @@ import (
 	"sync"
 )
 
-type Verifier interface {
-	Verify() error
-}
-
 type Config struct {
 	Issuer   string
 	ClientId string
 }
 
-var (
-	cfg = Config{
-		Issuer:   "",
-		ClientId: "",
-	}
-)
+type SignatureVerifier struct {
+	cfg Config
+}
 
-func VerifySignatureFile(file *SignatureFile, hash string) (verifyResponse, error) {
+func NewSignatureVerifier(cfg Config) *SignatureVerifier {
+	return &SignatureVerifier{cfg:cfg}
+}
+
+func (s SignatureVerifier) VerifySignatureFile(file *SignatureFile, hash string) (verifyResponse, error) {
 	errors := make(chan error, 1)
 	responses := make(chan verifyResponse)
 	wg := sync.WaitGroup{}
@@ -62,7 +59,7 @@ func VerifySignatureFile(file *SignatureFile, hash string) (verifyResponse, erro
 		}()
 
 		signingTime := timestampVerifier.SigningTime()
-		idTokenVerifier, err := NewIDTokenVerifier(&signatureData, &cfg, signingTime)
+		idTokenVerifier, err := NewIDTokenVerifier(&signatureData, &s.cfg, signingTime)
 		if err != nil {
 			errors <- fmt.Errorf("could not create id token verifier: %w", err)
 		}

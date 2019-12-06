@@ -22,7 +22,7 @@ func TestVerifyLTV(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		verifier verifier.Verifier
+		verifier verifier.LTVVerifier
 		wantErr  bool
 	}{
 		{

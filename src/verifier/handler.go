@@ -24,6 +24,11 @@ type verifyResponse struct {
 	SignatureTime time.Time `json:"signature_time"`
 }
 
+var defaultConfig = Config{
+	Issuer:   "",
+	ClientId: "",
+}
+
 func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var in verifyRequest
@@ -54,7 +59,8 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err = VerifySignatureFile(signatureFile, in.Hash)
+	s := NewSignatureVerifier(defaultConfig)
+	resp, err = s.VerifySignatureFile(signatureFile, in.Hash)
 	if err != nil {
 		errorHandler(w, err, http.StatusInternalServerError)
 		return

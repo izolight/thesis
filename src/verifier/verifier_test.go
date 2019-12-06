@@ -19,8 +19,14 @@ func TestVerifySignatureFile(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{name: "first signatureFile", args: args{"signaturefile", ""}, wantErr: false},
+		{name: "first signatureFile", args: args{"signaturefile", "06180c7ede6c6936334501f94ccfc5d0ff828e57a4d8f6dc03f049eaad5fb308"}, wantErr: false},
 	}
+
+	cfg := verifier.Config{
+		Issuer:   "https://keycloak.thesis.izolight.xyz/auth/realms/master",
+		ClientId: "thesis",
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			file := readFile(t, tt.args.file)
@@ -29,7 +35,8 @@ func TestVerifySignatureFile(t *testing.T) {
 				t.Fatalf("could not unmarshal signature file to protobuf: %w", err)
 			}
 
-			resp, err := verifier.VerifySignatureFile(signatureFile, tt.args.hash)
+			s := verifier.NewSignatureVerifier(cfg)
+			resp, err := s.VerifySignatureFile(signatureFile, tt.args.hash)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("VerifySignatureFile() error = %v, wantErr %v", err, tt.wantErr)
 			}
