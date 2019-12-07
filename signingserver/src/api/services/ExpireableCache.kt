@@ -14,6 +14,8 @@ interface IExpireableCache<T, U> {
     fun exists(key: T): Boolean
 }
 
+
+
 open class ExpireableCacheDefaultImpl<T, U> : IExpireableCache<T, U> {
     companion object {
         const val CYCLE_TIME_MILLISECONDS = 60 * 1000
@@ -42,7 +44,7 @@ open class ExpireableCacheDefaultImpl<T, U> : IExpireableCache<T, U> {
 
     override fun exists(key: T) = this.storage.contains(key)
 
-    private fun isTimeToCycle() = System.currentTimeMillis() > this.lastCycleTime + CYCLE_TIME_MILLISECONDS
+    private fun isTimeToCycle(): Boolean = System.currentTimeMillis() > this.lastCycleTime + CYCLE_TIME_MILLISECONDS
 
     private suspend fun cycle() {
         if (isTimeToCycle() && !cycleLock.isLocked) {
@@ -53,7 +55,7 @@ open class ExpireableCacheDefaultImpl<T, U> : IExpireableCache<T, U> {
                             storage.remove(key)
                         }
                     }
-                    lastCycleTime = System.currentTimeMillis()
+                    this.lastCycleTime = System.currentTimeMillis()
                 }
         }
     }
