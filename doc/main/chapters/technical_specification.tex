@@ -637,9 +637,29 @@ but unfortunately these claims are optional and we can't rely on them being pres
 There's another reason for using timestamps: \glsdesc{LTV}; but this is out of scope for this chapter.
 For more information on that please refer to~\ref{subsec:long-term-validation}.
 
+\subsubsection{Combining the SignatureData CMS with the RFC~3161 timestamps}
+For adding the timestamp(s) to the \gls{CMS} message created in~\ref{subsec:signaturedata:-the-information-that-is-being-signed}
+we define another Protobuf message as follows:
+
+\begin{lstlisting}[caption={SignatureFile message}, captionpos=b, label={lst:signaturefileschema}]
+message SignatureFile {
+    bytes signature_data = 1;
+    repeated bytes rfc3161 = 2;
+}
+\end{lstlisting}
+
+\paragraph{signature\_data} is the \gls{DER}-encoded \gls{CMS} message created as described in~\ref{subsec:signaturedata:-the-information-that-is-being-signed}.
+\paragraph{rfc3161} is one or more \gls{DER}-encoded timestamps according to RFC~3161~\cite{rfc3161}.
+
+Any number of timestamps can be added.
+Timestamps either confirm \texttt{signature\_data} or another timestamp earlier in the chain.
+The chains of timestamps that are formed that way can be used for \gls{LTV} as described in~\ref{subsec:long-term-validation}.
+
+The signature file returned to the user is the binary serialisation of \texttt{SignatureFile}.
+
 
 \subsection{Long-Term Validation}\label{subsec:long-term-validation}
-\gls{LTV} allows for the validation of signatures long after the document was signed~\cite{etsipades}.
+\glsdesc{LTV} allows for the validation of signatures long after the document was signed~\cite{etsipades}.
 
 We need \gls{LTV} for two main reasons:
 \begin{enumerate}
