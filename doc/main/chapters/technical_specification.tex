@@ -583,9 +583,59 @@ In summary, we now have serialised the core signature information, signed it, an
 The next step is to timestamp the signature as described in~\ref{subsec:signaturefile:-combining-signed-data-with-timestamps}.
 
 \subsection{SignatureFile: Combining signed data with timestamps}\label{subsec:signaturefile:-combining-signed-data-with-timestamps}
-TODO
+All signatures issued by the signing server are augmented by at least one timestamp by at least one \gls{TSA} independent of the signing server and the \gls{IDP}.
 
+\subsubsection{Why timestamp?}
+Timestamping allows the verifier to assert the point in time the signature was created.
+This information is confirmed by a party independent of the signature service and the \gls{IDP},
+thus the verifier can be fairly confident about the authenticity of this information.
 
+It's important for the verifier to know reliably when the signature was created,
+because that way the verifier is able to check whether the certificates used where valid at the time of signature creation,
+not at signature validation time.
+
+Someone could ask, why not just put the date and time of creation into the signature itself?
+It would be much simpler and easier,
+instead of going through the trouble of obtaining one or more RFC~3161~\cite{rfc3161} timestamps
+from independent trusted third parties.
+If the date and time were part of the signed data it would be protected by the digital signature,
+and no one would be able to alter it.
+
+That's not good enough, because we need to guard against \gls{CA} failure.
+Imagine what happened if the \gls{CA} used by the signing server were compromised:
+all certificates issued by that \gls{CA} would get revoked,
+and thus all signatures created with these certificates would become invalid.
+Potentially millions of contracts and other such documents would become effectively null and void in an instant,
+with widespread and quite possibly disastrous repercussions on its users
+(like losing a house, because from a legal perspective, the mortgage has just disappeared into thin air).
+All information authenticated by certificates signed by that \gls{CA} would become untrustworthy,
+including the date and time of creation included in it.
+
+Fortunately, in our solution, it is highly unlikely that someone is able to forge a signature even if they
+completely compromised the \gls{CA}, because they'd need to compromise the \gls{IDP} or its \gls{CA} as well
+in order to be able to falsify a signature.
+
+But even so, all issued signatures becoming void is unacceptable.
+
+This is why the timestamping is so important.
+The timestamp confirms that the signatures were issued before the \gls{CA} was compromised,
+thus protecting their validity.
+This is also the reason why the signing server can't just add the date and time of creation in the signature on its own,
+because that information is protected by a signature that was created with a certificate authenticated
+by a compromised \gls{CA}, thus making that information useless.
+
+By using at least one independent third party \gls{TSA} the time of signature creation can be ascertained,
+because that information is authenticated by a different \gls{CA}.
+The risk can be reduced further by combining \gls{TSA}s.
+Then the signature will remain valid even if the signature server \gls{CA} and the \gls{TSA} \gls{CA} were compromised.
+
+Readers knowledgeable with \gls{JWT} will observer that we could use the \texttt{iat} (Issued At) and \texttt{exp} (Expiration Time)
+claims from the \texttt{id\_token} issued by the \gls{IDP} instead of adding a RFC~3161~timestamp,
+since the \texttt{id\_token} is signed by a party using a different \gls{CA} than the signing server as well,
+but unfortunately these claims are optional and we can't rely on them being present~\cite[Sections 4.1.4 and 4.1.6]{rfc7519}.
+
+There's another reason for using timestamps: \glsdesc{LTV}; but this is out of scope for this chapter.
+For more information on that please refer to~\ref{subsec:long-term-validation}.
 
 
 \subsection{Long-Term Validation}\label{subsec:long-term-validation}
@@ -606,7 +656,7 @@ To overcome this limitation, the following information has to be embedded into t
 \begin{enumerate}
     \item A timestamp on the signature
     \item The signing certificate
-    \item The certificates used and their revocation status (\gls{OCSP} and \gls{CRL})
+%    \item The certificates used and their revocation status (\gls{OCSP} and \gls{CRL})
     \item An archive timestamp of the previous content
 \end{enumerate}
 
