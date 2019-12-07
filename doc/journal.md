@@ -185,4 +185,20 @@
 - Cookies in Keycloak deaktivieren
 - Signature Download Endpoint in Signing Server
 
+#### 05.12.19
+- Erste funktionierende Version des Frontends
+- Fehler in Signing Server beheben (Key Caching)
+- Besprechung mit Betreuenden
+
+#### 06.12.19
+- Erster Versuch erstellte Signatur zu verifizieren:
+    - DER Encoding richtigstellen
+    - RFC 5652 CMS nicht PKCS7 Go libraries suchen
+    - OtherRevocationInformation selber implementieren
+- OCSP Probleme mit cfssl: Responder muss "manuell" aktualisiert werden mit neu ausgestellten Zertifikaten
+- An der Doku arbeiten
+
+#### 07.12.19
+- An der Doku arbeiten (Signaturformat)
+
     
