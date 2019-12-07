@@ -149,10 +149,10 @@ Now all that's needed is a little boilerplate to convert a JavaScript \texttt{Ui
 
 \begin{lstlisting}[caption={Uint8Array to {[]}byte}, captionpos=b, language=Go, label={lst:jscastingtogo}, captionpos=b]
     func progressiveHash(this js.Value, in []js.Value) interface{} {
-        array := in[0]
-        buf := make([]byte, array.Get("length").Int())
-        js.CopyBytesToGo(buf, array)
-        return this
+    array := in[0]
+    buf := make([]byte, array.Get("length").Int())
+    js.CopyBytesToGo(buf, array)
+    return this
     }
 \end{lstlisting}
 
@@ -259,12 +259,105 @@ We put a lot of thought into minimising the amount of information all involved a
 such as masking the document hash from the \gls{IDP}, and we're not satisfied with a solution where the other recipients learn
 about unrelated document hashes just because they were signed together.
 
-The better solution for this would be to generate a \gls{MAC} of each hash with the \texttt{salt} as key and include that in the signature file,
+Our solution for this is to generate a \gls{MAC} of each hash with the \texttt{salt} as key and include that in the signature file,
 with the \gls{OIDC} nonce just being the hash of the sorted \gls{MAC}s.
 
 This way the verifiers' own \gls{MAC} can be generated during verification with the other \gls{MAC}s just being used as additional input parameters without leaking the hashes of the documents.
 Assuming the \gls{HMAC} function used is secure,
 the only information that the receiver of the signature file could learn is the number of the documents that were signed together.
+
+\subsection{Draft 3: Simplifying and using CMS where possible}\label{subsec:draft-3:-simplifying-and-using-cms-where-possible}
+Draft 2 (section~\ref{subsec:draft-2:-improving-signing-of-multiple-documents})
+resulted in a rather complicated schema that looked something like listing~\ref{lst:draft2schema1}.
+
+\begin{lstlisting}[caption={Draft 2 schema 1}, captionpos=b, label={lst:draft2schema1}]
+message SignatureData {
+    bytes document_hash = 1;
+    HashAlgorithm hash_algorithm = 2;
+    bytes mac_key = 3;
+    MACAlgorithm mac_algorithm = 4;
+    repeated bytes other_macs = 5;
+    SignatureLevel signature_level = 6;
+    bytes id_token = 7;
+    repeated bytes jwk_idp = 8;
+    map<string, LTV> ltv_idp = 9;
+}
+
+message Timestamped {
+    bytes rfc3161_timestamp = 1;
+    map<string, LTV> ltv_timestamp = 2;
+}
+
+message SignatureContainer {
+    bytes enveloped_signature_data_pkcs7 = 1;
+    map<string, LTV> ltv_signing = 2;
+}
+
+message LTV {
+    bytes ocsp = 1;
+    bytes crl = 2;
+}
+
+message SignatureFile {
+    SignatureContainer signature_container = 1;
+    repeated Timestamped timestamps = 2;
+}
+\end{lstlisting}
+
+\texttt{SignatureData} is the information that gets signed.
+It obviously contains the hash of the document in \texttt{document\_hash},
+but for the reasons explained in~\ref{subsec:draft-2:-improving-signing-of-multiple-documents}
+we need to include the other maskes hashes: that's what \texttt{other\_macs} is for.
+
+\texttt{Timestamped} allows us to add certificate revocation information (\gls{CRL} and \gls{OCSP}) for the certificates used in the RFC~3161~\cite{rfc3161} timestamps.
+The inclusion of these is necessary for proper offline verification, where the verifier is most likely not able to retrieve this information by itself.
+
+\texttt{SignatureContainer} is used to add revocation information for the certificates used in \texttt{SignatureData}.
+
+When we examined RFC~5652~\cite{rfc5652} more closely, we discovered that it's possible to add
+\gls{CRL}s as well as \gls{OCSP} responses to \gls{CMS} messages (but not to \gls{PKCS7}~\cite[Section 10.2.1, RevocationInfoChoices and OtherRevocationInfoFormat]{rfc5652}).
+Since both \texttt{SignatureData} and the RFC~3161~\cite{rfc3161} timestamps are RFC~5652~\gls{CMS} messages which do support including revocation information,
+we can simply put the revocation information in there and don't need our own message formats.
+
+Then it occured to us that we don't need to have the hash of the current document separate from the masked hashes of the other documents.
+We can simply include a list of masked hashes.
+
+This works, because during verification, the original documents are present.
+The verifier simply calculates their hash values, masks the hashes using \texttt{mac\_key},
+and checks whether they're present in the list of masked hashes.
+This slightly simplifies the verification process,
+but the main advantage of this change is that it speeds up issuance of multi-file signatures tremendously.
+
+When before, we created a signature file per document hash, now we create one signature file for all documents signed together.
+Since creating a signature file entails a nontrivial amount of work this change represents a vast improvement in signature creation speed.
+
+\begin{lstlisting}[caption={Simplified schema}, captionpos=b, label={lst:draft2schema2}]
+message SignatureData {
+    repeated bytes salted_document_hash = 1;
+    HashAlgorithm hash_algorithm = 2;
+    bytes mac_key = 3;
+    MACAlgorithm mac_algorithm = 4;
+    SignatureLevel signature_level = 5;
+    bytes id_token = 6;
+    bytes jwk_idp = 7;
+    map<string, LTV> ltv_idp = 8;
+}
+
+message LTV {
+    bytes ocsp = 1;
+    bytes crl = 2;
+}
+
+message SignatureFile {
+    bytes signature_data = 1;
+    repeated bytes rfc3161 = 2;
+}
+\end{lstlisting}
+
+
+Unfortunately we can't get rid of \texttt{LTV} completely because there is no way to add revocation information
+to a RFC~7517~\cite{rfc7517} JWK, so we still need it for the \gls{IDP} certificates.
+Still, these changes result in a significant simplification of the schema, as seen in listing~\ref{lst:draft2schema2}.
 
 \section{Signature Format}
 \label{sec:signatureformat}
@@ -288,6 +381,7 @@ This format would be encoded as a protobuf message in order to not have an overl
 but still support having a schema (as opposed to \gls{JSON}).
 
 \subsection{Adding Long-Term Validation Capability}\label{subsec:adding-long-term-validation-capability}
+TODO rework this section
 During our work on this thesis we wanted to add support for \gls{LTV},
 which meant adding all the certificate chains,
 \gls{OCSP} responses and \gls{CRL}s of all involved parties,
@@ -301,23 +395,6 @@ A lot of the information we wanted to encode is already included in the standard
 This means we just need to specify how this enveloped data looks like,
 and how we wrap all the timestamps with the \gls{LTV} information in the protobuf message,
 to establish the chain of timestamps for \gls{LTV} archival.
-
-\subsection{Final Format}\label{subsec:final-format}
-
-First, the specification of the enveloped data in the \gls{PKCS}\#7 signature:
-
-\begin{enumerate}
-    \item Hash of the document
-    \item Hashing algorithm employed
-    \item Key for the \gls{MAC}
-    \item \gls{MAC} used
-    \item List of the \gls{MAC}s of all other documents that were signed together (needed for link between ID token and signature)
-    \item Signature level (advanced/qualified)
-    \item ID token
-    \item \gls{CA} chain of the \gls{IDP}
-    \item \gls{OCSP} response for the \gls{IDP} \gls{CA}
-    \item \gls{CRL} for the \gls{IDP} \gls{CA}
-\end{enumerate}
 
 The \gls{PKCS}\#7 encoded signature together with the \gls{OCSP} response and \gls{CRL} of the signing \gls{CA} will be the message that is hashed in the message imprint of the \gls{RFC}3161 timestamp.
 
