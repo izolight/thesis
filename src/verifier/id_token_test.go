@@ -51,7 +51,7 @@ func TestVerifyIDToken(t *testing.T) {
 				notAfter:  time.Unix(1575021202, 0),
 				key:       jwkFile,
 				ltv:       ltv,
-				verifyLTV: true,
+				verifyLTV: false,
 			},
 			wantErr: false,
 		},
