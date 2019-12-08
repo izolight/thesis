@@ -1,6 +1,7 @@
 package verifier
 
 import (
+	"crypto/x509"
 	"fmt"
 	"sync"
 )
@@ -8,6 +9,7 @@ import (
 type Config struct {
 	Issuer   string
 	ClientId string
+	AdditionalCerts []*x509.Certificate
 }
 
 type SignatureVerifier struct {
@@ -34,11 +36,11 @@ func (s SignatureVerifier) VerifySignatureFile(file *SignatureFile, hash string)
 			}
 		}()
 
-		signatureContainerVerifier := NewSignatureContainerVerifier(file.SignatureDataInPkcs7)
+		signatureContainerVerifier := NewSignatureContainerVerifier(file.SignatureDataInPkcs7, s.cfg.AdditionalCerts)
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if err := signatureContainerVerifier.Verify(); err != nil {
+			if err := signatureContainerVerifier.Verify(false); err != nil {
 				errors <- fmt.Errorf("could not verify signatureContainer: %w", err)
 			}
 

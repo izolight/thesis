@@ -2,6 +2,8 @@ package verifier_test
 
 import (
 	"crypto/rand"
+	"crypto/x509"
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -22,9 +24,14 @@ func TestVerifySignatureFile(t *testing.T) {
 		{name: "first signatureFile", args: args{"signaturefile", "06180c7ede6c6936334501f94ccfc5d0ff828e57a4d8f6dc03f049eaad5fb308"}, wantErr: false},
 	}
 
+	rootCA := parsePEM(t, "rootCA.pem")
+
 	cfg := verifier.Config{
 		Issuer:   "https://keycloak.thesis.izolight.xyz/auth/realms/master",
 		ClientId: "thesis",
+		AdditionalCerts: []*x509.Certificate{
+			rootCA,
+		},
 	}
 
 	for _, tt := range tests {
@@ -40,7 +47,12 @@ func TestVerifySignatureFile(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("VerifySignatureFile() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			fmt.Println(resp)
+
+			body, err := json.MarshalIndent(resp, "", "\t")
+			if err != nil {
+				t.Error(body)
+			}
+			fmt.Printf("%s\n", body)
 		})
 	}
 }
@@ -66,5 +78,4 @@ func TestParseSignatureFile(t *testing.T) {
 	if err := proto.Unmarshal(readFile(t, "signaturefile"), signatureFile); err != nil {
 		t.Fatal(err)
 	}
-
 }
