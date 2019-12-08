@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
@@ -32,6 +33,7 @@ func TestVerifySignatureFile(t *testing.T) {
 		AdditionalCerts: []*x509.Certificate{
 			rootCA,
 		},
+		Logger: log.NewEntry(log.New()),
 	}
 
 	for _, tt := range tests {

@@ -13,12 +13,12 @@ import (
 	"time"
 )
 
-type verifyRequest struct {
+type VerifyRequest struct {
 	Hash      string `json:"hash"`
 	Signature string `json:"signature"` // base64 encoded protobuf file
 }
 
-type verifyResponse struct {
+type VerifyResponse struct {
 	Valid          bool           `json:"valid"`
 	Error          string         `json:"error,omitempty"`
 	SignerEmail    string         `json:"signer_email"`
@@ -27,8 +27,8 @@ type verifyResponse struct {
 }
 
 var defaultConfig = Config{
-	Issuer:   "",
-	ClientId: "",
+	Issuer:   "https://keycloak.thesis.izolight.xyz/auth/realms/master",
+	ClientId: "thesis",
 }
 
 func VerifyHandler(w http.ResponseWriter, r *http.Request) {
@@ -36,8 +36,8 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Info("received verify request")
 
 	w.Header().Set("Content-Type", "application/json")
-	var in verifyRequest
-	resp := verifyResponse{
+	var in VerifyRequest
+	resp := VerifyResponse{
 		Valid: false,
 	}
 	if r.Body == nil {
@@ -55,7 +55,10 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	logger.WithFields(log.Fields{
-		"request_body": in,
+		"request_body": log.Fields{
+			"hash": in.Hash,
+			"signature": in.Signature,
+		},
 	}).Info("unmarshaled request body")
 
 	signatureBytes, err := base64.StdEncoding.DecodeString(in.Signature)
@@ -71,10 +74,19 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	logger.WithFields(log.Fields{
-		"signatureFile": signatureFile,
+		"signatureFile": log.Fields{
+			"signature_data_in_pkcs7": signatureFile.SignatureDataInPkcs7,
+			"rfc3161_in_pkcs7": signatureFile.Rfc3161InPkcs7,
+		},
 	}).Info("unmarshaled signature file")
 
-	s := NewSignatureVerifier(defaultConfig)
+	cfg := Config{
+		Issuer:   defaultConfig.Issuer,
+		ClientId: defaultConfig.ClientId,
+		Logger:   logger,
+	}
+
+	s := NewSignatureVerifier(cfg)
 	resp, err = s.VerifySignatureFile(signatureFile, in.Hash)
 	logger.Info("verified signature file")
 	if err != nil {
@@ -96,7 +108,7 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 func errorHandler(w http.ResponseWriter, logger *log.Entry, err error, code int) {
 	logger.Error(err)
 	w.WriteHeader(code)
-	resp := verifyResponse{
+	resp := VerifyResponse{
 		Valid: false,
 		Error: err.Error(),
 	}
