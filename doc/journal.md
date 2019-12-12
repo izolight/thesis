@@ -201,4 +201,7 @@
 #### 07.12.19
 - An der Doku arbeiten (Signaturformat)
 
+#### 12.12.19
+- Zusätzliches logging im backend für demo implementieren
+
     
