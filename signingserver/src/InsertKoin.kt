@@ -4,6 +4,8 @@ import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.*
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.runBlocking
 import org.koin.dsl.module
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 @KtorExperimentalAPI
 val DIModule = module {
@@ -14,4 +16,5 @@ val DIModule = module {
     single<ISigningKeysService> { SigningKeysServiceImpl() }
     single<ICertificateAuthorityService> { CertificateAuthorityServiceImpl() }
     single<ITimestampingService> { TimestampingServiceImpl() }
+    single<Logger> { LoggerFactory.getLogger("DEMO") }
 }

@@ -15,6 +15,7 @@ import io.ktor.response.respond
 import io.ktor.response.respondBytes
 import io.ktor.routing.Routing
 import org.koin.ktor.ext.inject
+import org.slf4j.Logger
 
 @KtorExperimentalLocationsAPI
 @Location(URLs.SIGNATURES)
@@ -26,6 +27,7 @@ data class SignatureRetrievalRequest(val id: String) : Validatable<SignatureRetr
 @KtorExperimentalLocationsAPI
 fun Routing.signature() {
     val signaturesHoldingService by inject<ISignaturesHoldingService>()
+    val logger by inject<Logger>()
 
     get<SignatureRetrievalRequest> { req ->
         when (val validatedReq = req.validate()) {
@@ -33,6 +35,7 @@ fun Routing.signature() {
                 when (val signature = signaturesHoldingService.get(req.id)) {
                     null -> call.respond(HttpStatusCode.NotFound)
                     else -> {
+                        logger.info("Providing signature file download")
                         call.response.header(
                             HttpHeaders.ContentDisposition, ContentDisposition.Attachment.withParameter(
                                 ContentDisposition.Parameters.FileName, "signaturefile"

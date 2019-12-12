@@ -15,11 +15,13 @@ import io.ktor.response.respond
 import io.ktor.routing.Routing
 import io.ktor.routing.post
 import org.koin.ktor.ext.inject
+import org.slf4j.Logger
 
 fun Routing.postHashes() {
     val nonceGenerator by inject<INonceGeneratorService>()
     val secretService by inject<ISecretService>()
     val oidcService by inject<IOIDCService>()
+    val logger by inject<Logger>()
 
     post(URLs.SUBMIT_HASHES) {
         when (val input = call.receive<SubmittedHashes>().validate()) {
@@ -35,13 +37,17 @@ fun Routing.postHashes() {
                     state = oidcNonce
                 )
 
-                call.respond(
-                    HashesSubmissionResponse(
+                val response = HashesSubmissionResponse(
                         providers = mapOf(Config.OIDC_IDP_NAME to idpRedirect.toString()),
                         salt = byteArrayToHexString(salt),
                         seed = byteArrayToHexString(seed)
                     )
-                )
+
+                call.respond(response)
+
+                logger.info("Received hashes: ${input.value.hashes}")
+                logger.info("Calculated salt ${byteArrayToHexString(salt)} and seed ${byteArrayToHexString(seed)}")
+                logger.info("Responding: ${response}")
             }
             is Invalid -> throw input.error
         }

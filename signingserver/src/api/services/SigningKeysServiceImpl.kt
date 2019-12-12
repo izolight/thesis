@@ -13,7 +13,6 @@ import io.ktor.http.content.ByteArrayContent
 import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.time.delay
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import org.bouncycastle.asn1.ASN1Encoding
@@ -49,7 +48,6 @@ import java.security.KeyPairGenerator
 import java.security.SecureRandom
 import java.security.cert.CertificateFactory
 import java.security.cert.X509CRL
-import java.time.Duration
 import java.util.*
 
 
@@ -114,7 +112,9 @@ class SigningKeysServiceImpl : ISigningKeysService {
         withContext(Dispatchers.IO) {
             val bundle = async { fetchBundle(signedCertificate) }
             val crl = async { retrieveCrl(signedCertificate) }
-            val ocsp = async { delay(Duration.ofSeconds(61)); retrieveOcsp(signedCertificate) }
+            val ocsp = async {
+//                delay(Duration.ofSeconds(61))
+                retrieveOcsp(signedCertificate) }
             it.addSignerInfoGenerator(
                 JcaSignerInfoGeneratorBuilder(
                     JcaDigestCalculatorProviderBuilder().build()
