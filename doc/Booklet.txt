@@ -1,0 +1,11 @@
+Signer->Signing Service:Hashes
+Signer<--Signing Service:Authenticate
+Signer->OIDC IDP:AuthN Request
+OIDC IDP->Signing Service:JWT
+Signing Service->HSM:Generate Key
+HSM->Certificate Authority:PKCS#10 CSR
+Certificate Authority->Signing Service:Signed Certificate
+Signing Service->HSM:Sign
+Signing Service->Timestamp Authority:Timestamp Request
+Timestamp Authority-->Signing Service:Timestamp Reply
+Signing Service-->Signer:Signature
