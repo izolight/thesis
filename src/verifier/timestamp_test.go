@@ -98,7 +98,8 @@ func TestVerifyTimestamp(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			verifier := verifier.NewTimestampVerifier(tt.args.timestamps, tt.args.data, tt.args.verifyLTV, tt.args.ltvData)
+			cfg := verifier.Config{}
+			verifier := verifier.NewTimestampVerifier(tt.args.timestamps, tt.args.data, tt.args.verifyLTV, tt.args.ltvData, cfg)
 			err := verifier.Verify()
 			if err != nil != tt.wantErr {
 				t.Errorf("Verify() error = %v, wantErr %v", err, tt.wantErr)

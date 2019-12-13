@@ -2,8 +2,10 @@ package verifier
 
 import (
 	"crypto/rand"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"github.com/golang/protobuf/proto"
@@ -25,6 +27,21 @@ type VerifyResponse struct {
 	SignatureLevel SignatureLevel `json:"signature_level"`
 	SignatureTime  time.Time      `json:"signature_time"`
 }
+
+func init() {
+	file, err := ioutil.ReadFile("testdata/rootCA.pem")
+	if err != nil {
+		log.Fatal(err)
+	}
+	filePEM, _ := pem.Decode(file)
+	rootCA, err := x509.ParseCertificate(filePEM.Bytes)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defaultRootCA = rootCA
+}
+
+var defaultRootCA *x509.Certificate
 
 var defaultConfig = Config{
 	Issuer:   "https://keycloak.thesis.izolight.xyz/auth/realms/master",
@@ -57,7 +74,6 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	logger.WithFields(log.Fields{
 		"request_body": log.Fields{
 			"hash": in.Hash,
-			"signature": in.Signature,
 		},
 	}).Info("unmarshaled request body")
 
@@ -73,17 +89,15 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 		errorHandler(w, logger, fmt.Errorf("could not unmarshal signature to protobuf: %w", err), http.StatusBadRequest)
 		return
 	}
-	logger.WithFields(log.Fields{
-		"signatureFile": log.Fields{
-			"signature_data_in_pkcs7": signatureFile.SignatureDataInPkcs7,
-			"rfc3161_in_pkcs7": signatureFile.Rfc3161InPkcs7,
-		},
-	}).Info("unmarshaled signature file")
+	logger.Info("unmarshaled signature file")
 
 	cfg := Config{
 		Issuer:   defaultConfig.Issuer,
 		ClientId: defaultConfig.ClientId,
 		Logger:   logger,
+		AdditionalCerts: []*x509.Certificate{
+			defaultRootCA,
+		},
 	}
 
 	s := NewSignatureVerifier(cfg)
@@ -102,7 +116,7 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(out)
 	logger.WithFields(log.Fields{
 		"response_body": out,
-	}).Info("wrote response body")
+	}).Trace("wrote response body")
 }
 
 func errorHandler(w http.ResponseWriter, logger *log.Entry, err error, code int) {
@@ -119,7 +133,5 @@ func errorHandler(w http.ResponseWriter, logger *log.Entry, err error, code int)
 func newRequestLogger() *log.Entry {
 	requestId := make([]byte, 16)
 	rand.Read(requestId)
-	return log.WithFields(log.Fields{
-		"request_id": base64.StdEncoding.EncodeToString(requestId),
-	})
+	return log.WithField("request_id", base64.StdEncoding.EncodeToString(requestId))
 }

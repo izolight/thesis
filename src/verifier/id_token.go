@@ -2,42 +2,50 @@ package verifier
 
 import (
 	"context"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"github.com/coreos/go-oidc"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/square/go-jose.v2"
 	"time"
 )
 
 type idTokenVerifier struct {
 	token     []byte
-	issuer    string
-	clientId  string
 	nonce     chan string
+	signer    chan *x509.Certificate
 	notAfter  func() time.Time
 	key       jose.JSONWebKey
 	ltvData   map[string]*LTV
 	verifyLTV bool
 	ctx       context.Context
+	cfg       *Config
 }
 
-func NewIDTokenVerifier(signatureData *SignatureData, cfg *Config, notAfter time.Time) (*idTokenVerifier, error) {
-	if signatureData == nil || cfg == nil {
-		return nil, errors.New("signature data or cfg can't be nil")
+func NewIDTokenVerifier(signatureData *SignatureData, notAfter time.Time, cfg Config) (*idTokenVerifier, error) {
+	if signatureData == nil {
+		return nil, errors.New("signature data can't be nil")
 	}
+	cfg.Logger = cfg.Logger.WithField("verifier", "id token")
 	i := &idTokenVerifier{
 		token:    signatureData.IdToken,
-		issuer:   cfg.Issuer,
-		clientId: cfg.ClientId,
 		nonce:    make(chan string, 1),
+		signer:   make(chan *x509.Certificate, 1),
 		notAfter: notAfter.Local,
 		ltvData:  signatureData.LtvIdp,
 		ctx:      context.Background(),
 		key:      jose.JSONWebKey{},
+		cfg:      &cfg,
 	}
 	if err := i.key.UnmarshalJSON(signatureData.JwkIdp); err != nil {
 		return nil, fmt.Errorf("could not unmarshal jwk: %w", err)
 	}
+	cfg.Logger.WithFields(log.Fields{
+		"not_after": notAfter,
+		"issuer":    cfg.Issuer,
+		"client_id": cfg.ClientId,
+	}).Info("created new id token verifier")
 	return i, nil
 }
 
@@ -50,20 +58,33 @@ func (i *idTokenVerifier) VerifySignature(ctx context.Context, jwtRaw string) (p
 	return signature.Verify(i.key)
 }
 
-func (i *idTokenVerifier) getNonce() string {
+func (i *idTokenVerifier) Nonce() string {
 	return <-i.nonce
 }
 
+func (i *idTokenVerifier) SendSigner(signer *x509.Certificate) {
+	i.signer <- signer
+}
+
 func (i *idTokenVerifier) Verify(verifyLTV bool) error {
-	cfg := &oidc.Config{
-		ClientID: i.clientId,
+	i.cfg.Logger.Info("started verifying")
+	oidcCfg := &oidc.Config{
+		ClientID: i.cfg.ClientId,
 		Now:      i.notAfter,
 	}
-	verifier := oidc.NewVerifier(i.issuer, i, cfg)
+	verifier := oidc.NewVerifier(i.cfg.Issuer, i, oidcCfg)
 	idToken, err := verifier.Verify(i.ctx, string(i.token))
 	if err != nil {
 		return err
 	}
+	i.cfg.Logger.WithFields(log.Fields{
+		"issuer":    idToken.Issuer,
+		"expiry":    idToken.Expiry,
+		"issued_at": idToken.IssuedAt,
+		"nonce":     idToken.Nonce,
+		"audience":  idToken.Audience,
+		"subject":   idToken.Subject,
+	}).Info("decoded id token")
 
 	i.nonce <- idToken.Nonce
 
@@ -78,6 +99,16 @@ func (i *idTokenVerifier) Verify(verifyLTV bool) error {
 	if !emailClaims.EmailVerified {
 		return errors.New("e-mail was not verified")
 	}
+	i.cfg.Logger.WithFields(log.Fields{
+		"email":          emailClaims.Email,
+		"email_verified": emailClaims.EmailVerified,
+	}).Info("decoded id token claims")
+
+	signer := <-i.signer
+	if emailClaims.Email != signer.EmailAddresses[0] {
+		return fmt.Errorf("id token email %s doesn't match signer email %s", emailClaims.Email, signer.EmailAddresses[0])
+	}
+
 	if verifyLTV {
 		l := LTVVerifier{
 			Certs:   i.key.Certificates,
@@ -87,6 +118,7 @@ func (i *idTokenVerifier) Verify(verifyLTV bool) error {
 			return fmt.Errorf("verifyLTV information for id token not valid: %w", err)
 		}
 	}
+	i.cfg.Logger.Info("finished verifying")
 
 	return nil
 }

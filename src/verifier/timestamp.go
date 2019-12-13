@@ -2,6 +2,7 @@ package verifier
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"go.mozilla.org/pkcs7"
 	"time"
 )
@@ -18,52 +19,58 @@ func (t timestampError) Error() string {
 
 type TimestampVerifier struct {
 	data        []byte
-	signingTime chan (time.Time)
 	timestamps  [][]byte
 	verifyLTV   bool
+	signingTime chan time.Time
 	ltvData     map[string]*LTV
+	cfg         *Config
 }
 
-func NewTimestampVerifier(timestamps [][]byte, data []byte, verifyLTV bool, ltvData map[string]*LTV) *TimestampVerifier {
+func NewTimestampVerifier(timestamps [][]byte, data []byte, verifyLTV bool, ltvData map[string]*LTV, cfg Config) *TimestampVerifier {
+	cfg.Logger = cfg.Logger.WithField("verifier", "timestamp")
 	return &TimestampVerifier{
 		data:        data,
-		signingTime: make(chan time.Time, 1),
 		timestamps:  timestamps,
 		verifyLTV:   verifyLTV,
 		ltvData:     ltvData,
+		cfg:         &cfg,
+		signingTime: make(chan time.Time, 1),
 	}
-}
-
-func (t *TimestampVerifier) SigningTime() time.Time {
-	return <-t.signingTime
 }
 
 func (t *TimestampVerifier) verifyTimestamp(timestamp []byte, data []byte) (*time.Time, error) {
 	ts, err := pkcs7.ParseTSResponse(timestamp)
 	if err != nil {
-		return nil, fmt.Errorf("could not parse timestamp response: %w", err)
+		return nil, err
 	}
 	if t.verifyLTV {
 		l := LTVVerifier{
 			Certs:   ts.Certificates,
 			LTVData: t.ltvData,
 		}
-		if err = l.Verify(); err != nil {
-			return nil, fmt.Errorf("verifyLTV information for timestamp not valid: %w", err)
+		if err := l.Verify(); err != nil {
+			return nil, err
 		}
 	}
 
-	if err = verifyHash(data, ts.HashedMessage, ts.HashAlgorithm); err != nil {
-		return nil, fmt.Errorf("could not verify hash: %w", err)
+	if err = verifyHash(data, ts.HashedMessage, ts.HashAlgorithm, t.cfg); err != nil {
+		return nil, err
 	}
+	t.cfg.Logger.WithFields(log.Fields{
+		"timestamp":        ts.Time,
+		"timestamped_hash": fmt.Sprintf("%x", ts.HashedMessage),
+	}).Info("verified timestamp")
+
 	return &ts.Time, nil
 }
 
 func (t *TimestampVerifier) Verify() error {
+	t.cfg.Logger.Info("started verifying")
 	if t.timestamps == nil || len(t.timestamps) == 0 {
 		return ErrNoTimestamps
 	}
 
+	t.cfg.Logger.Infof("got %d timestamps", len(t.timestamps))
 	for i := len(t.timestamps) - 1; i >= 0; i-- {
 		var hashData []byte
 		// during last signature the data is not in the previous(next) signature,
@@ -86,5 +93,10 @@ func (t *TimestampVerifier) Verify() error {
 			t.signingTime <- *notAfter
 		}
 	}
+	t.cfg.Logger.Info("finished verifying")
 	return nil
+}
+
+func (t *TimestampVerifier) SigningTime() time.Time {
+	return <-t.signingTime
 }

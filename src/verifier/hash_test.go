@@ -38,8 +38,9 @@ func TestVerifyHash(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			cfg := &Config{}
 			hash, _ := hex.DecodeString(tt.hash)
-			if err := verifyHash(tt.data, hash, tt.algorithm); err != nil != tt.wantErr {
+			if err := verifyHash(tt.data, hash, tt.algorithm, cfg); err != nil != tt.wantErr {
 				t.Errorf("VerifyHashes() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

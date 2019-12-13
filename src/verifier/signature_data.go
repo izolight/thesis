@@ -7,18 +7,22 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 )
 
 type signatureDataVerifier struct {
 	data         *SignatureData
 	documentHash []byte
 	nonce        chan string
+	cfg          *Config
 }
 
-func NewSignatureDataVerifier(data *SignatureData, documentHash string) (*signatureDataVerifier, error) {
+func NewSignatureDataVerifier(data *SignatureData, documentHash string, cfg Config) (*signatureDataVerifier, error) {
+	cfg.Logger = cfg.Logger.WithField("verifier", "signature data")
 	v := &signatureDataVerifier{
 		data:  data,
 		nonce: make(chan string, 1),
+		cfg:   &cfg,
 	}
 	hash, err := hex.DecodeString(documentHash)
 	if err != nil {
@@ -33,6 +37,7 @@ func (s *signatureDataVerifier) SendNonce(nonce string) {
 }
 
 func (s *signatureDataVerifier) Verify(verifyLTV bool) error {
+	s.cfg.Logger.Info("started verifying")
 	macAlgo, err := s.data.MacAlgorithm.Algorithm()
 	if err != nil {
 		return err
@@ -40,6 +45,12 @@ func (s *signatureDataVerifier) Verify(verifyLTV bool) error {
 	macer := hmac.New(macAlgo.New, s.data.MacKey)
 	macer.Write(s.documentHash)
 	mac := macer.Sum(nil)
+	s.cfg.Logger.WithFields(log.Fields{
+		"mac":           fmt.Sprintf("%x", mac),
+		"mac_key":       fmt.Sprintf("%x", s.data.MacKey),
+		"document_hash": fmt.Sprintf("%x", s.documentHash),
+		"mac_algorithm": s.data.MacAlgorithm,
+	}).Info("calculated mac")
 	foundMAC := false
 	for _, m := range s.data.SaltedDocumentHash {
 		if bytes.Equal(mac, m) {
@@ -68,7 +79,14 @@ func (s *signatureDataVerifier) Verify(verifyLTV bool) error {
 	if !bytes.Equal(nonce, computedNonce) {
 		return errors.New("computed nonce and id token nonce don't match")
 	}
+	s.cfg.Logger.WithFields(log.Fields{
+		"hash_algorithm":         s.data.HashAlgorithm,
+		"salted_document_hashes": fmt.Sprintf("%x", s.data.SaltedDocumentHash),
+		"computed_nonce":         fmt.Sprintf("%x", computedNonce),
+		"id_token_nonce":         fmt.Sprintf("%x", nonce),
+	}).Info("calculated nonce")
 
+	s.cfg.Logger.Info("finished verifying")
 	return nil
 }
 

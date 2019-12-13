@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,10 +13,10 @@ import (
 
 func TestVerifyHandler(t *testing.T) {
 	tests := []struct {
-		name string
+		name     string
 		filename string
-		hash string
-		wantErr bool
+		hash     string
+		wantErr  bool
 	}{
 		{name: "valid signature file", filename: "signaturefile", hash: "06180c7ede6c6936334501f94ccfc5d0ff828e57a4d8f6dc03f049eaad5fb308", wantErr: false},
 	}
@@ -28,8 +29,17 @@ func TestVerifyHandler(t *testing.T) {
 				t.Fatal(err)
 			}
 			rr := httptest.NewRecorder()
-			handler := http.HandlerFunc(verifier.VerifyHandler)
-			handler.ServeHTTP(rr, req)
+			verifier.VerifyHandler(rr, req)
+
+			body, _ := ioutil.ReadAll(rr.Result().Body)
+			resp := &verifier.VerifyResponse{}
+
+			if err := json.Unmarshal(body, resp); err != nil {
+				t.Fatal(err)
+			}
+			if !resp.Valid != tt.wantErr {
+				t.Errorf("validation failure: %s", resp.Error)
+			}
 		})
 	}
 }
