@@ -40,10 +40,7 @@ func TestVerifySignatureData(t *testing.T) {
 			if tt.args.data == nil {
 				tt.args.data = generateFakeSignatureData(t, tt.hash)
 			}
-			v, err := verifier.NewSignatureDataVerifier(tt.args.data, tt.args.hash, cfg)
-			if err != nil != tt.wantErr {
-				t.Errorf("could not create signature data verifier = %v, wantErr %v", err, tt.wantErr)
-			}
+			v := verifier.NewSignatureDataVerifier(tt.args.data, tt.args.hash, cfg)
 			if tt.nonce == "" {
 				tt.nonce = generateNonce(t, tt.args.data.SaltedDocumentHash)
 			}

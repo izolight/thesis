@@ -12,24 +12,20 @@ import (
 
 type signatureDataVerifier struct {
 	data         *SignatureData
-	documentHash []byte
+	documentHash string
 	nonce        chan string
 	cfg          *Config
 }
 
-func NewSignatureDataVerifier(data *SignatureData, documentHash string, cfg Config) (*signatureDataVerifier, error) {
+func NewSignatureDataVerifier(data *SignatureData, documentHash string, cfg Config) *signatureDataVerifier {
 	cfg.Logger = cfg.Logger.WithField("verifier", "signature data")
 	v := &signatureDataVerifier{
 		data:  data,
 		nonce: make(chan string, 1),
 		cfg:   &cfg,
+		documentHash: documentHash,
 	}
-	hash, err := hex.DecodeString(documentHash)
-	if err != nil {
-		return nil, fmt.Errorf("could not decode document hash: %w", err)
-	}
-	v.documentHash = hash
-	return v, nil
+	return v
 }
 
 func (s *signatureDataVerifier) SendNonce(nonce string) {
@@ -43,12 +39,16 @@ func (s *signatureDataVerifier) Verify(verifyLTV bool) error {
 		return err
 	}
 	macer := hmac.New(macAlgo.New, s.data.MacKey)
-	macer.Write(s.documentHash)
+	hashBytes, err := hex.DecodeString(s.documentHash)
+	if err != nil {
+		return fmt.Errorf("could not decode document hash: %w", err)
+	}
+	macer.Write(hashBytes)
 	mac := macer.Sum(nil)
 	s.cfg.Logger.WithFields(log.Fields{
 		"mac":           fmt.Sprintf("%x", mac),
 		"mac_key":       fmt.Sprintf("%x", s.data.MacKey),
-		"document_hash": fmt.Sprintf("%x", s.documentHash),
+		"document_hash": s.documentHash,
 		"mac_algorithm": s.data.MacAlgorithm,
 	}).Info("calculated mac")
 	foundMAC := false

@@ -48,18 +48,15 @@ func (s *SignatureVerifier) VerifySignatureFile(file *SignatureFile, hash string
 		}()
 
 		signatureData := signatureContainerVerifier.SignatureData()
-		signatureDataVerifier, err := NewSignatureDataVerifier(&signatureData, hash, s.cfg)
-		if err != nil {
-			errors <- fmt.Errorf("could not create signature data verifier: %w", err)
-		}
+		signatureDataVerifier := NewSignatureDataVerifier(&signatureData, hash, s.cfg)
 
 		wg.Add(1)
-		go func(logger *log.Entry) {
+		go func() {
 			defer wg.Done()
 			if err := signatureDataVerifier.Verify(false); err != nil {
 				errors <- fmt.Errorf("could not verify signatureData: %w", err)
 			}
-		}(s.cfg.Logger)
+		}()
 
 		signingTime := timestampVerifier.SigningTime()
 		signatureContainerVerifier.SendSigningTime(signingTime)
