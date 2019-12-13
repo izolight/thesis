@@ -1,0 +1,27 @@
+{
+  "author": "Patrick Hirt <patrick.hirt@gmail.com>",
+  "name": "rust-wasm-hashing",
+  "version": "0.1.0",
+  "scripts": {
+    "build": "rimraf dist pkg && webpack",
+    "start": "rimraf dist pkg && webpack-dev-server -d",
+    "test": "cargo test && wasm-pack test --headless"
+  },
+  "devDependencies": {
+    "@wasm-tool/wasm-pack-plugin": "^0.4.2",
+    "copy-webpack-plugin": "^5.0.3",
+    "webpack": "^4.33.0",
+    "webpack-cli": "^3.3.3",
+    "webpack-dev-server": "^3.7.1",
+    "rimraf": "^2.6.3",
+    "ts-loader": "^6.2.1",
+    "typescript": "^3.6.4",
+    "bootstrap": "~4.4.1",
+    "bootstrap-material-design": "~4.1.2",
+    "precss": "~4.0.0",
+    "autoprefixer": "~9.7.3",
+    "@types/node": "~12.12.14",
+    "@types/bootstrap": "~4.3.1",
+    "html-webpack-plugin": "~3.2.0"
+  }
+}

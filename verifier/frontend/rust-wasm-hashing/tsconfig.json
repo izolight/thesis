@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "target": "es6",
+    "module": "esnext",
+    "sourceMap": true,
+    "strict": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true
+  },
+//  "files": [
+//    "node_modules/@types/**/*ts"
+//  ],
+//      "include": [
+  //    "./src/file_chunker/*ts",
+  //    "./src/wasm_hasher/*ts"
+//      "node_modules/@types/**/*ts"
+//      ],
+  "exclude": [
+    "node_modules",
+    "**/*.wasm"
+  ]
+}
