@@ -2,6 +2,7 @@ import {Validate} from "./validate";
 import {Sha256hasher} from "../pkg";
 import {q} from "./tsQuery";
 import {
+    Base64Callback,
     Callable,
     ErrorCallback,
     FileChunkDataCallback,
@@ -13,6 +14,7 @@ import {
 } from "./interfaces";
 import {Http} from "./http";
 import {Queue} from "./callbackHellChainer";
+import has = Reflect.has;
 
 
 class FileInChunksProcessor {
@@ -82,7 +84,7 @@ export class TS {
         }
     }
 
-    public static showSubmissionButton(hashList: Array<string>, base64File: string) {
+    public static showSubmissionButton(hashList: Array<string>, base64List: Array<string>) {
         const inputFilesArea = q("input-files-area");
         if (Validate.notNull(inputFilesArea)) {
             inputFilesArea.innerHTML = `<p class="lead">Hashing completed. Continue when ready</p>
@@ -91,18 +93,18 @@ export class TS {
             if (Validate.notNull(btn)) {
                 (btn as HTMLButtonElement).onclick = (_) => {
                     (btn as HTMLButtonElement).disabled = true;
-                    this.submitHashes(hashList, base64File);
+                    this.submitHashes(hashList, base64List);
                 }
             }
         }
     }
 
-    public static submitHashes(hashList: Array<string>, base64File: string) {
+    public static submitHashes(hashList: Array<string>, base64List: Array<string>) {
             Http.request<PostHashesResponse>('POST',
-                '/verify',
+                'verify',
                 JSON.stringify({
                     hash: hashList[0],
-                    signature: base64File
+                    signature: base64List[0]
                 }),
                 response => {
                     console.log(response);
@@ -151,6 +153,17 @@ export class TS {
             return (_) => {
                 console.log(`cardElement file.${index} was null, cannot update progress`);
             }
+        }
+    }
+
+    public static base64CompletedBuilder(next: Callable,
+                                         base64List: Array<string>,
+                                         base64er: Base64er
+    ): Callable {
+        return () => {
+            const base64File = base64er.get();
+            base64List.push(base64File);
+            next();
         }
     }
 
@@ -227,49 +240,95 @@ export function processFileButtonHandler(wasmHasher: Sha256hasher) {
     const fileList = TS.getFilesFromElement("file");
     const sigFileList = TS.getFilesFromElement("signature");
     const hashList = new Array<string>();
+    const base64List = new Array<string>();
 
-    if (Validate.notNullNotUndefined(sigFileList)) {
-        const file = sigFileList[0];
-        let fileReader = new FileReader();
-        fileReader.onload = () => {
-            if (Validate.notNull(file)) {
-                fileReader.readAsBinaryString(file);
-                let base64File = btoa(fileReader.result as string);
+    const hashersQueue = new Queue(() => {
+        TS.showSubmissionButton(hashList, base64List)
+    });
 
-                const hashersQueue = new Queue(() => {
-                    TS.showSubmissionButton(hashList, base64File)
-                });
-
-                if (Validate.notNullNotUndefined(fileList)) {
-                    for (let i = 0; i < fileList.length; i++) {
-                        const file = fileList[i];
-                        const cardDeck = q('cardarea');
-                        if (Validate.notNullNotUndefined(cardDeck)) {
-                            const newCard = document.createElement('div');
-                            newCard.id = `file.${i}`;
-                            newCard.innerHTML = TS.renderCardTemplate(file, 'Queued');
-                            if (Validate.notNull(cardDeck.parentNode)) {
-                                cardDeck.parentNode.insertBefore(newCard, cardDeck);
-                            }
-                        }
-
-                        hashersQueue.add(
-                            (next: Callable) => {
-                                new FileInChunksProcessor((data) => {
-                                        wasmHasher.update(new Uint8Array((data)));
-                                    },
-                                    TS.errorHandlingCallback,
-                                    TS.progressCallbackBuilder(file, i),
-                                    TS.processingCompletedBuilder(next as Callable, hashList, file, i, wasmHasher)
-                                ).processChunks(fileList[i]);
-                            }
-                        );
-                    }
-                    hashersQueue.start();
+    if (Validate.notNullNotUndefined(fileList) && Validate.notNullNotUndefined(sigFileList)) {
+        for (let i = 0; i < fileList.length; i++) {
+            const file = fileList[i];
+            const cardDeck = q('cardarea');
+            if (Validate.notNullNotUndefined(cardDeck)) {
+                const newCard = document.createElement('div');
+                newCard.id = `file.${i}`;
+                newCard.innerHTML = TS.renderCardTemplate(file, 'Queued');
+                if (Validate.notNull(cardDeck.parentNode)) {
+                    cardDeck.parentNode.insertBefore(newCard, cardDeck);
                 }
+            }
+
+            hashersQueue.add(
+                (next: Callable) => {
+                    new FileInChunksProcessor((data) => {
+                            wasmHasher.update(new Uint8Array((data)));
+                        },
+                        TS.errorHandlingCallback,
+                        TS.progressCallbackBuilder(file, i),
+                        TS.processingCompletedBuilder(next as Callable, hashList, file, i, wasmHasher)
+                    ).processChunks(fileList[i]);
+                }
+            );
+        }
+
+        for (let i = 0; i < sigFileList.length; i++) {
+            const file = sigFileList[i];
+            let base64er = new Base64er();
+            hashersQueue.add(
+                (next: Callable) => {
+                    new Base64Processor(file,
+                        (data) => {
+                            base64er.update(data);
+                        },
+                        TS.base64CompletedBuilder(next as Callable, hashList, base64er)
+                    );
+                }
+            );
+        }
+
+        hashersQueue.start();
+    }
+}
+
+class Base64Processor {
+    private readonly fileReader: FileReader;
+    private readonly dataCallback: Base64Callback;
+    private readonly processingCompletedCallback: ProcessingCompletedCallback;
+    private readonly inputFile: File | null = null;
+
+    constructor(inputFile: File,
+                dataCallback: Base64Callback,
+                processingCompletedCallback: Callable) {
+        this.inputFile = inputFile;
+        this.dataCallback = dataCallback;
+        this.processingCompletedCallback = processingCompletedCallback;
+        this.fileReader = new FileReader();
+        this.fileReader.onload = this.getFileReadOnLoadHandler();
+        console.log(this.inputFile);
+        console.log(this.fileReader);
+    }
+
+    private getFileReadOnLoadHandler(): FileReaderOnLoadCallback {
+        return () => {
+            console.log("foo");
+            if (Validate.notNull(this.inputFile)) {
+                this.fileReader.readAsBinaryString(this.inputFile);
+                this.dataCallback(this.fileReader.result as string);
+                this.processingCompletedCallback();
             }
         }
     }
-
 }
 
+class Base64er {
+    private base64File: string = "";
+
+    public update(input: string) {
+        this.base64File = btoa(input);
+    }
+
+    public get(): string {
+        return this.base64File;
+    }
+}

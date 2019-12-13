@@ -21,6 +21,10 @@ export interface FileChunkDataCallback {
     (data: Uint8Array): void
 }
 
+export interface Base64Callback {
+    (data: string): void
+}
+
 export interface ErrorCallback {
     (message: string): void
 }
