@@ -53,7 +53,7 @@ func (t *TimestampVerifier) verifyTimestamp(timestamp []byte, data []byte) (*tim
 		}
 	}
 
-	if err = verifyHash(data, ts.HashedMessage, ts.HashAlgorithm, t.cfg); err != nil {
+	if err = verifyHash(data, ts.HashedMessage, ts.HashAlgorithm, *t.cfg); err != nil {
 		return nil, err
 	}
 	t.cfg.Logger.WithFields(log.Fields{

@@ -3,6 +3,7 @@ package verifier_test
 import (
 	"crypto/sha256"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier"
 	"testing"
 	"time"
@@ -35,6 +36,7 @@ func TestVerifyIDToken(t *testing.T) {
 		key       []byte
 		ltv       map[string]*verifier.LTV
 		verifyLTV bool
+		email     string
 	}
 	tests := []struct {
 		name    string
@@ -52,6 +54,7 @@ func TestVerifyIDToken(t *testing.T) {
 				key:       jwkFile,
 				ltv:       ltv,
 				verifyLTV: false,
+				email:     "test2@thesis.izolight.xyz",
 			},
 			wantErr: false,
 		},
@@ -101,9 +104,12 @@ func TestVerifyIDToken(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			logger := log.New()
+			logger.SetLevel(log.FatalLevel)
 			cfg := verifier.Config{
 				Issuer:   tt.args.issuer,
 				ClientId: tt.args.clientId,
+				Logger:   log.NewEntry(logger),
 			}
 			signatureData := &verifier.SignatureData{
 				IdToken: tt.args.token,
@@ -111,6 +117,7 @@ func TestVerifyIDToken(t *testing.T) {
 				LtvIdp:  tt.args.ltv,
 			}
 			v, err := verifier.NewIDTokenVerifier(signatureData, tt.args.notAfter, cfg)
+			v.SendEmail(tt.args.email)
 			if err != nil {
 				t.Fatalf("NewIDTokenVerifier error = %v, wantErr %v", err, tt.wantErr)
 			}

@@ -80,7 +80,7 @@ func (s *SignatureVerifier) VerifySignatureFile(file *SignatureFile, hash string
 			signatureDataVerifier.SendNonce(idTokenVerifier.Nonce())
 		}()
 		signer := signatureContainerVerifier.Signer()
-		idTokenVerifier.SendSigner(signer)
+		idTokenVerifier.SendEmail(signer.EmailAddresses[0])
 
 		wg.Wait()
 		responses <- VerifyResponse{

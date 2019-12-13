@@ -2,7 +2,6 @@ package verifier
 
 import (
 	"context"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"github.com/coreos/go-oidc"
@@ -12,15 +11,15 @@ import (
 )
 
 type idTokenVerifier struct {
-	token     []byte
-	nonce     chan string
-	signer    chan *x509.Certificate
-	notAfter  func() time.Time
-	key       jose.JSONWebKey
-	ltvData   map[string]*LTV
-	verifyLTV bool
-	ctx       context.Context
-	cfg       *Config
+	token       []byte
+	nonce       chan string
+	signerEmail chan string
+	notAfter    func() time.Time
+	key         jose.JSONWebKey
+	ltvData     map[string]*LTV
+	verifyLTV   bool
+	ctx         context.Context
+	cfg         *Config
 }
 
 func NewIDTokenVerifier(signatureData *SignatureData, notAfter time.Time, cfg Config) (*idTokenVerifier, error) {
@@ -29,14 +28,14 @@ func NewIDTokenVerifier(signatureData *SignatureData, notAfter time.Time, cfg Co
 	}
 	cfg.Logger = cfg.Logger.WithField("verifier", "id token")
 	i := &idTokenVerifier{
-		token:    signatureData.IdToken,
-		nonce:    make(chan string, 1),
-		signer:   make(chan *x509.Certificate, 1),
-		notAfter: notAfter.Local,
-		ltvData:  signatureData.LtvIdp,
-		ctx:      context.Background(),
-		key:      jose.JSONWebKey{},
-		cfg:      &cfg,
+		token:       signatureData.IdToken,
+		nonce:       make(chan string, 1),
+		signerEmail: make(chan string, 1),
+		notAfter:    notAfter.Local,
+		ltvData:     signatureData.LtvIdp,
+		ctx:         context.Background(),
+		key:         jose.JSONWebKey{},
+		cfg:         &cfg,
 	}
 	if err := i.key.UnmarshalJSON(signatureData.JwkIdp); err != nil {
 		return nil, fmt.Errorf("could not unmarshal jwk: %w", err)
@@ -62,8 +61,8 @@ func (i *idTokenVerifier) Nonce() string {
 	return <-i.nonce
 }
 
-func (i *idTokenVerifier) SendSigner(signer *x509.Certificate) {
-	i.signer <- signer
+func (i *idTokenVerifier) SendEmail(signerEmail string) {
+	i.signerEmail <- signerEmail
 }
 
 func (i *idTokenVerifier) Verify(verifyLTV bool) error {
@@ -104,9 +103,9 @@ func (i *idTokenVerifier) Verify(verifyLTV bool) error {
 		"email_verified": emailClaims.EmailVerified,
 	}).Info("decoded id token claims")
 
-	signer := <-i.signer
-	if emailClaims.Email != signer.EmailAddresses[0] {
-		return fmt.Errorf("id token email %s doesn't match signer email %s", emailClaims.Email, signer.EmailAddresses[0])
+	signerEmail := <-i.signerEmail
+	if emailClaims.Email != signerEmail {
+		return fmt.Errorf("id token email %s doesn't match signerEmail email %s", emailClaims.Email, signerEmail)
 	}
 
 	if verifyLTV {

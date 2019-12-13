@@ -83,7 +83,7 @@ func (s *SignatureContainerVerifier) Verify(verifyLTV bool) error {
 		"issuer":     signer.Issuer,
 		"not_before": signer.NotBefore,
 		"not_after":  signer.NotAfter,
-	}).Info("pkcs7 signer infos")
+	}).Info("pkcs7 signerEmail infos")
 
 	s.cfg.Logger.Info("finished verifying")
 	return nil

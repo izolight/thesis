@@ -27,13 +27,15 @@ func TestVerifySignatureFile(t *testing.T) {
 
 	rootCA := parsePEM(t, "rootCA.pem")
 
+	logger := log.New()
+	logger.SetLevel(log.FatalLevel)
 	cfg := verifier.Config{
 		Issuer:   "https://keycloak.thesis.izolight.xyz/auth/realms/master",
 		ClientId: "thesis",
 		AdditionalCerts: []*x509.Certificate{
 			rootCA,
 		},
-		Logger: log.NewEntry(log.New()),
+		Logger: log.NewEntry(logger),
 	}
 
 	for _, tt := range tests {

@@ -17,7 +17,7 @@ func (h hashError) Error() string {
 	return string(h)
 }
 
-func verifyHash(data []byte, hash []byte, algorithm crypto.Hash, cfg *Config) error {
+func verifyHash(data []byte, hash []byte, algorithm crypto.Hash, cfg Config) error {
 	if len(hash) != algorithm.Size() {
 		return fmt.Errorf("input hash doesn't size :%d doesn't match expected :%d", len(hash), algorithm.Size())
 	}

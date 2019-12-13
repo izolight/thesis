@@ -3,6 +3,7 @@ package verifier
 import (
 	"crypto"
 	"encoding/hex"
+	log "github.com/sirupsen/logrus"
 	"testing"
 )
 
@@ -38,9 +39,8 @@ func TestVerifyHash(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg := &Config{}
 			hash, _ := hex.DecodeString(tt.hash)
-			if err := verifyHash(tt.data, hash, tt.algorithm, cfg); err != nil != tt.wantErr {
+			if err := verifyHash(tt.data, hash, tt.algorithm, Config{Logger: log.NewEntry(log.New())}); err != nil != tt.wantErr {
 				t.Errorf("VerifyHashes() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

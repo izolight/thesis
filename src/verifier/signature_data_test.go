@@ -4,6 +4,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	log "github.com/sirupsen/logrus"
 	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier"
 	"testing"
 )
@@ -28,13 +29,18 @@ func TestVerifySignatureData(t *testing.T) {
 			wantErr: false,
 		},
 	}
+	logger := log.New()
+	logger.SetLevel(log.FatalLevel)
+	cfg := verifier.Config{
+		Logger: log.NewEntry(logger),
+	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.args.data == nil {
 				tt.args.data = generateFakeSignatureData(t, tt.hash)
 			}
-			v, err := verifier.NewSignatureDataVerifier(tt.args.data, tt.args.hash, verifier.Config{})
+			v, err := verifier.NewSignatureDataVerifier(tt.args.data, tt.args.hash, cfg)
 			if err != nil != tt.wantErr {
 				t.Errorf("could not create signature data verifier = %v, wantErr %v", err, tt.wantErr)
 			}

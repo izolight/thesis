@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier"
 	"io/ioutil"
 	"testing"
@@ -95,12 +96,16 @@ func TestVerifyTimestamp(t *testing.T) {
 			expectedErr: verifier.ErrNoTimestamps,
 		},
 	}
+	logger := log.New()
+	logger.SetLevel(log.FatalLevel)
+	cfg := verifier.Config{
+		Logger: log.NewEntry(logger),
+	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg := verifier.Config{}
-			verifier := verifier.NewTimestampVerifier(tt.args.timestamps, tt.args.data, tt.args.verifyLTV, tt.args.ltvData, cfg)
-			err := verifier.Verify()
+			v := verifier.NewTimestampVerifier(tt.args.timestamps, tt.args.data, tt.args.verifyLTV, tt.args.ltvData, cfg)
+			err := v.Verify()
 			if err != nil != tt.wantErr {
 				t.Errorf("Verify() error = %v, wantErr %v", err, tt.wantErr)
 			}
