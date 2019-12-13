@@ -13,12 +13,7 @@ function start(Sha256hasher: typeof import('../pkg')) {
 }
 
 async function load() {
-    if(document.location.pathname.includes("index")) {
         start(await import("../pkg"));
-    }
-    else if(document.location.pathname.includes("callback")){
-        CB.handle();
-    }
 }
 
 load();

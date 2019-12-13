@@ -28,28 +28,34 @@ type VerifyResponse struct {
 	SignatureTime  time.Time      `json:"signature_time"`
 }
 
-func init() {
-	file, err := ioutil.ReadFile("testdata/rootCA.pem")
-	if err != nil {
-		log.Fatal(err)
+func NewDefaultCfg(caFile []byte) Config {
+	cfg := Config{
+		Issuer:   "https://keycloak.thesis.izolight.xyz/auth/realms/master",
+		ClientId: "thesis",
 	}
-	filePEM, _ := pem.Decode(file)
+	filePEM, _ := pem.Decode(caFile)
 	rootCA, err := x509.ParseCertificate(filePEM.Bytes)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defaultRootCA = rootCA
+	cfg.AdditionalCerts = []*x509.Certificate{
+		rootCA,
+	}
+	return cfg
 }
 
-var defaultRootCA *x509.Certificate
-
-var defaultConfig = Config{
-	Issuer:   "https://keycloak.thesis.izolight.xyz/auth/realms/master",
-	ClientId: "thesis",
+type VerifyService struct {
+	cfg Config
 }
 
-func VerifyHandler(w http.ResponseWriter, r *http.Request) {
+func NewVerifyService(cfg Config) *VerifyService {
+	return &VerifyService{cfg: cfg}
+}
+
+func (v *VerifyService) VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	logger := newRequestLogger()
+	localCfg := v.cfg
+	localCfg.Logger = logger
 	logger.Info("received verify request")
 
 	w.Header().Set("Content-Type", "application/json")
@@ -91,16 +97,7 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	logger.Info("unmarshaled signature file")
 
-	cfg := Config{
-		Issuer:   defaultConfig.Issuer,
-		ClientId: defaultConfig.ClientId,
-		Logger:   logger,
-		AdditionalCerts: []*x509.Certificate{
-			defaultRootCA,
-		},
-	}
-
-	s := NewSignatureVerifier(cfg)
+	s := NewSignatureVerifier(localCfg)
 	resp, err = s.VerifySignatureFile(signatureFile, in.Hash)
 	logger.Info("verified signature file")
 	if err != nil {

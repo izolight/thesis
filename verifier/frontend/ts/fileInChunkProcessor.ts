@@ -82,39 +82,40 @@ export class TS {
         }
     }
 
-    public static showSubmissionButton(hashList: Array<string>) {
+    public static showSubmissionButton(hashList: Array<string>, base64File: string) {
         const inputFilesArea = q("input-files-area");
         if (Validate.notNull(inputFilesArea)) {
             inputFilesArea.innerHTML = `<p class="lead">Hashing completed. Continue when ready</p>
-                         <button type="button" class="btn btn-block btn-outline-primary" id="submithashes">Submit for signing</button>`;
+                         <button type="button" class="btn btn-block btn-outline-primary" id="submithashes">Submit for verifying</button>`;
             const btn = q("submithashes");
             if (Validate.notNull(btn)) {
                 (btn as HTMLButtonElement).onclick = (_) => {
                     (btn as HTMLButtonElement).disabled = true;
-                    this.submitHashes(hashList);
+                    this.submitHashes(hashList, base64File);
                 }
             }
         }
     }
 
-    public static submitHashes(hashList: Array<string>) {
-        Http.request<PostHashesResponse>('POST',
-            '/api/v1/hashes/',
-            JSON.stringify({
-                hashes: hashList
-            }),
-            response => {
-                console.log(response);
-                const p: PoorPeoplePersistence = {
-                    postHashesResponse: response,
-                    hashes: hashList
-                };
-                localStorage.setItem('lolnogenerics', JSON.stringify(p));
-                this.showIdpLoginButtons(response);
-            },
-            err => console.log(`error ${err}`),
-            'application/json');
-        console.log(`POST ${hashList}`);
+    public static submitHashes(hashList: Array<string>, base64File: string) {
+            Http.request<PostHashesResponse>('POST',
+                '/verify',
+                JSON.stringify({
+                    hash: hashList[0],
+                    signature: base64File
+                }),
+                response => {
+                    console.log(response);
+                    const p: PoorPeoplePersistence = {
+                        postHashesResponse: response,
+                        hashes: hashList
+                    };
+                    localStorage.setItem('lolnogenerics', JSON.stringify(p));
+                    this.showIdpLoginButtons(response);
+                },
+                err => console.log(`error ${err}`),
+                'application/json');
+            console.log(`POST ${hashList}`);
     }
 
     public static showIdpLoginButtons(response: PostHashesResponse) {
@@ -195,8 +196,9 @@ export class TS {
     }
 
     public static getFilesFromElement(elementId: string): FileList | undefined {
+        console.log(elementId);
         const filesElement = q(elementId) as HTMLInputElement;
-
+        console.log(filesElement);
         if (Validate.notNull(filesElement.files)) {
             if (filesElement.files.length < 0) {
                 alert("Too few files selected. Please select at least one file.")
@@ -210,7 +212,7 @@ export class TS {
     public static updateFilesArea(message: string) {
         const inputFilesArea = q("input-files-area");
         if (Validate.notNull(inputFilesArea)) {
-            inputFilesArea.innerHTML = `<p class="lead">${message}</p>`;
+            //inputFilesArea.innerHTML = `<p class="lead">${message}</p>`;
         }
     }
 
@@ -223,37 +225,51 @@ export class TS {
 
 export function processFileButtonHandler(wasmHasher: Sha256hasher) {
     const fileList = TS.getFilesFromElement("file");
+    const sigFileList = TS.getFilesFromElement("signature");
     const hashList = new Array<string>();
-    const hashersQueue = new Queue(() => {
-        TS.showSubmissionButton(hashList)
-    });
 
-    if (Validate.notNullNotUndefined(fileList)) {
-        for (let i = 0; i < fileList.length; i++) {
-            const file = fileList[i];
-            const cardDeck = q('cardarea');
-            if (Validate.notNullNotUndefined(cardDeck)) {
-                const newCard = document.createElement('div');
-                newCard.id = `file.${i}`;
-                newCard.innerHTML = TS.renderCardTemplate(file, 'Queued');
-                if (Validate.notNull(cardDeck.parentNode)) {
-                    cardDeck.parentNode.insertBefore(newCard, cardDeck);
+    if (Validate.notNullNotUndefined(sigFileList)) {
+        const file = sigFileList[0];
+        let fileReader = new FileReader();
+        fileReader.onload = () => {
+            if (Validate.notNull(file)) {
+                fileReader.readAsBinaryString(file);
+                let base64File = btoa(fileReader.result as string);
+
+                const hashersQueue = new Queue(() => {
+                    TS.showSubmissionButton(hashList, base64File)
+                });
+
+                if (Validate.notNullNotUndefined(fileList)) {
+                    for (let i = 0; i < fileList.length; i++) {
+                        const file = fileList[i];
+                        const cardDeck = q('cardarea');
+                        if (Validate.notNullNotUndefined(cardDeck)) {
+                            const newCard = document.createElement('div');
+                            newCard.id = `file.${i}`;
+                            newCard.innerHTML = TS.renderCardTemplate(file, 'Queued');
+                            if (Validate.notNull(cardDeck.parentNode)) {
+                                cardDeck.parentNode.insertBefore(newCard, cardDeck);
+                            }
+                        }
+
+                        hashersQueue.add(
+                            (next: Callable) => {
+                                new FileInChunksProcessor((data) => {
+                                        wasmHasher.update(new Uint8Array((data)));
+                                    },
+                                    TS.errorHandlingCallback,
+                                    TS.progressCallbackBuilder(file, i),
+                                    TS.processingCompletedBuilder(next as Callable, hashList, file, i, wasmHasher)
+                                ).processChunks(fileList[i]);
+                            }
+                        );
+                    }
+                    hashersQueue.start();
                 }
             }
-
-            hashersQueue.add(
-                (next: Callable) => {
-                    new FileInChunksProcessor((data) => {
-                            wasmHasher.update(new Uint8Array((data)));
-                        },
-                        TS.errorHandlingCallback,
-                        TS.progressCallbackBuilder(file, i),
-                        TS.processingCompletedBuilder(next as Callable, hashList, file, i, wasmHasher)
-                    ).processChunks(fileList[i]);
-                }
-            );
         }
-        hashersQueue.start();
     }
+
 }
 

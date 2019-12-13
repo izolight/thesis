@@ -4,12 +4,29 @@ import (
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier"
+	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier/config"
+	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier/static"
+	"io/ioutil"
 	"net/http"
 )
 
 func main() {
+	// Serve static files
+	rootCAFile, err := config.Assets.Open("rootCA.pem")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	rootCA, err := ioutil.ReadAll(rootCAFile)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	r := mux.NewRouter()
-	r.HandleFunc("/verify", verifier.VerifyHandler).Methods("POST")
-	r.Handle("/static", http.FileServer(http.Dir("./static")))
-	log.Fatal(http.ListenAndServe(":8080", r))
+	verifySvc := verifier.NewVerifyService(verifier.NewDefaultCfg(rootCA))
+	r.HandleFunc("/verify", verifySvc.VerifyHandler).Methods("POST")
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(static.Assets)))
+	r.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/static/index.html", http.StatusFound)
+	})
+	log.Fatalln(http.ListenAndServe(":8080", r))
 }
