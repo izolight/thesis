@@ -6,12 +6,14 @@ import (
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
 	"go.mozilla.org/pkcs7"
+	"time"
 )
 
 type SignatureContainerVerifier struct {
 	container       []byte
 	data            chan SignatureData
 	signer          chan *x509.Certificate
+	signingTime     chan time.Time
 	additionalCerts []*x509.Certificate
 	cfg             *Config
 }
@@ -22,6 +24,7 @@ func NewSignatureContainerVerifier(c []byte, additionalCerts []*x509.Certificate
 		container:       c,
 		data:            make(chan SignatureData, 1),
 		signer:          make(chan *x509.Certificate, 1),
+		signingTime:     make(chan time.Time, 1),
 		additionalCerts: additionalCerts,
 		cfg:             &cfg,
 	}
@@ -69,6 +72,10 @@ func (s *SignatureContainerVerifier) Verify(verifyLTV bool) error {
 		}
 	}
 	signer := p7.GetOnlySigner()
+	signingTime := <-s.signingTime
+	if signer.NotBefore.After(signingTime) {
+		return fmt.Errorf("certificate was issued at %s, which is after the signing time %s", signer.NotBefore, signingTime)
+	}
 	s.signer <- signer
 	s.cfg.Logger.WithFields(log.Fields{
 		"subject":    signer.Subject,
@@ -88,4 +95,8 @@ func (s *SignatureContainerVerifier) SignatureData() SignatureData {
 
 func (s *SignatureContainerVerifier) Signer() *x509.Certificate {
 	return <-s.signer
+}
+
+func (s *SignatureContainerVerifier) SendSigningTime(signingTime time.Time) {
+	s.signingTime <- signingTime
 }

@@ -62,6 +62,7 @@ func (s *SignatureVerifier) VerifySignatureFile(file *SignatureFile, hash string
 		}(s.cfg.Logger)
 
 		signingTime := timestampVerifier.SigningTime()
+		signatureContainerVerifier.SendSigningTime(signingTime)
 		s.cfg.Logger.WithFields(log.Fields{
 			"signing_time": signingTime,
 		}).Info("decoded signing time")
