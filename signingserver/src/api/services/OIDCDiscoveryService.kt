@@ -154,35 +154,7 @@ class OurDemoOIDCService private constructor(
 
     override fun marshalJwk(jwk: Jwk) = json.stringify(JWK.serializer(), JWK.fromJwk(jwk))
 
-//    fun decodeJWT(idToken: String): Either<DecodedJWT> {
-//        return Either.Success(JWT.decode(idToken))
-//    }
-//
-//    fun decodeJWK(jwt: DecodedJWT): Either<Jwk> {
-//        return Either.Success(jwkProvider.get(jwt.keyId))
-//    }
-//
-//    fun getAlgorithm(jwk: Jwk): Either<Algorithm> {
-//        return Either.Success(
-//            when (jwk.algorithm) {
-//                "RS256" -> Algorithm.RSA256(
-//                    jwk.publicKey as RSAPublicKey,
-//                    null
-//                )
-//                else -> throw InvalidDataException("Unsupported algorithm")
-//            }
-//        )
-//    }
-//
-
     override fun validateIdToken(idToken: String): IOIDCService.JwtValidationResult {
-//        val decodedJwt = attempt {
-//            val jwt = attempt { decodeJWT(idToken) }
-//            val jwk = attempt(jwt) { decodeJWK(it) }
-//        }
-//
-//
-//    }
         try {
             val jwt = JWT.decode(idToken)
             try {
@@ -192,7 +164,7 @@ class OurDemoOIDCService private constructor(
                         jwk.publicKey as RSAPublicKey,
                         null
                     )
-                    else -> throw InvalidDataException("Unsupported algorithm")
+                    else -> throw InvalidDataException("Unsupported algorithm in JWK")
                 }
                 val verifier = JWT.require(algo)
                     .withIssuer(this.getIssuer().toString())

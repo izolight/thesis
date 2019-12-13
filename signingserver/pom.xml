@@ -303,7 +303,6 @@
                             <inputDirectories>
                                 <include>${protobuf.input.directory}</include>
                             </inputDirectories>
-                            <outputDirectories>${protobuf.output.directory}</outputDirectories>
                         </configuration>
                     </execution>
                 </executions>

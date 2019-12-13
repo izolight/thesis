@@ -14,6 +14,8 @@ import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.Routing
 import io.ktor.routing.post
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonConfiguration
 import org.koin.ktor.ext.inject
 import org.slf4j.Logger
 
@@ -22,15 +24,21 @@ fun Routing.postHashes() {
     val secretService by inject<ISecretService>()
     val oidcService by inject<IOIDCService>()
     val logger by inject<Logger>()
+    val prettyJson = Json(JsonConfiguration.Default.copy(prettyPrint = true))
 
     post(URLs.SUBMIT_HASHES) {
         when (val input = call.receive<SubmittedHashes>().validate()) {
             is Valid -> {
+                logger.info("Request: {}", prettyJson.stringify(SubmittedHashes.serializer(), input.value))
                 val seed = nonceGenerator.getNonce()
                 val sortedHashes = input.value.hashes.sorted()
                 val salt = calculateSalt(secretService.hkdf(seed), sortedHashes)
                 val oidcNonce = calculateOidcNonce(maskHashes(sortedHashes, salt).concatenate())
+                logger.info("Generated seed: {}", byteArrayToHexString(seed))
+                logger.info("Calculated salt: {}", byteArrayToHexString(salt))
+                logger.info("Calculated OIDC nonce: {}", oidcNonce)
 
+                logger.info("Fetching OIDC configuration and constructing redirect URIs")
                 val idpRedirect = oidcService.constructAuthenticationRequestUrl(
                     oidcService.getAuthorisationEndpoint(),
                     nonce = oidcNonce,
@@ -38,16 +46,14 @@ fun Routing.postHashes() {
                 )
 
                 val response = HashesSubmissionResponse(
-                        providers = mapOf(Config.OIDC_IDP_NAME to idpRedirect.toString()),
-                        salt = byteArrayToHexString(salt),
-                        seed = byteArrayToHexString(seed)
-                    )
+                    providers = mapOf(Config.OIDC_IDP_NAME to idpRedirect.toString()),
+                    salt = byteArrayToHexString(salt),
+                    seed = byteArrayToHexString(seed)
+                )
 
                 call.respond(response)
 
-                logger.info("Received hashes: ${input.value.hashes}")
-                logger.info("Calculated salt ${byteArrayToHexString(salt)} and seed ${byteArrayToHexString(seed)}")
-                logger.info("Responding: ${response}")
+                logger.info("Response: {}", prettyJson.stringify(HashesSubmissionResponse.serializer(), response))
             }
             is Invalid -> throw input.error
         }
