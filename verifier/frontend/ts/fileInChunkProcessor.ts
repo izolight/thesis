@@ -277,12 +277,11 @@ export function processFileButtonHandler(wasmHasher: Sha256hasher) {
             let base64er = new Base64er();
             hashersQueue.add(
                 (next: Callable) => {
-                    new Base64Processor(file,
-                        (data) => {
+                    new Base64Processor((data) => {
                             base64er.update(data);
                         },
                         TS.base64CompletedBuilder(next as Callable, hashList, base64er)
-                    );
+                    ).process(sigFileList[i]);
                 }
             );
         }
@@ -295,28 +294,29 @@ class Base64Processor {
     private readonly fileReader: FileReader;
     private readonly dataCallback: Base64Callback;
     private readonly processingCompletedCallback: ProcessingCompletedCallback;
-    private readonly inputFile: File | null = null;
+    private inputFile: File | null = null;
 
-    constructor(inputFile: File,
-                dataCallback: Base64Callback,
+    constructor(dataCallback: Base64Callback,
                 processingCompletedCallback: Callable) {
-        this.inputFile = inputFile;
         this.dataCallback = dataCallback;
         this.processingCompletedCallback = processingCompletedCallback;
         this.fileReader = new FileReader();
         this.fileReader.onload = this.getFileReadOnLoadHandler();
-        console.log(this.inputFile);
-        console.log(this.fileReader);
     }
 
     private getFileReadOnLoadHandler(): FileReaderOnLoadCallback {
         return () => {
-            console.log("foo");
             if (Validate.notNull(this.inputFile)) {
-                this.fileReader.readAsBinaryString(this.inputFile);
-                this.dataCallback(this.fileReader.result as string);
+                this.dataCallback((this.fileReader.result as string));
                 this.processingCompletedCallback();
             }
+        }
+    }
+
+    public process(inputFile: File) {
+        this.inputFile = inputFile;
+        if (Validate.notNull(this.inputFile)) {
+            this.fileReader.readAsBinaryString(this.inputFile);
         }
     }
 }
