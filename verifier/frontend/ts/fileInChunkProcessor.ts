@@ -85,7 +85,6 @@ export class TS {
     }
 
     public static showSubmissionButton(hashList: Array<string>, base64List: Array<string>) {
-        console.log(base64List);
         const inputFilesArea = q("input-files-area");
         if (Validate.notNull(inputFilesArea)) {
             inputFilesArea.innerHTML = `<p class="lead">Hashing completed. Continue when ready</p>
@@ -101,7 +100,6 @@ export class TS {
     }
 
     public static submitHashes(hashList: Array<string>, base64List: Array<string>) {
-        console.log(base64List);
             Http.request<PostHashesResponse>('POST',
                 'verify',
                 JSON.stringify({
@@ -250,7 +248,7 @@ export function processFileButtonHandler(wasmHasher: Sha256hasher) {
     const base64List = new Array<string>();
 
     const hashersQueue = new Queue(() => {
-        TS.showSubmissionButton(hashList, base64List)
+        TS.showSubmissionButton(hashList, base64List);
     });
 
     if (Validate.notNullNotUndefined(fileList) && Validate.notNullNotUndefined(sigFileList)) {
@@ -281,6 +279,7 @@ export function processFileButtonHandler(wasmHasher: Sha256hasher) {
                     ).processChunks(fileList[i]);
                 }
             );
+
             const sigFile = sigFileList[i];
             let base64er = new Base64er();
             hashersQueue.add(
@@ -288,7 +287,7 @@ export function processFileButtonHandler(wasmHasher: Sha256hasher) {
                     new Base64Processor((data) => {
                             base64er.update(data);
                         },
-                        TS.base64CompletedBuilder(next as Callable, hashList, sigFile, i, base64er)
+                        TS.base64CompletedBuilder(next as Callable, base64List, sigFile, i, base64er)
                     ).process(sigFileList[i]);
                 }
             );
