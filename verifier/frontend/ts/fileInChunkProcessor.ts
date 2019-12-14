@@ -85,6 +85,7 @@ export class TS {
     }
 
     public static showSubmissionButton(hashList: Array<string>, base64List: Array<string>) {
+        console.log(base64List);
         const inputFilesArea = q("input-files-area");
         if (Validate.notNull(inputFilesArea)) {
             inputFilesArea.innerHTML = `<p class="lead">Hashing completed. Continue when ready</p>
@@ -100,11 +101,12 @@ export class TS {
     }
 
     public static submitHashes(hashList: Array<string>, base64List: Array<string>) {
+        console.log(base64List);
             Http.request<PostHashesResponse>('POST',
                 'verify',
                 JSON.stringify({
                     hash: hashList[0],
-                    signature: base64List[0]
+                    signature: base64List[0],
                 }),
                 response => {
                     console.log(response);
@@ -158,12 +160,19 @@ export class TS {
 
     public static base64CompletedBuilder(next: Callable,
                                          base64List: Array<string>,
+                                         file: File,
+                                         index: number,
                                          base64er: Base64er
     ): Callable {
-        return () => {
-            const base64File = base64er.get();
-            base64List.push(base64File);
-            next();
+        const cardElement = q(`file.${index}`);
+        if (Validate.notNull(cardElement)) {
+            return () => {
+                const base64File = base64er.get();
+                base64List.push(base64File);
+                next();
+            }
+        } else {
+            return () => {}
         }
     }
 
@@ -209,9 +218,7 @@ export class TS {
     }
 
     public static getFilesFromElement(elementId: string): FileList | undefined {
-        console.log(elementId);
         const filesElement = q(elementId) as HTMLInputElement;
-        console.log(filesElement);
         if (Validate.notNull(filesElement.files)) {
             if (filesElement.files.length < 0) {
                 alert("Too few files selected. Please select at least one file.")
@@ -247,6 +254,10 @@ export function processFileButtonHandler(wasmHasher: Sha256hasher) {
     });
 
     if (Validate.notNullNotUndefined(fileList) && Validate.notNullNotUndefined(sigFileList)) {
+        if (fileList.length != sigFileList.length) {
+            console.log(fileList, sigFileList);
+            return
+        }
         for (let i = 0; i < fileList.length; i++) {
             const file = fileList[i];
             const cardDeck = q('cardarea');
@@ -270,17 +281,14 @@ export function processFileButtonHandler(wasmHasher: Sha256hasher) {
                     ).processChunks(fileList[i]);
                 }
             );
-        }
-
-        for (let i = 0; i < sigFileList.length; i++) {
-            const file = sigFileList[i];
+            const sigFile = sigFileList[i];
             let base64er = new Base64er();
             hashersQueue.add(
                 (next: Callable) => {
                     new Base64Processor((data) => {
                             base64er.update(data);
                         },
-                        TS.base64CompletedBuilder(next as Callable, hashList, base64er)
+                        TS.base64CompletedBuilder(next as Callable, hashList, sigFile, i, base64er)
                     ).process(sigFileList[i]);
                 }
             );
