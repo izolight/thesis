@@ -8,12 +8,10 @@ import org.bouncycastle.cert.jcajce.JcaCertStore
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder
 import org.bouncycastle.cms.CMSSignedData
 import org.bouncycastle.pkcs.PKCS10CertificationRequest
-import org.slf4j.LoggerFactory
 
 @Serializable
 data class SigningKeySubjectInformation(val surname: String, val givenName: String, val email: String) {
     companion object Constants {
-        private val logger = LoggerFactory.getLogger(SigningKeySubjectInformation::class.java)
         const val ORGANISATIONAL_UNIT = "Demo Signing Service"
         const val COUNTRY = "CH"
 

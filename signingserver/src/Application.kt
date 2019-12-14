@@ -87,7 +87,7 @@ fun Application.module() {
         exception<InvalidRequestException> { exception ->
             call.respond(
                 HttpStatusCode.BadRequest,
-                ApiError("Invalid request: ${exception.message}")
+                ApiError(message = "Invalid request: ${exception.message}")
             )
         }
 
@@ -98,7 +98,7 @@ fun Application.module() {
             )
             call.respond(
                 HttpStatusCode.InternalServerError,
-                ApiError("Unexpected error: ${exception.message ?: "Unknown"}")
+                ApiError(message = "Unexpected error: ${exception.message ?: "Unknown"}")
             )
         }
     }

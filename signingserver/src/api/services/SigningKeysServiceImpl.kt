@@ -71,7 +71,7 @@ class SigningKeysServiceImpl : ISigningKeysService {
 
     override fun generateSigningKey(subjectInformation: SigningKeySubjectInformation): PKCS10CertificationRequest {
         val keyPair = this.keyPairGenerator.generateKeyPair()
-        this.keyCache.set(subjectInformation, keyPair)
+        this.keyCache[subjectInformation] = keyPair
 
         return JcaPKCS10CertificationRequestBuilder(
             X500Name(subjectInformation.toDN()),
@@ -141,10 +141,9 @@ class SigningKeysServiceImpl : ISigningKeysService {
 
     @Serializable
     class CfsslCrlResponse(
-        val success: Boolean,
+        private val success: Boolean,
         val result: String,
-        val errors: List<CertificateAuthorityServiceImpl.ResponseMessage>,
-        val messages: List<CertificateAuthorityServiceImpl.ResponseMessage>
+        private val errors: List<CertificateAuthorityServiceImpl.ResponseMessage>
     ) : Validatable<CfsslCrlResponse> {
         override fun validate(): Validated<CfsslCrlResponse> {
             return when {
@@ -171,7 +170,7 @@ class SigningKeysServiceImpl : ISigningKeysService {
         }
     )
 
-    suspend fun retrieveCrl(signedCertificate: X509CertificateHolder): JcaX509CRLHolder = when (
+    private suspend fun retrieveCrl(signedCertificate: X509CertificateHolder): JcaX509CRLHolder = when (
         val response = HttpClient {
             defaultConfig()
         }.use {
@@ -215,7 +214,7 @@ class SigningKeysServiceImpl : ISigningKeysService {
             )
         ).build()
 
-    suspend fun retrieveOcsp(signedCertificate: X509CertificateHolder) = withContext(Dispatchers.IO) {
+    private suspend fun retrieveOcsp(signedCertificate: X509CertificateHolder) = withContext(Dispatchers.IO) {
         OCSPResp(
             HttpClient {
                 defaultConfig()
@@ -250,7 +249,7 @@ class SigningKeysServiceImpl : ISigningKeysService {
             })
 }
 
-fun OCSPResp.toDER() = ByteArrayOutputStream().also {
+fun OCSPResp.toDER(): ByteArray = ByteArrayOutputStream().also {
         ASN1OutputStream.create(it, ASN1Encoding.DER).also { asn1outputStream ->
             asn1outputStream.writeObject(this.toASN1Structure())
             asn1outputStream.close()

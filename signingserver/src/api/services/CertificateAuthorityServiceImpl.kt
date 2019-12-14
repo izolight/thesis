@@ -26,7 +26,7 @@ import java.util.*
 class CertificateAuthorityServiceImpl : ICertificateAuthorityService {
     companion object {
         private const val HMAC_KEY = "7BAFD191E2631D4505F612C7D6B2010A"
-        const val CA_URL = "https://intermediate-ca.thesis.izolight.xyz"
+        private const val CA_URL = "https://intermediate-ca.thesis.izolight.xyz"
         const val CA_SIGN_URL = "${CA_URL}/api/v1/cfssl/authsign"
         const val CA_BUNDLE_URL = "${CA_URL}/api/v1/cfssl/bundle"
         private val json = Json(JsonConfiguration.Stable)
@@ -95,12 +95,12 @@ class CertificateAuthorityServiceImpl : ICertificateAuthorityService {
         val status: CfsslBundleStatus,
         val subject: String
     ) {
-        fun splitBundleIntoPems() =
+        private fun splitBundleIntoPems() =
             this.bundle.splitWithDelimiters("-----END CERTIFICATE-----").map {
                 it.removePrefix("\n")
             }
 
-        fun allPems() = splitBundleIntoPems().toMutableList().also { it.add(this.root) }.toList()
+        private fun allPems() = splitBundleIntoPems().toMutableList().also { it.add(this.root) }.toList()
 
         fun allCerts() = allPems().map { s -> pemToCertificate(s) }
     }

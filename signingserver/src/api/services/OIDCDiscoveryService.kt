@@ -1,16 +1,17 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
 
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.InvalidDataException
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.Either
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.attempt
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.compose
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.defaultConfig
 import com.auth0.jwk.Jwk
-import com.auth0.jwk.JwkException
 import com.auth0.jwk.UrlJwkProvider
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.auth0.jwt.exceptions.JWTDecodeException
 import com.auth0.jwt.interfaces.DecodedJWT
+import com.auth0.jwt.interfaces.JWTVerifier
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
 import io.ktor.http.Parameters
 import io.ktor.http.Url
@@ -108,7 +109,7 @@ class OurDemoOIDCService private constructor(
     companion object {
         suspend operator fun invoke() = coroutineScope {
             OurDemoOIDCService(futureDiscoveryDocument = async {
-                HttpClient(CIO) { defaultConfig() }.use {
+                HttpClient { defaultConfig() }.use {
                     it.get<OIDCDiscoveryDocument>(Config.OIDC_CONFIGURATION_DISCOVERY_URL)
                 }
             })
@@ -154,33 +155,29 @@ class OurDemoOIDCService private constructor(
 
     override fun marshalJwk(jwk: Jwk) = json.stringify(JWK.serializer(), JWK.fromJwk(jwk))
 
-    override fun validateIdToken(idToken: String): IOIDCService.JwtValidationResult {
-        try {
-            val jwt = JWT.decode(idToken)
-            try {
-                val jwk = jwkProvider.get(jwt.keyId)
-                val algo = when (jwk.algorithm) {
-                    "RS256" -> Algorithm.RSA256(
-                        jwk.publicKey as RSAPublicKey,
-                        null
-                    )
-                    else -> throw InvalidDataException("Unsupported algorithm in JWK")
-                }
-                val verifier = JWT.require(algo)
-                    .withIssuer(this.getIssuer().toString())
-                    .withAudience(Config.OIDC_CLIENT_ID)
-                    .build()
+    fun getAlgorithm(jwk: Jwk) = when (val a = jwk.algorithm) {
+        "RS256" -> Algorithm.RSA256(jwk.publicKey as RSAPublicKey, null)
+        else -> throw InvalidDataException("Unsupported algorithm in JWK: $a")
+    }
 
-                return IOIDCService.JwtValidationResult(idToken = verifier.verify(idToken), jwk = jwk)
-            } catch (e: JwkException) {
-                throw InvalidDataException(
-                    "JWK Error: $e"
-                )
+    fun buildVerifier(algorithm: Algorithm): JWTVerifier = JWT.require(algorithm)
+        .withIssuer(this.getIssuer().toString())
+        .withAudience(Config.OIDC_CLIENT_ID)
+        .build()
+
+    override fun validateIdToken(idToken: String): IOIDCService.JwtValidationResult {
+        val result = compose {
+            val jwt = attempt { JWT.decode(idToken) }
+            val jwk = attempt(jwt) { jwkProvider.get(it.keyId) }
+            val algo = attempt(jwk) { getAlgorithm(it) }
+            val verifier = attempt(algo) { buildVerifier(it) }
+            attempt(verifier, jwk) { v, j ->
+                IOIDCService.JwtValidationResult(idToken = v.verify(idToken), jwk = j)
             }
-        } catch (e: JWTDecodeException) {
-            throw InvalidDataException(
-                "Invalid JWT: $e"
-            )
+        }
+        when(result) {
+            is Either.Success -> return result.value
+            is Either.Error -> throw result.e
         }
     }
 

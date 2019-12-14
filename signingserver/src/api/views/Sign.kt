@@ -129,8 +129,9 @@ fun buildSignaturefile(
     pkcs7Signature: ByteArray,
     timestamp: ByteArray
 ): Signature.SignatureFile = Signature.SignatureFile.newBuilder()
-    .setSignatureDataInPkcs7(pkcs7Signature.toByteString())
-    .addRfc3161InPkcs7(timestamp.toByteString()).build()
+    .setSignatureData(pkcs7Signature.toByteString())
+    .addRfc3161(timestamp.toByteString())
+    .build()
 
 fun CMSSignedData.toDER(): ByteArray = ByteArrayOutputStream().also {
     ASN1OutputStream.create(it, ASN1Encoding.DER).also { asn1outputStream ->

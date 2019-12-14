@@ -97,11 +97,6 @@
         </dependency>
         <dependency>
             <groupId>io.ktor</groupId>
-            <artifactId>ktor-client-cio</artifactId>
-            <version>${ktor_version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.ktor</groupId>
             <artifactId>ktor-client-serialization-jvm</artifactId>
             <version>${ktor_version}</version>
         </dependency>
@@ -163,11 +158,6 @@
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
             <version>3.8.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.kllso</groupId>
-            <artifactId>kcrypto</artifactId>
-            <version>0.1.2</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
