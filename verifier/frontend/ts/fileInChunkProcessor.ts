@@ -126,7 +126,48 @@ export class TS {
             inputFilesArea.innerHTML = `<p class="lead">Signature Verified</p>`
         }
         const cardArea = q("file.0");
+        const cert_template = `<li>
+                    <ul class="list-unstyled mt-3 mb-4">
+                        <li>Issuer: ISSUER</li>
+                        <li>Subject: SUBJECT</li>
+                        <li>Not Before: NOT_BEFORE</li>
+                        <li>Not After: NOT_AFTER</li>
+                    </ul>
+                </li>`;
         if (Validate.notNull(cardArea)) {
+            let signing_chain = `<ul class="list-unstyled mt-3 mb-4">`;
+            for (let i = 0; i < response.signing_chain.length; i++) {
+                signing_chain += cert_template
+                    .replace('ISSUER', response.signing_chain[i].issuer)
+                    .replace('SUBJECT', response.signing_chain[i].subject)
+                    .replace('NOT_BEFORE', response.signing_chain[i].not_before)
+                    .replace('NOT_AFTER', response.signing_chain[i].not_after)
+                signing_chain += `</li>`;
+            }
+            signing_chain += `</ul>`;
+
+            let idp_chain = `<ul class="list-unstyled mt-3 mb-4">`;
+            for (let i = 0; i < response.idp_chain.length; i++) {
+                idp_chain += cert_template
+                    .replace('ISSUER', response.idp_chain[i].issuer)
+                    .replace('SUBJECT', response.idp_chain[i].subject)
+                    .replace('NOT_BEFORE', response.idp_chain[i].not_before)
+                    .replace('NOT_AFTER', response.idp_chain[i].not_after)
+                idp_chain += `</li>`;
+            }
+            idp_chain += `</ul>`;
+
+            let tsa_chain = `<ul class="list-unstyled mt-3 mb-4">`;
+            for (let i = 0; i < response.tsa_chain.length; i++) {
+                tsa_chain += cert_template
+                    .replace('ISSUER', response.tsa_chain[i].issuer)
+                    .replace('SUBJECT', response.tsa_chain[i].subject)
+                    .replace('NOT_BEFORE', response.tsa_chain[i].not_before)
+                    .replace('NOT_AFTER', response.tsa_chain[i].not_after)
+                tsa_chain += `</li>`;
+            }
+            tsa_chain += `</ul>`;
+
             const template = `<div class="card mb-4 box-shadow">
             <div class="card-header">
                 <h5 class="my-0 font-weight-normal">Result</h5>
@@ -137,6 +178,9 @@ export class TS {
                     <li>Signing Time: TIME</li>
                     <li>Signer E-Mail: EMAIL</li>
                     <li>Valid: VALID</li>
+                    <li>Signing Cert Chain: SIGNING_CHAIN</li>
+                    <li>IDP Cert Chain: IDP_CHAIN</li>
+                    <li>TSA Cert Chain: TSA_CHAIN</li>
                 </ul>
             </div>
         </div>`;
@@ -145,6 +189,9 @@ export class TS {
                 .replace('TIME', response.signature_time)
                 .replace('EMAIL', response.signer_email)
                 .replace('VALID', String(response.valid))
+                .replace('SIGNING_CHAIN', signing_chain)
+                .replace('IDP_CHAIN', idp_chain)
+                .replace('TSA_CHAIN', tsa_chain)
         }
     }
 
