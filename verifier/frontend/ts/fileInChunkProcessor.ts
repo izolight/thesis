@@ -147,7 +147,7 @@ export class TS {
         const cardElement = q(`file.${index}`);
         if (Validate.notNull(cardElement)) {
             return (percentCompleted => {
-                cardElement.innerHTML = this.renderCardTemplate(file, `${percentCompleted}%`);
+                cardElement.innerHTML = this.renderCardTemplate(file, `${percentCompleted}%`, index);
             });
         } else {
             return (_) => {
@@ -167,6 +167,7 @@ export class TS {
             return () => {
                 const base64File = base64er.get();
                 base64List.push(base64File);
+                cardElement.innerHTML = cardElement.innerHTML + this.renderBase64Template(file, index);
                 next();
             }
         } else {
@@ -185,7 +186,7 @@ export class TS {
             return () => {
                 const hash = wasmHasher.hex_digest();
                 hashList.push(hash);
-                cardElement.innerHTML = this.renderCardTemplate(file, hash);
+                cardElement.innerHTML = this.renderCardTemplate(file, hash, index);
                 next();
             }
         } else {
@@ -194,9 +195,24 @@ export class TS {
             }
         }
     }
+    public static renderBase64Template(file: File, index: number): string {
+        return `<div class="card mb-4 box-shadow" id="sigfilecard.${index}">
+            <div class="card-header">
+                <h5 class="my-0 font-weight-normal">FILENAME</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mt-3 mb-4">
+                    <li>Size: FILESIZE</li>
+                </ul>
+<!--                <button type="button" class="btn btn-block btn-danger">Remove file</button>-->
+            </div>
+        </div>`
+            .replace("FILENAME", file.name)
+            .replace("FILESIZE", file.size < 1024 * 1024 ? `${Math.round(file.size / 1024)} KB` : `${Math.round(file.size / 1024 / 1024)} MB`)
+    }
 
-    public static renderCardTemplate(file: File, hashValue: string): string {
-        return `<div class="card mb-4 box-shadow">
+    public static renderCardTemplate(file: File, hashValue: string, index: number): string {
+        return `<div class="card mb-4 box-shadow"  id="filecard.${index}">
             <div class="card-header">
                 <h5 class="my-0 font-weight-normal">FILENAME</h5>
             </div>
@@ -262,7 +278,7 @@ export function processFileButtonHandler(wasmHasher: Sha256hasher) {
             if (Validate.notNullNotUndefined(cardDeck)) {
                 const newCard = document.createElement('div');
                 newCard.id = `file.${i}`;
-                newCard.innerHTML = TS.renderCardTemplate(file, 'Queued');
+                newCard.innerHTML = TS.renderCardTemplate(file, 'Queued', i);
                 if (Validate.notNull(cardDeck.parentNode)) {
                     cardDeck.parentNode.insertBefore(newCard, cardDeck);
                 }
