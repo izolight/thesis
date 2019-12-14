@@ -14,6 +14,9 @@ export interface PostVerifyResponse {
     readonly idp_chain: Array<CertChain>;
     readonly signing_chain: Array<CertChain>;
     readonly tsa_chain: Array<CertChain>;
+    readonly nonce: string;
+    readonly salt: string;
+    readonly salted_hashes: Array<string>;
 }
 
 export interface CertChain {

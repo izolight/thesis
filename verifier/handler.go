@@ -29,6 +29,9 @@ type VerifyResponse struct {
 	IDPChain []CertChain `json:"idp_chain"`
 	SigningChain []CertChain `json:"signing_chain"`
 	TSAChain []CertChain `json:"tsa_chain"`
+	Nonce string `json:"nonce"`
+	Salt string `json:"salt"`
+	SaltedHashes []string `json:"salted_hashes"`
 }
 
 type CertChain struct {

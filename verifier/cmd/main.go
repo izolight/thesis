@@ -12,7 +12,8 @@ import (
 
 func main() {
 	// Serve static files
-	rootCAFile, err := config.Assets.Open("rootCA.pem")
+	cfg := config.Assets
+	rootCAFile, err := cfg.Open("rootCA.pem")
 	if err != nil {
 		log.Fatalln(err)
 	}

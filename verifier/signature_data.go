@@ -14,6 +14,8 @@ type signatureDataVerifier struct {
 	data         *SignatureData
 	documentHash string
 	nonce        chan string
+	salt chan string
+	saltedHashes chan []string
 	cfg          *Config
 }
 
@@ -22,10 +24,20 @@ func NewSignatureDataVerifier(data *SignatureData, documentHash string, cfg Conf
 	v := &signatureDataVerifier{
 		data:  data,
 		nonce: make(chan string, 1),
+		salt: make(chan string, 1),
+		saltedHashes: make(chan []string, 1),
 		cfg:   &cfg,
 		documentHash: documentHash,
 	}
 	return v
+}
+
+func (s *signatureDataVerifier) Salt() string {
+	return <-s.salt
+}
+
+func (s *signatureDataVerifier) SaltedHashes() []string {
+	return <-s.saltedHashes
 }
 
 func (s *signatureDataVerifier) SendNonce(nonce string) {
@@ -79,6 +91,13 @@ func (s *signatureDataVerifier) Verify(verifyLTV bool) error {
 	if !bytes.Equal(nonce, computedNonce) {
 		return errors.New("computed nonce and id token nonce don't match")
 	}
+	s.salt <- fmt.Sprintf("%x", s.data.MacKey)
+	var saltedHashes []string
+	for i := range s.data.SaltedDocumentHash {
+		saltedHashes = append(saltedHashes, fmt.Sprintf("%x", s.data.SaltedDocumentHash[i]))
+	}
+	s.saltedHashes <- saltedHashes
+
 	s.cfg.Logger.WithFields(log.Fields{
 		"hash_algorithm":         s.data.HashAlgorithm,
 		"salted_document_hashes": fmt.Sprintf("%x", s.data.SaltedDocumentHash),

@@ -168,6 +168,12 @@ export class TS {
             }
             tsa_chain += `</ul>`;
 
+            let salted_hashes = `<ul class="list-unstyled mt-3 mb-4">`;
+            for (let i = 0; i < response.salted_hashes.length; i++) {
+                salted_hashes += `<li>` + response.salted_hashes[i] + `</li>`;
+            }
+            salted_hashes += `</ul>`;
+
             const template = `<div class="card mb-4 box-shadow">
             <div class="card-header">
                 <h5 class="my-0 font-weight-normal">Result</h5>
@@ -178,6 +184,9 @@ export class TS {
                     <li>Signing Time: TIME</li>
                     <li>Signer E-Mail: EMAIL</li>
                     <li>Valid: VALID</li>
+                    <li>Nonce: NONCE</li>
+                    <li>Salt: DOC_SALT</li>
+                    <li>Salted Hashes: SALTED_HASHES</li>
                     <li>Signing Cert Chain: SIGNING_CHAIN</li>
                     <li>IDP Cert Chain: IDP_CHAIN</li>
                     <li>TSA Cert Chain: TSA_CHAIN</li>
@@ -189,6 +198,9 @@ export class TS {
                 .replace('TIME', response.signature_time)
                 .replace('EMAIL', response.signer_email)
                 .replace('VALID', String(response.valid))
+                .replace('NONCE', response.nonce)
+                .replace('DOC_SALT', response.salt)
+                .replace('SALTED_HASHES', salted_hashes)
                 .replace('SIGNING_CHAIN', signing_chain)
                 .replace('IDP_CHAIN', idp_chain)
                 .replace('TSA_CHAIN', tsa_chain)

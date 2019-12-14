@@ -74,8 +74,9 @@ func (s *SignatureVerifier) VerifySignatureFile(file *SignatureFile, hash string
 			if err := idTokenVerifier.Verify(false); err != nil {
 				errors <- fmt.Errorf("could not verify id token: %w", err)
 			}
-			signatureDataVerifier.SendNonce(idTokenVerifier.Nonce())
 		}()
+		nonce := idTokenVerifier.Nonce()
+		signatureDataVerifier.SendNonce(nonce)
 		signer := signatureContainerVerifier.Signer()
 		idTokenVerifier.SendEmail(signer.EmailAddresses[0])
 
@@ -86,6 +87,9 @@ func (s *SignatureVerifier) VerifySignatureFile(file *SignatureFile, hash string
 			SignerEmail:    signer.EmailAddresses[0],
 			SignatureLevel: signatureData.SignatureLevel,
 			SignatureTime:  signingTime,
+			Nonce: nonce,
+			Salt: signatureDataVerifier.Salt(),
+			SaltedHashes: signatureDataVerifier.SaltedHashes(),
 		}
 		for _, c := range idTokenVerifier.Certs() {
 			resp.IDPChain = append(resp.IDPChain, CertChain{
