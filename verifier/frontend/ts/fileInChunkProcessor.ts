@@ -121,6 +121,10 @@ export class TS {
     }
 
     public static showSignatureResult(response: PostVerifyResponse) {
+        const inputFilesArea = q("input-files-area");
+        if (Validate.notNull(inputFilesArea)) {
+            inputFilesArea.innerHTML = `<p class="lead">Signature Verified</p>`
+        }
         const cardArea = q("file.0");
         if (Validate.notNull(cardArea)) {
             const template = `<div class="card mb-4 box-shadow">
@@ -137,7 +141,7 @@ export class TS {
             </div>
         </div>`;
             cardArea.innerHTML = cardArea.innerHTML + template
-                .replace('LEVEL', String(response.signature_level))
+                .replace('LEVEL', this.lookupSigLevel(response.signature_level))
                 .replace('TIME', response.signature_time)
                 .replace('EMAIL', response.signer_email)
                 .replace('VALID', String(response.valid))
@@ -202,10 +206,11 @@ export class TS {
             }
         }
     }
+
     public static renderBase64Template(file: File, index: number): string {
         return `<div class="card mb-4 box-shadow" id="sigfilecard.${index}">
             <div class="card-header">
-                <h5 class="my-0 font-weight-normal">FILENAME</h5>
+                <h5 class="my-0 font-weight-normal">SignatureFile: FILENAME</h5>
             </div>
             <div class="card-body">
                 <ul class="list-unstyled mt-3 mb-4">
@@ -221,7 +226,7 @@ export class TS {
     public static renderCardTemplate(file: File, hashValue: string, index: number): string {
         return `<div class="card mb-4 box-shadow"  id="filecard.${index}">
             <div class="card-header">
-                <h5 class="my-0 font-weight-normal">FILENAME</h5>
+                <h5 class="my-0 font-weight-normal">File: FILENAME</h5>
             </div>
             <div class="card-body">
                 <ul class="list-unstyled mt-3 mb-4">
@@ -260,6 +265,17 @@ export class TS {
     public static errorHandlingCallback(message: string) {
         const errorElement = q("error");
         errorElement.innerHTML = `${errorElement.innerHTML} <p>${message}</p>`;
+    }
+
+    public static lookupSigLevel(level: number): string{
+        switch (level) {
+            case 0:
+                return "Advanced";
+            case 1:
+                return "Qualified";
+            default:
+                return "Unknown";
+        }
     }
 }
 
