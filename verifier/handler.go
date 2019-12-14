@@ -26,6 +26,16 @@ type VerifyResponse struct {
 	SignerEmail    string         `json:"signer_email"`
 	SignatureLevel SignatureLevel `json:"signature_level"`
 	SignatureTime  time.Time      `json:"signature_time"`
+	IDPChain []CertChain `json:"idp_chain"`
+	SigningChain []CertChain `json:"signing_chain"`
+	TSAChain []CertChain `json:"tsa_chain"`
+}
+
+type CertChain struct {
+	Issuer string `json:"issuer"`
+	Subject string `json:"subject"`
+	NotBefore time.Time `json:"not_before"`
+	NotAfter time.Time `json:"not_after"`
 }
 
 func NewDefaultCfg(caFile []byte) Config {

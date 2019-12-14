@@ -80,13 +80,39 @@ func (s *SignatureVerifier) VerifySignatureFile(file *SignatureFile, hash string
 		idTokenVerifier.SendEmail(signer.EmailAddresses[0])
 
 		wg.Wait()
-		responses <- VerifyResponse{
+		resp := VerifyResponse{
 			Valid:          true,
 			Error:          "",
 			SignerEmail:    signer.EmailAddresses[0],
 			SignatureLevel: signatureData.SignatureLevel,
 			SignatureTime:  signingTime,
 		}
+		for _, c := range idTokenVerifier.Certs() {
+			resp.IDPChain = append(resp.IDPChain, CertChain{
+				Issuer:    c.Issuer.String(),
+				Subject:   c.Subject.String(),
+				NotBefore: c.NotBefore,
+				NotAfter:  c.NotAfter,
+			})
+		}
+		for _, c := range signatureContainerVerifier.Certs() {
+			resp.SigningChain = append(resp.SigningChain, CertChain{
+				Issuer:    c.Issuer.String(),
+				Subject:   c.Subject.String(),
+				NotBefore: c.NotBefore,
+				NotAfter:  c.NotAfter,
+			})
+		}
+		for _, c := range timestampVerifier.Certs() {
+			resp.TSAChain = append(resp.TSAChain, CertChain{
+				Issuer:    c.Issuer.String(),
+				Subject:   c.Subject.String(),
+				NotBefore: c.NotBefore,
+				NotAfter:  c.NotAfter,
+			})
+		}
+
+		responses <- resp
 	}()
 
 	var err error

@@ -1,6 +1,7 @@
 package verifier
 
 import (
+	"crypto/x509"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"go.mozilla.org/pkcs7"
@@ -22,6 +23,7 @@ type TimestampVerifier struct {
 	timestamps  [][]byte
 	verifyLTV   bool
 	signingTime chan time.Time
+	certs chan []*x509.Certificate
 	ltvData     map[string]*LTV
 	cfg         *Config
 }
@@ -35,10 +37,11 @@ func NewTimestampVerifier(timestamps [][]byte, data []byte, verifyLTV bool, ltvD
 		ltvData:     ltvData,
 		cfg:         &cfg,
 		signingTime: make(chan time.Time, 1),
+		certs: make(chan []*x509.Certificate, 1),
 	}
 }
 
-func (t *TimestampVerifier) verifyTimestamp(timestamp []byte, data []byte) (*time.Time, error) {
+func (t *TimestampVerifier) verifyTimestamp(timestamp []byte, data []byte, index int) (*time.Time, error) {
 	ts, err := pkcs7.ParseTSResponse(timestamp)
 	if err != nil {
 		return nil, err
@@ -55,6 +58,9 @@ func (t *TimestampVerifier) verifyTimestamp(timestamp []byte, data []byte) (*tim
 
 	if err = verifyHash(data, ts.HashedMessage, ts.HashAlgorithm, *t.cfg); err != nil {
 		return nil, err
+	}
+	if index == 0 {
+		t.certs <- ts.Certificates
 	}
 	t.cfg.Logger.WithFields(log.Fields{
 		"timestamp":        ts.Time,
@@ -85,7 +91,7 @@ func (t *TimestampVerifier) Verify() error {
 			//	return fmt.Errorf("could not marshal timestamp: %w", err)
 			//}
 		}
-		notAfter, err := t.verifyTimestamp(t.timestamps[i], hashData)
+		notAfter, err := t.verifyTimestamp(t.timestamps[i], hashData, i)
 		if err != nil {
 			return fmt.Errorf("could not verify timestamp: %w", err)
 		}
@@ -99,4 +105,8 @@ func (t *TimestampVerifier) Verify() error {
 
 func (t *TimestampVerifier) SigningTime() time.Time {
 	return <-t.signingTime
+}
+
+func (t *TimestampVerifier) Certs() []*x509.Certificate {
+	return <-t.certs
 }

@@ -2,6 +2,7 @@ package verifier
 
 import (
 	"context"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"github.com/coreos/go-oidc"
@@ -14,6 +15,7 @@ type idTokenVerifier struct {
 	token       []byte
 	nonce       chan string
 	signerEmail chan string
+	certs chan []*x509.Certificate
 	notAfter    func() time.Time
 	key         jose.JSONWebKey
 	ltvData     map[string]*LTV
@@ -31,6 +33,7 @@ func NewIDTokenVerifier(signatureData *SignatureData, notAfter time.Time, cfg Co
 		token:       signatureData.IdToken,
 		nonce:       make(chan string, 1),
 		signerEmail: make(chan string, 1),
+		certs: make(chan []*x509.Certificate, 1),
 		notAfter:    notAfter.Local,
 		ltvData:     signatureData.LtvIdp,
 		ctx:         context.Background(),
@@ -63,6 +66,10 @@ func (i *idTokenVerifier) Nonce() string {
 
 func (i *idTokenVerifier) SendEmail(signerEmail string) {
 	i.signerEmail <- signerEmail
+}
+
+func (i *idTokenVerifier) Certs() []*x509.Certificate {
+	return <-i.certs
 }
 
 func (i *idTokenVerifier) Verify(verifyLTV bool) error {
@@ -117,6 +124,7 @@ func (i *idTokenVerifier) Verify(verifyLTV bool) error {
 			return fmt.Errorf("verifyLTV information for id token not valid: %w", err)
 		}
 	}
+	i.certs <- i.key.Certificates
 	i.cfg.Logger.Info("finished verifying")
 
 	return nil

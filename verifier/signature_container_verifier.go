@@ -12,6 +12,7 @@ import (
 type SignatureContainerVerifier struct {
 	container       []byte
 	data            chan SignatureData
+	certs chan []*x509.Certificate
 	signer          chan *x509.Certificate
 	signingTime     chan time.Time
 	additionalCerts []*x509.Certificate
@@ -24,6 +25,7 @@ func NewSignatureContainerVerifier(c []byte, additionalCerts []*x509.Certificate
 		container:       c,
 		data:            make(chan SignatureData, 1),
 		signer:          make(chan *x509.Certificate, 1),
+		certs: make(chan []*x509.Certificate, 1),
 		signingTime:     make(chan time.Time, 1),
 		additionalCerts: additionalCerts,
 		cfg:             &cfg,
@@ -77,6 +79,7 @@ func (s *SignatureContainerVerifier) Verify(verifyLTV bool) error {
 		return fmt.Errorf("certificate was issued at %s, which is after the signing time %s", signer.NotBefore, signingTime)
 	}
 	s.signer <- signer
+	s.certs <- p7.Certificates
 	s.cfg.Logger.WithFields(log.Fields{
 		"subject":    signer.Subject,
 		"email":      signer.EmailAddresses[0],
@@ -95,6 +98,10 @@ func (s *SignatureContainerVerifier) SignatureData() SignatureData {
 
 func (s *SignatureContainerVerifier) Signer() *x509.Certificate {
 	return <-s.signer
+}
+
+func (s *SignatureContainerVerifier) Certs() []*x509.Certificate {
+	return <-s.certs
 }
 
 func (s *SignatureContainerVerifier) SendSigningTime(signingTime time.Time) {
