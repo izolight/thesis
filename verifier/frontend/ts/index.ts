@@ -1,6 +1,5 @@
 import {Validate} from "./validate";
 import {processFileButtonHandler} from "./fileInChunkProcessor"
-import {CB} from "./callback";
 
 function start(Sha256hasher: typeof import('../pkg')) {
     const processFileButton = document.getElementById("process-file");

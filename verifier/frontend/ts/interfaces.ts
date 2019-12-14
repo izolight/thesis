@@ -6,14 +6,15 @@ export interface Providers {
     [key: string]: string
 }
 
-export interface PostHashesResponse {
-    readonly providers: Providers;
-    readonly seed: string;
-    readonly salt: string;
+export interface PostVerifyResponse {
+    readonly signature_level: number;
+    readonly signature_time: string;
+    readonly signer_email: string;
+    readonly valid: boolean;
 }
 
 export interface PoorPeoplePersistence {
-    readonly postHashesResponse: PostHashesResponse,
+    readonly postHashesResponse: PostVerifyResponse,
     readonly hashes: Array<string>
 }
 

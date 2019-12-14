@@ -8,7 +8,7 @@ import {
     FileChunkDataCallback,
     FileReaderOnLoadCallback,
     PoorPeoplePersistence,
-    PostHashesResponse,
+    PostVerifyResponse,
     ProcessingCompletedCallback,
     ProgressCallback
 } from "./interfaces";
@@ -100,7 +100,7 @@ export class TS {
     }
 
     public static submitHashes(hashList: Array<string>, base64List: Array<string>) {
-            Http.request<PostHashesResponse>('POST',
+            Http.request<PostVerifyResponse>('POST',
                 'verify',
                 JSON.stringify({
                     hash: hashList[0],
@@ -113,31 +113,34 @@ export class TS {
                         hashes: hashList
                     };
                     localStorage.setItem('lolnogenerics', JSON.stringify(p));
-                    this.showIdpLoginButtons(response);
+                    this.showSignatureResult(response);
                 },
                 err => console.log(`error ${err}`),
                 'application/json');
             console.log(`POST ${hashList}`);
     }
 
-    public static showIdpLoginButtons(response: PostHashesResponse) {
-        const inputFilesArea = q("input-files-area");
-        console.log('fu1');
-        if (Validate.notNull(inputFilesArea)) {
-            if (Validate.notNull(inputFilesArea.parentNode)) {
-                console.log('fu2');
-                const template = `<p class="lead">Please select whom to authenticate with</p>
-                         <a href="IDPURL" class="button btn btn-block btn-outline-primary">IDPNAME</a>`;
-                this.killAllChildren(inputFilesArea);
-                for (const key in response.providers) {
-                    console.log('fu3');
-                    const newIdpButton = document.createElement('div');
-                    newIdpButton.innerHTML = template
-                        .replace('IDPURL', response.providers[key])
-                        .replace('IDPNAME', key);
-                    inputFilesArea.parentNode.insertBefore(newIdpButton, inputFilesArea);
-                }
-            }
+    public static showSignatureResult(response: PostVerifyResponse) {
+        const cardArea = q("file.0");
+        if (Validate.notNull(cardArea)) {
+            const template = `<div class="card mb-4 box-shadow">
+            <div class="card-header">
+                <h5 class="my-0 font-weight-normal">Result</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mt-3 mb-4">
+                    <li>Signature Level: LEVEL</li>
+                    <li>Signing Time: TIME</li>
+                    <li>Signer E-Mail: EMAIL</li>
+                    <li>Valid: VALID</li>
+                </ul>
+            </div>
+        </div>`;
+            cardArea.innerHTML = cardArea.innerHTML + template
+                .replace('LEVEL', String(response.signature_level))
+                .replace('TIME', response.signature_time)
+                .replace('EMAIL', response.signer_email)
+                .replace('VALID', String(response.valid))
         }
     }
 
@@ -186,7 +189,11 @@ export class TS {
             return () => {
                 const hash = wasmHasher.hex_digest();
                 hashList.push(hash);
-                cardElement.innerHTML = this.renderCardTemplate(file, hash, index);
+                const innerElement = q(`filecard.${index}`);
+                if(Validate.notNull(innerElement)) {
+                    innerElement.innerHTML = "";
+                }
+                cardElement.innerHTML = cardElement.innerHTML + this.renderCardTemplate(file, hash, index);
                 next();
             }
         } else {
