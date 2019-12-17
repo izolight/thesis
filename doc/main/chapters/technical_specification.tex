@@ -555,6 +555,7 @@ For an explanation on that masquerade and why it's done see~\ref{subsec:pre-logi
 \texttt{mac\_key} is the key that's fed to \texttt{mac\_algorithm}.
 \paragraph{signature\_level} is either qualified or advanced, depending on the \gls{LoA} provided by the \gls{IDP}.
 For qualified signatures, \gls{LoA} 3 or 4 is required.
+For an explanation on what advanced and qualified signatures are, see~\ref{subsec:difference-between-advanced-and-qualified-signatures}.
 \paragraph{id\_token} is the \gls{OIDC} token issued by the \gls{IDP}.
 It must be included into the signature file in order for the verifier to be able to confirm that the user authenticated with the \gls{IDP},
 the linkage between the document hashes submitted to the \gls{IDP}, the authentication and the signature file.
