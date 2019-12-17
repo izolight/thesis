@@ -4,11 +4,7 @@ image: schickling/latex
 build:
   script:
     - cd doc/main
-    - pdflatex documentation
-    - bibtex documetnation
-    - makeglossaries documentation
-    - pdflatex -file-line-error documentation
-    - pdflatex -file-line-error documentation
+    - make
   artifacts:
     paths:
       - doc/main/documentation.pdf
