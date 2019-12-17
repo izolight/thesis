@@ -204,4 +204,15 @@
 #### 12.12.19
 - Zusätzliches logging im backend für demo implementieren
 
-    
+#### 13.12.19
+- Arbeit am Frontend des Verifiers
+
+#### 14.12.19
+- Fertigstellen Frontend des Verifiers
+
+#### 16.12.19
+- Arbeit am Booklet
+
+#### 17.12.19
+- Arbeit an der Dokumentation
+
