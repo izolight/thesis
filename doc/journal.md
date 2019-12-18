@@ -216,3 +216,7 @@
 #### 17.12.19
 - Arbeit an der Dokumentation
 
+#### 18.12.19
+- Arbeit an der Dokumentation (IDP Requirements)
+
+
