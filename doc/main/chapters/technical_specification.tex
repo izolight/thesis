@@ -1,5 +1,96 @@
-\chapter{Technical Specification}
-\section{Protocol}
+\chapter{Technical Specification}\label{ch:technical-specification}
+\section{Requirements for IDPs}\label{sec:requirements-for-idps}
+The \gls{IDP} is a critical component of the remote signing solution,
+since identification and authentication is delegated to it.
+Furthermore, if the \gls{IDP} is not carefully selected and vetted,
+the most significant security advantage of our solution as compared to existing services,
+like Adobe Document Cloud or Swisscom All-In Signing Service,
+the distribution of trust,
+may be compromised.
+
+This is why the \gls{IDP} used with any instance of this signing service must be carefully selected,
+and it must fulfil at least the following requirements,
+in addition to the requirements specified by \gls{ETSI}~\cite{etsicarequirements}.
+
+All of the requirements specified must be met in order for qualified signatures to be emitted.
+For an explanation on what qualified signatures are, please see~\ref{subsubsec:qualifiedsignature}.
+
+\subsection{Independence of IDP and Signing Service}\label{subsec:organisational-and-financial-independence}
+The \gls{IDP} and the organisation responsible for it must be independent from the organisation responsible for the signing service and vice versa
+It must not be the same company, or conglomerate, or even the same owner of two companies,
+that own or operate these services;
+because otherwise there may be a single stakeholder able to influence or even control both.
+This must never happen as it would compromise the distribution of trust.
+
+\subsection{Enrollment and Identity Proofing Requirements}\label{subsec:enrollment-and-identity-proofing-requirements}
+The \gls{IDP} is required to identify and register users at \gls{IAL3} as defined by \gls{NIST}~\cite{nistregister}.
+In practice, this means that physical presence is required for identification,
+and two pieces of strong physical proof of identification has to be presented,
+such as a passport as well as a drivers' licence.
+For a complete list of requirements, please see the relevant \gls{NIST} publication~\cite{nistregister}.
+
+\subsection{Authentication and Lifecycle Management Requirements}\label{subsec:authentication-and-lifecycle-management-requirements}
+The \gls{IDP} is required to authenticate users at \gls{AAL3} as defined by \gls{NIST}~\cite{nistauthenticate}.
+This level of authentication requires the use of a multi-factor hardware crypto device,
+such as a MobileID \gls{SIM} card with a key protected by a \gls{PIN} not shorter than six digits
+(something you have, plus something you know).
+The use of software multi-factor crypto devices is allowed as well, but only in combination with additional factors.
+For a complete list of requirements, please see the relevant \gls{NIST} publication~\cite{nistauthenticate}.
+
+\subsection{Requirements for Advanced Electronic Signatures}\label{subsec:requirements-for-advanced-electronic-signatures}
+The requirements specified in~\ref{subsec:enrollment-and-identity-proofing-requirements}~and~\ref{subsec:authentication-and-lifecycle-management-requirements} apply to qualified electronic signatures.
+For advanced electronic signatures, \gls{AAL2} is sufficient.
+The \gls{AAL} required by the signing service to emit the desired signature level can be specified to the \gls{IDP}~\cite[Section 2]{oidc-core-spec},
+and is subsequently confirmed by the \gls{IDP} in the field \texttt{acr} of the \gls{JWT} \texttt{id\_token}.
+If the \gls{IDP} does not confirm the required \gls{AAL}, the signing process is aborted.
+Since the \texttt{id\_token} is included in the signature file, anyone can verify the \gls{AAL} confirmation by the \gls{IDP}.
+
+\subsection{Use of proper X.509 Certificates and Chains for Signing JWTs}\label{subsec:use-of-x.509-for-signing-jwts}
+The \gls{IDP} is required to sign the \gls{JWT} \texttt{id\_tokens} using proper X.509 certificates
+signed by a trusted \gls{CA}, and is required to publish the complete certificate chain in its \gls{JWKS}
+in the field \texttt{x5c} as specified in~\cite[RFC 7515, Section 4.1.6]{rfc7515}.
+This \gls{JWKS} along with optional revocation information for \gls{LTV} can then be embedded into the signature file
+by the signing service upon signature creation, and checked by the verifier, even offline.
+
+\subsubsection{Reason for Requirement}
+The use of X.509 is permitted by the \gls{JWS} standard~\cite[Section 5.1.6]{rfc7515} but not required for use with \gls{OIDC},
+which is why we require it explicitly here.
+Since a \gls{JWT} is a \gls{JWS}~\cite[Section 1]{rfc7519},
+and a \gls{JWS} is used with a \gls{JWK}~\cite{rfc7517} stored in a \gls{JWKS},
+and a \gls{JWKS} allows the use of keys other than X.509 certificates that are part of a certificate chain issued by a trusted \gls{CA},
+this presents us with a problem.
+
+Upon signature verification, the verifier needs to check whether the \texttt{id\_token} embedded into the signature really was issued by a trusted \gls{IDP}.
+It verifies this by checking whom the \gls{JWT} \texttt{id\_token} was signed by.
+If the verifier didn't check this, any valid \gls{JWT} could be placed into the signature and the link between the signer identity assertion and the data signed would be broken (or could be forged).
+
+This verification is performed as described in~\cite[Section 7.2]{rfc7519} by using the \gls{JWKS} issued by the \gls{IDP}.
+However, this \gls{JWKS} might contain plain public keys, not signed by any \gls{CA}~\footnote{For an example of a \gls{JWKS} using plain \gls{RSA} keys not signed by a \gls{CA}, see \url{https://www.googleapis.com/oauth2/v3/certs}.}.
+If that \gls{JWKS} is embedded into the signature,
+the verifier is able to confirm which key in the \gls{JWKS} was used in signing the \gls{JWT},
+but there would be no way for the verifier to confirm that the \gls{JWKS} embedded into the signature
+is authentic, that it really is the one used by the \gls{IDP}.
+An attacker could embed an \texttt{id\_token} and a matching \gls{JWKS} into a signature file,
+and the verifier would accept it.
+
+There's an obvious solution for this: the verifier simply fetches the \gls{JWKS} from the \gls{IDP}
+at verification time (over \gls{TLS}) and uses the keys contained in it to verify the \gls{JWT} \texttt{id\_token}.
+As easy as this solution sounds, unfortunately it comes with two undesirable consequences:
+\begin{enumerate}
+    \item The verifier can no longer function offline. Embedding the \gls{JWKS} is useless as the verifier has no way of checking whom it was issued by.
+    \item When the \gls{IDP} rotates the keys in the~\gls{JWKS}, which it will sooner or later,
+    and no longer publishes the old keys used for signing the \texttt{id\_token} embedded into the signature,
+    verification of the \texttt{id\_token}'s \gls{JWS} signature
+    will no longer be possible, and thus the signature will be invalidated.
+\end{enumerate}
+
+This is why we require the use of proper X.509 certificates and chains for signing the \gls{JWT} \texttt{id\_token}.
+
+
+
+
+
+\section{Protocol}\label{sec:protocol}
 
 In this section, we provide an explanation of the protocol and the values used in it.
 
@@ -554,7 +645,6 @@ For an explanation on that masquerade and why it's done see~\ref{subsec:pre-logi
 \paragraph{mac\_algorithm} is the specific \gls{HMAC} function that's being used to masquerade the hashes.
 \texttt{mac\_key} is the key that's fed to \texttt{mac\_algorithm}.
 \paragraph{signature\_level} is either qualified or advanced, depending on the \gls{LoA} provided by the \gls{IDP}.
-For qualified signatures, \gls{LoA} 3 or 4 is required.
 For an explanation on what advanced and qualified signatures are, see~\ref{subsec:difference-between-advanced-and-qualified-signatures}.
 \paragraph{id\_token} is the \gls{OIDC} token issued by the \gls{IDP}.
 It must be included into the signature file in order for the verifier to be able to confirm that the user authenticated with the \gls{IDP},
