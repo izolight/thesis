@@ -1,9 +1,66 @@
-\chapter{Client-Side File Hashing in the Web Browser}
-\label{ch:browserhashing}
+\chapter{Implementation}
+\section{Choices in Technologies}
+\label{sec:techchoices}
+In this chapter, we outline the technologies we choose, and the reasoning for choosing them.
+
+\subsection{Backend}
+\label{subsec:techbackend}
+The backend is divided into two parts, the signing service and the verification service.
+They are developed independently in different programming languages.
+
+We chose to split the backend into two because signature verification has to be available both online and offline.
+
+Using two different programming languages and sets of libraries,
+implementing common formats and protocols independently from specification alone,
+allows us to hedge against the risk of some flaws in the libraries: if a library used in the signing service produced flawed output,
+it would likely be discovered by the verification service since it uses a different implementation of the same concepts.
+The exact same flaw being present in two different libraries implemented in different programming languages is rather small.
+
+On top of that, we can test ourselves how well we've specified the protocols and formats:
+if these two services can be used together without problems, the specification was precise enough.
+If not, we learn where we must improve it, which is a win-win situation.
+
+\subsubsection{Signing Service}
+The signing service is implemented in the Kotlin programming language~\cite{kotlin} using the Ktor framework~\cite{ktor}.
+For the signing service we chose Kotlin because it is a modern and concise programming language,
+providing guaranteed null safety, coroutines for asynchronous programming, higher-order functions and more,
+and it's genuinely nice to program in.
+Kotlin offers seamless Java interoperability, allowing us to make use of the excellent and extensive Java ecosystem.
+
+\subsubsection{Verifier}
+The verification service is implemented in the Go programming language~\cite{golang}.
+The verification service being separate allows us to distribute a smaller program,
+and since Go binaries are always statically linked we don't have to worry about shipping dependencies.
+TODO more reasoning about not using generics.
+
+
+\subsection{Frontend}
+\label{subsec:techfrontend}
+
+Given that the frontend must support the three desktop operating systems Microsoft Windows,
+GNU/Linux as well as Apple MacOS,
+the technological choices available to us are limited.
+On the desktop, we could use the \gls{JVM} platform and the JavaFX \gls{GUI} library, whereas on the phones
+we could use Flutter~\cite{flutterframework}.
+However, developing three applications on five platforms using two new-to-us frameworks and programming languages
+would take a lot more time and resources than what is available to us in the scope of this thesis.
+
+In order to reduce complexity and enable code reuse, we decide to implement the frontend as a web application.
+Web frontents are capable of running in any modern web browser regardless of platform, be it mobile or desktop.
+We're not happy about this, as we would much rather use mature, strongly-typed and well-designed languages and frameworks,
+but we're forced to make this compromise in order to meet our objectives in the time available.
+In order to reduce the pain, we will use TypeScript, which is a typed superset of JavaScript~\cite{loltypes}.
+We discussed implementing a \gls{SPA} using Angular~\cite{angular},
+but for our use case it's overkill as there isn't too much client-side logic.
+In the interest of a small, fast-loading site we chose to stick with plain \gls{HTML} and \gls{CSS}
+and only adding as much JavaScript as necessary.
+
+\subsection{Client-Side File Hashing in the Web Browser}
+\label{subsec:browserhashing}
 However, the decision to implement the frontend as a web application presents us with a challenge:
 hashing the files to be signed client-side in the web browser itself.
 If we had implemented "proper" client applications this would've been easy, but in a web browser and using its
-JavaScript language not so much: it simply wasn't designed with file I/O and CPU-intensive cryptographic functions in mind.
+JavaScript language not so much: it simply wasn't designed with performance in mind.
 
 The easiest solution would be to upload the files to be signed to the server and hash them there,
 but this would be a clear violation of the least-information principle (the server doesn't need the file, only the hash)
@@ -25,7 +82,7 @@ In order to achieve this we have found the following options:
 
 Each of these options comes with a number of advantages and disadvantages, as discussed in more detail in the following sections.
 
-\subsection{Using SubtleCrypto}
+\subsubsection{Using SubtleCrypto}
 \label{subsec:subtlecrypto}
 The \texttt{SubtleCrypto} class offers the \texttt{digest(algorithm, data)} method~\cite{subtlecrypto}, which can be used to
 calculate \gls{SHA-256} checksums.
@@ -34,43 +91,30 @@ and since it's executed with native code, being able to take advantage of \gls{A
 There's a major drawback though: hashing a large amount of data progressively is not supported, the data has to be
 passed to the function en bloc, as seen in listing~\ref{lst:subtlecrypto}.
 
-\begin{lstlisting}[caption={Using SubtleCrypto for calculating SHA-256 checksums}, captionpos=b, language=JavaScript, label={lst:subtlecrypto}]
-    crypto.subtle.digest("SHA-256", data).then(hash => {
-    console.log(
-    // convert ArrayBuffer to hex string
-    Array.from(new Uint8Array(hash)).map(
-    b => b.toString(16).padStart(2, '0')
-    ).join('')
-    );
-    });
-\end{lstlisting}
+\lstinputlisting[caption={Using SubtleCrypto for calculating SHA-256 checksums}, captionpos=b, language=JavaScript, label={lst:subtlecrypto}]{listings/subtlecrypto.js}
+
 Our testing showed that selecting files larger than 200MB crashes Firefox tabs when trying to read their contents
 into memory before we could pass it to the \texttt{digest} function.
 If we assume the users will only ever select small files this should not pose a problem, but unfortunately it's not safe to assume this.
+Furthermore, this limit is probably lower still on mobile devices such as smartphones (although we didn't test this).
 
-\subsection{Using CryptoJS}
+\subsubsection{Using CryptoJS}
 \label{subsec:cryptojs}
 \texttt{CryptoJS} does not have the limitation of \texttt{SubtleCrypto} and supports progressive hashing\footnote{
 By progressive hashing we mean the ability to pass to the hash function the data piece by piece in order to avoid holding all of it in memory at once.},
 as seen in listing~\ref{lst:cryptojsprogressive}.
 
-\begin{lstlisting}[caption={Progressive SHA-256 hashing using CryptoJS},captionpos=b,language=JavaScript,label={lst:cryptojsprogressive}]
-    const sha256 = CryptoJS.algo.SHA256.create();
-
-    sha256.update("Message Part 1");
-    sha256.update("Message Part 2");
-    sha256.update("Message Part 3");
-
-    const hash = sha256.finalize();
-\end{lstlisting}
+\lstinputlisting[caption={Progressive SHA-256 hashing using CryptoJS},captionpos=b,language=JavaScript,label={lst:cryptojsprogressive}]{listings/cryptojs.js}
 
 The advantage of using \texttt{CryptoJS} over \texttt{SubtleCrypto} is, as mentioned, the ability to hash piece-wise.
+
 The disadvantage is that we need to load a third-party JavaScript library, using built-in functionality would be preferable.
-And since JavaScript is an interpreted language, using it to calculate the checksums would result in significantly worse performance.
+
+And since JavaScript is an interpreted language, using it to calculate the checksums results in performance figures everyone but web developers would laugh at.
 This is a problem especially on mobile devices limited in compute and memory resources as well as battery capacity.
 Since we want to support mobile devices properly, and don't want to limit users to small files, we must do better.
 
-\subsection{Using a WASM-based implementation}
+\subsubsection{Using a WASM-based implementation}
 \label{subsec:wasmhashing}
 \gls{WASM} provides a low-level virtual machine in the web browser itself,
 running machine-independent binary code, comparable to the \gls{JVM} or the \gls{CLR},
@@ -91,24 +135,15 @@ If it doesn't, the code will crash with a segmentation fault.
 It took us quite some time to figure out why the code we'd written only a few days prior would segfault now with no changes made to it.
 
 \paragraph{Passing data} Functions written in Go intended to be used from the JavaScript side of things need to have a very specific signature.
-As can be seen in listing~\ref{lst:funcsignaturewasm}, there is no typing: all arguments passed to the function are of type \texttt{js.Value} and the return value must be of type \texttt{interface\{\}}\footnote{This is Go's equivalent of Java's \texttt{Object}, it could be anything.}.
+As can be seen in listing~\ref{lst:funcsignaturewasm}, there is no typing: all arguments passed to the function are of type \texttt{js.Value} and the return value must be of type \texttt{interface\{\}}\footnote{\texttt{interface\{\}} is Go's equivalent of Java's \texttt{Object}, it could be anything.}.
 This posed us with the challenge of detecting the types and casting the data passed accordingly.
 
-\begin{lstlisting}[caption={Golang WASM function signature}, captionpos=b, language=Go, label={lst:funcsignaturewasm}]
-    func f(this js.Value, arg js.Value) interface{} {}
-\end{lstlisting}
+\lstinputlisting[caption={Golang WASM function signature}, captionpos=b, language=Go, label={lst:funcsignaturewasm}]{listings/wasmfunc.go}
 
 We've worked on this for hours, producing ugly reflection-based hacks, until we decided to just agree on the types of the arguments and return values beforehand despite the open function signature.
 Now all that's needed is a little boilerplate to convert a JavaScript \texttt{Uint8Array} to a Golang \texttt{[]byte}, as seen in listing~\ref{lst:jscastingtogo}.
 
-\begin{lstlisting}[caption={Uint8Array to {[]}byte}, captionpos=b, language=Go, label={lst:jscastingtogo}, captionpos=b]
-    func progressiveHash(this js.Value, in []js.Value) interface{} {
-    array := in[0]
-    buf := make([]byte, array.Get("length").Int())
-    js.CopyBytesToGo(buf, array)
-    return this
-    }
-\end{lstlisting}
+\lstinputlisting[caption={Uint8Array to {[]}byte}, captionpos=b, language=Go, label={lst:jscastingtogo}, captionpos=b]{listings/jscasting.go}
 
 \paragraph{Goroutines} Go features its own concurrency primitive called Goroutines.
 From a programmers' perspective, they can be used like threads, but they carry much less overhead.
@@ -126,7 +161,7 @@ However with the drawbacks of the Go based implementation we decided to try to i
 in order to see how they compare both in performance and ease of development.
 
 
-\subsection{Performance Comparison}
+\subsubsection{Performance Comparison}
 \label{subsec:perfcomphashing}
 No one likes waiting for slow software to do its work, and neither do we.
 This is why we decided to compare the performance of the aforementioned options in a simple test:
@@ -153,4 +188,19 @@ In order to provide a reference to compare the hashing speeds to we include the 
 It is clear from figure~\ref{fig:hashingperformance} that \texttt{SubtleCrypto} is the fastest of the options we tried.
 Unfortunately, since it doesn't support piece-wise hashing we're forced to pick the next-fastest option,
 the Rust-based implementation running in the \gls{WASM} \gls{VM}.
+Using Rust provides us with another significant advantage:
+the toolchain is highly developed.
+Upon compilation, the toolchain auto-generates TypeScript declaration files containing the function signatures
+the \gls{WASM} module exposes to the JavaScript world.
+This is very nice, since it allows for compile-time type checking and for smarter code completion in the \gls{IDE},
+as shown in figure \ref{fig:dtside}.
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=0.7\linewidth]{images/dtside.png}
+        \caption{Code Completion in Intellij}
+        \label{fig:dtside}
+    \end{center}
+\end{figure}
+
 
