@@ -13,7 +13,7 @@ import (
 type idTokenVerifier struct {
 	token       []byte
 	signerEmail chan string
-	idToken chan idTokenResp
+	idToken     chan idTokenResp
 	notAfter    func() time.Time
 	key         jose.JSONWebKey
 	ltvData     map[string]*LTV
@@ -41,7 +41,7 @@ func NewIDTokenVerifier(signatureData *SignatureData, notAfter time.Time, cfg Co
 	i := &idTokenVerifier{
 		token:       signatureData.IdToken,
 		signerEmail: make(chan string, 1),
-		idToken: make(chan idTokenResp),
+		idToken:     make(chan idTokenResp),
 		notAfter:    notAfter.Local,
 		ltvData:     signatureData.LtvIdp,
 		ctx:         context.Background(),
@@ -72,7 +72,7 @@ func (i *idTokenVerifier) SendEmail(signerEmail string) {
 	i.signerEmail <- signerEmail
 }
 
-func (i *idTokenVerifier)IDToken() idTokenResp {
+func (i *idTokenVerifier) IDToken() idTokenResp {
 	return <-i.idToken
 }
 
@@ -101,7 +101,7 @@ func (i *idTokenVerifier) Verify(verifyLTV bool) error {
 		return err
 	}
 	idTokenWithClaims := idTokenResp{
-		IDToken: *idToken,
+		IDToken:     *idToken,
 		emailClaims: emailClaims,
 	}
 	for _, c := range i.key.Certificates {

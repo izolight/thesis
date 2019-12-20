@@ -11,29 +11,29 @@ import (
 )
 
 type signatureDataVerifier struct {
-	data         *SignatureData
-	documentHash string
-	nonce        chan string
+	data          *SignatureData
+	documentHash  string
+	nonce         chan string
 	signatureData chan signatureDataResp
-	cfg          *Config
+	cfg           *Config
 }
 
 type signatureDataResp struct {
-	SaltedHashes []string `json:"salted_hashes"`
-	HashAlgorithm string `json:"hash_algorithm"`
-	MacKey string `json:"mac_key"`
-	MACAlgorithm string `json:"mac_algorithm"`
-	SignatureLevel string `json:"signature_level"`
+	SaltedHashes   []string `json:"salted_hashes"`
+	HashAlgorithm  string   `json:"hash_algorithm"`
+	MacKey         string   `json:"mac_key"`
+	MACAlgorithm   string   `json:"mac_algorithm"`
+	SignatureLevel string   `json:"signature_level"`
 }
 
 func NewSignatureDataVerifier(data *SignatureData, documentHash string, cfg Config) *signatureDataVerifier {
 	cfg.Logger = cfg.Logger.WithField("verifier", "signature data")
 	v := &signatureDataVerifier{
-		data:  data,
-		nonce: make(chan string, 1),
+		data:          data,
+		nonce:         make(chan string, 1),
 		signatureData: make(chan signatureDataResp, 1),
-		cfg:   &cfg,
-		documentHash: documentHash,
+		cfg:           &cfg,
+		documentHash:  documentHash,
 	}
 	return v
 }
@@ -43,7 +43,7 @@ func (s *signatureDataVerifier) SendNonce(nonce string) {
 }
 
 func (s *signatureDataVerifier) SignatureData() signatureDataResp {
-	return <- s.signatureData
+	return <-s.signatureData
 }
 
 func (s *signatureDataVerifier) Verify(verifyLTV bool) error {

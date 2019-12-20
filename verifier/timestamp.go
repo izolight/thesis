@@ -18,27 +18,27 @@ func (t timestampError) Error() string {
 }
 
 type TimestampVerifier struct {
-	data        []byte
-	timestamps  [][]byte
-	verifyLTV   bool
+	data          []byte
+	timestamps    [][]byte
+	verifyLTV     bool
 	timestampData chan timestampDataResp
-	ltvData     map[string]*LTV
-	cfg         *Config
+	ltvData       map[string]*LTV
+	cfg           *Config
 }
 
 type timestampDataResp struct {
 	SigningTime time.Time
-	Certs []CertChain `json:"cert_chain"`
+	Certs       []CertChain `json:"cert_chain"`
 }
 
 func NewTimestampVerifier(timestamps [][]byte, data []byte, verifyLTV bool, ltvData map[string]*LTV, cfg Config) *TimestampVerifier {
 	cfg.Logger = cfg.Logger.WithField("verifier", "timestamp")
 	return &TimestampVerifier{
-		data:        data,
-		timestamps:  timestamps,
-		verifyLTV:   verifyLTV,
-		ltvData:     ltvData,
-		cfg:         &cfg,
+		data:          data,
+		timestamps:    timestamps,
+		verifyLTV:     verifyLTV,
+		ltvData:       ltvData,
+		cfg:           &cfg,
 		timestampData: make(chan timestampDataResp, 1),
 	}
 }

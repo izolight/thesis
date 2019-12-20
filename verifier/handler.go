@@ -30,10 +30,10 @@ type VerifyResponse struct {
 }
 
 type CertChain struct {
-	Issuer string `json:"issuer"`
-	Subject string `json:"subject"`
+	Issuer    string    `json:"issuer"`
+	Subject   string    `json:"subject"`
 	NotBefore time.Time `json:"not_before"`
-	NotAfter time.Time `json:"not_after"`
+	NotAfter  time.Time `json:"not_after"`
 }
 
 func NewDefaultCfg(caFile []byte) Config {

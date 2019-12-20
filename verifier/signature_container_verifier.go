@@ -19,9 +19,9 @@ type SignatureContainerVerifier struct {
 }
 
 type signingCertDataResp struct {
-	Signer string `json:"signer"`
-	SignerEmail string `json:"signer_email"`
-	Certs []CertChain `json:"cert_chain"`
+	Signer      string      `json:"signer"`
+	SignerEmail string      `json:"signer_email"`
+	Certs       []CertChain `json:"cert_chain"`
 }
 
 func NewSignatureContainerVerifier(c []byte, additionalCerts []*x509.Certificate, cfg Config) *SignatureContainerVerifier {
@@ -83,8 +83,8 @@ func (s *SignatureContainerVerifier) Verify(verifyLTV bool) error {
 		return fmt.Errorf("certificate was issued at %s, which is after the signing time %s", signer.NotBefore, signingTime)
 	}
 	signingCertDataResp := signingCertDataResp{
-		Signer: signer.Subject.String(),
-		SignerEmail:      signer.EmailAddresses[0],
+		Signer:      signer.Subject.String(),
+		SignerEmail: signer.EmailAddresses[0],
 	}
 	for _, c := range p7.Certificates {
 		signingCertDataResp.Certs = append(signingCertDataResp.Certs, CertChain{
