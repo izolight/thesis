@@ -1,0 +1,81 @@
+@startuml
+
+skinparam componentStyle uml2
+
+package "Verifier" {
+component [Timestamp Verifier] as tsv
+component [Signature Container Verifier] as scv
+component [Signature Data Verifier] as sdv
+component [ID Token Verifier] as idv
+component [LTV Verifier] as ltv
+component [Hash Verifier] as hv
+component Verifier as v
+
+interface Verify as itsv
+interface Verify as iscv
+interface Verify as isdv
+interface Verify as iidv
+interface Verify as iltv
+interface Verify as ihv
+interface Verify
+interface SignatureData as isd
+interface TimestampData as itd
+interface IDTokenData as iid
+interface SigningCertData as iscd
+interface InjectSigningTime as isst
+interface InjectNonce as isn
+interface InjectEmail as ise
+
+itsv -- tsv
+itd -- tsv
+iscv -- scv
+isd -- scv
+isdv -- sdv
+iidv -- idv
+iltv -- ltv
+ihv -- hv
+Verify -- v
+iid -- idv
+iscd -- scv
+isst -- scv
+isn -- sdv
+ise -- idv
+
+v --> itsv
+v --> iscv
+v --> isdv
+v --> iidv
+v --> isd
+v --> itd
+v --> iid
+v --> iscd
+v --> isst
+v --> isn
+v --> ise
+
+tsv --> iltv
+tsv --> ihv
+scv --> iltv
+sdv --> iltv
+sdv --> ihv
+idv --> iltv
+}
+
+package "Webserver" {
+ interface HTTP
+ [Verify Handler] as vh
+ [Static Handler] as sh
+ HTTP -- vh
+ HTTP -- sh
+}
+
+component [Protobuf Decoder] as pd
+interface Decode as ipd
+pd -- ipd
+
+scv --> ipd
+vh --> ipd
+
+vh --> Verify
+
+@enduml
