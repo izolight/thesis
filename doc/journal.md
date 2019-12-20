@@ -225,6 +225,7 @@
 #### 20.12.19
 - 10'000 Meter Flughöhe bildliche Darstellung der Aufgabe
 - Booklet verbessern
+- Video erstellen
 - Komponentendiagramme
 - Besserer Verifier-Output für die Demo
 
