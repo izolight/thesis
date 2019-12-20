@@ -1,5 +1,5 @@
 ---
-image: schickling/latex
+image: blang/latex-docker
 
 build:
   script:
