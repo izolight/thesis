@@ -193,7 +193,7 @@ the toolchain is highly developed.
 Upon compilation, the toolchain auto-generates TypeScript declaration files containing the function signatures
 the \gls{WASM} module exposes to the JavaScript world.
 This is very nice, since it allows for compile-time type checking and for smarter code completion in the \gls{IDE},
-as shown in figure \ref{fig:dtside}.
+as shown in figure~\ref{fig:dtside}.
 
 \begin{figure}
     \begin{center}
@@ -202,5 +202,75 @@ as shown in figure \ref{fig:dtside}.
         \label{fig:dtside}
     \end{center}
 \end{figure}
+
+
+\section{Implementation Components}\label{sec:implementation-components}
+\subsection{Design Principles}\label{subsec:design-principles}
+We've split the implementation of the Signing Service and the Verifier into small,
+replaceable modules with clearly defined interfaces.
+We've done this to achieve clear separation of concern and loose coupling,
+in the spirit of the Law of Demeter~\cite{demeter}.
+
+\paragraph{The Law of Demeter} is a well-known heuristic that states that any module should not know about the
+internals of the objects it manipulates.
+It is a special case of Loose Coupling.
+Objects should hide their data, and expose operations.
+This makes it easy to add new types of objects without requiring changing existing behaviours.
+It also makes it hard to add new behaviours to existing objects.
+Data structures should expose data and have no significant behaviour.
+
+\paragraph{Loose Coupling} refers to the degree of knowledge that one component has of another.
+Structuring programs to consist of components that know little of one another
+results in easy-to-understand, easy-to-test code.
+Developers new to the project can start with work on a small module and don't need to understand the whole system.
+Refactoring (or replacing) the implementation of a component becomes easy,
+as there are clear boundaries,
+and changing the implementation of one component does not affect the others as long as
+the boundary contract remains satisfied.
+
+
+\paragraph{Inversion of Control} enables us to remove the few interdependencies remaining in the modules:
+knowing about each other.
+A component should not care about where, how and why another component is implemented,
+it should only care about being provided the behaviour it requires.
+Inversion of Control through Dependency Injection allows each component to declare
+its dependencies through interfaces,
+and having it supplied the implementation of that interface from the system it is part of,
+without knowing anything whatsoever about that implementation.
+
+\subsection{Components of the Signing Service}\label{subsec:modules-of-the-signing-service}
+There are two groups of components in the signing service:
+\begin{itemize}
+    \item The views: They implement the \gls{REST} interface to the outside world.
+    \item The services: Replaceable components providing functionality needed by the views in order to
+    be able to meet their purpose.
+\end{itemize}
+
+For a \gls{UML} component diagram showing a simplified overview of the components, see figure~\ref{fig:signingservicecomponents}.
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=0.7\linewidth]{images/signing_service_components.png}
+        \caption{Signing Service Components}
+        \label{fig:signingservicecomponents}
+    \end{center}
+\end{figure}
+
+
+\subsection{Components of the Verifier}\label{subsec:modules-of-the-verifier}
+The verifier has an embedded webserver with a single \gls{API} endpoint.
+The webserver handles the \gls{HTTP} side of things.
+It interfaces with the verifier modules, which are split by responsability (e.g. \texttt{id\_token} verification).
+For a \gls{UML} component diagram showing a simplified overview of the components, see figure~\ref{fig:verifiercomponents}.
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=0.7\linewidth]{images/verifier_components.png}
+        \caption{Verifier Components}
+        \label{fig:verifiercomponents}
+    \end{center}
+\end{figure}
+
+
 
 
