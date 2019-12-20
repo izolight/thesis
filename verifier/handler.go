@@ -21,17 +21,12 @@ type VerifyRequest struct {
 }
 
 type VerifyResponse struct {
-	Valid          bool           `json:"valid"`
-	Error          string         `json:"error,omitempty"`
-	SignerEmail    string         `json:"signer_email"`
-	SignatureLevel SignatureLevel `json:"signature_level"`
-	SignatureTime  time.Time      `json:"signature_time"`
-	IDPChain []CertChain `json:"idp_chain"`
-	SigningChain []CertChain `json:"signing_chain"`
-	TSAChain []CertChain `json:"tsa_chain"`
-	Nonce string `json:"nonce"`
-	Salt string `json:"salt"`
-	SaltedHashes []string `json:"salted_hashes"`
+	Valid       bool                `json:"valid"`
+	Error       string              `json:"error,omitempty"`
+	IDToken     idTokenResp         `json:"id_token"`
+	Signature   signatureDataResp   `json:"signature"`
+	SigningCert signingCertDataResp `json:"signing_cert"`
+	Timestamp   timestampDataResp   `json:"timestamp"`
 }
 
 type CertChain struct {

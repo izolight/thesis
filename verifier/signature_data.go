@@ -14,9 +14,16 @@ type signatureDataVerifier struct {
 	data         *SignatureData
 	documentHash string
 	nonce        chan string
-	salt chan string
-	saltedHashes chan []string
+	signatureData chan signatureDataResp
 	cfg          *Config
+}
+
+type signatureDataResp struct {
+	SaltedHashes []string `json:"salted_hashes"`
+	HashAlgorithm string `json:"hash_algorithm"`
+	MacKey string `json:"mac_key"`
+	MACAlgorithm string `json:"mac_algorithm"`
+	SignatureLevel string `json:"signature_level"`
 }
 
 func NewSignatureDataVerifier(data *SignatureData, documentHash string, cfg Config) *signatureDataVerifier {
@@ -24,24 +31,19 @@ func NewSignatureDataVerifier(data *SignatureData, documentHash string, cfg Conf
 	v := &signatureDataVerifier{
 		data:  data,
 		nonce: make(chan string, 1),
-		salt: make(chan string, 1),
-		saltedHashes: make(chan []string, 1),
+		signatureData: make(chan signatureDataResp, 1),
 		cfg:   &cfg,
 		documentHash: documentHash,
 	}
 	return v
 }
 
-func (s *signatureDataVerifier) Salt() string {
-	return <-s.salt
-}
-
-func (s *signatureDataVerifier) SaltedHashes() []string {
-	return <-s.saltedHashes
-}
-
 func (s *signatureDataVerifier) SendNonce(nonce string) {
 	s.nonce <- nonce
+}
+
+func (s *signatureDataVerifier) SignatureData() signatureDataResp {
+	return <- s.signatureData
 }
 
 func (s *signatureDataVerifier) Verify(verifyLTV bool) error {
@@ -91,12 +93,17 @@ func (s *signatureDataVerifier) Verify(verifyLTV bool) error {
 	if !bytes.Equal(nonce, computedNonce) {
 		return errors.New("computed nonce and id token nonce don't match")
 	}
-	s.salt <- fmt.Sprintf("%x", s.data.MacKey)
 	var saltedHashes []string
 	for i := range s.data.SaltedDocumentHash {
 		saltedHashes = append(saltedHashes, fmt.Sprintf("%x", s.data.SaltedDocumentHash[i]))
 	}
-	s.saltedHashes <- saltedHashes
+	s.signatureData <- signatureDataResp{
+		SaltedHashes:   saltedHashes,
+		HashAlgorithm:  s.data.HashAlgorithm.String(),
+		MacKey:         fmt.Sprintf("%x", s.data.MacKey),
+		MACAlgorithm:   s.data.MacAlgorithm.String(),
+		SignatureLevel: s.data.SignatureLevel.String(),
+	}
 
 	s.cfg.Logger.WithFields(log.Fields{
 		"hash_algorithm":         s.data.HashAlgorithm,

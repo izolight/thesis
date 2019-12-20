@@ -58,12 +58,12 @@ func (s *SignatureVerifier) VerifySignatureFile(file *SignatureFile, hash string
 			}
 		}()
 
-		signingTime := timestampVerifier.SigningTime()
-		signatureContainerVerifier.SendSigningTime(signingTime)
+		timestampData := timestampVerifier.TimestampData()
+		signatureContainerVerifier.SendSigningTime(timestampData.SigningTime)
 		s.cfg.Logger.WithFields(log.Fields{
-			"signing_time": signingTime,
+			"signing_time": timestampData.SigningTime,
 		}).Info("decoded signing time")
-		idTokenVerifier, err := NewIDTokenVerifier(&signatureData, signingTime, s.cfg)
+		idTokenVerifier, err := NewIDTokenVerifier(&signatureData, timestampData.SigningTime, s.cfg)
 		if err != nil {
 			errors <- fmt.Errorf("could not create id token verifier: %w", err)
 		}
@@ -75,45 +75,20 @@ func (s *SignatureVerifier) VerifySignatureFile(file *SignatureFile, hash string
 				errors <- fmt.Errorf("could not verify id token: %w", err)
 			}
 		}()
-		nonce := idTokenVerifier.Nonce()
-		signatureDataVerifier.SendNonce(nonce)
-		signer := signatureContainerVerifier.Signer()
-		idTokenVerifier.SendEmail(signer.EmailAddresses[0])
+
+		idToken := idTokenVerifier.IDToken()
+		signatureDataVerifier.SendNonce(idToken.Nonce)
+		signingCertData := signatureContainerVerifier.SigningCertData()
+		idTokenVerifier.SendEmail(signingCertData.SignerEmail)
 
 		wg.Wait()
 		resp := VerifyResponse{
-			Valid:          true,
-			Error:          "",
-			SignerEmail:    signer.EmailAddresses[0],
-			SignatureLevel: signatureData.SignatureLevel,
-			SignatureTime:  signingTime,
-			Nonce: nonce,
-			Salt: signatureDataVerifier.Salt(),
-			SaltedHashes: signatureDataVerifier.SaltedHashes(),
-		}
-		for _, c := range idTokenVerifier.Certs() {
-			resp.IDPChain = append(resp.IDPChain, CertChain{
-				Issuer:    c.Issuer.String(),
-				Subject:   c.Subject.String(),
-				NotBefore: c.NotBefore,
-				NotAfter:  c.NotAfter,
-			})
-		}
-		for _, c := range signatureContainerVerifier.Certs() {
-			resp.SigningChain = append(resp.SigningChain, CertChain{
-				Issuer:    c.Issuer.String(),
-				Subject:   c.Subject.String(),
-				NotBefore: c.NotBefore,
-				NotAfter:  c.NotAfter,
-			})
-		}
-		for _, c := range timestampVerifier.Certs() {
-			resp.TSAChain = append(resp.TSAChain, CertChain{
-				Issuer:    c.Issuer.String(),
-				Subject:   c.Subject.String(),
-				NotBefore: c.NotBefore,
-				NotAfter:  c.NotAfter,
-			})
+			Valid:       true,
+			Error:       "",
+			Signature:   signatureDataVerifier.SignatureData(),
+			SigningCert: signingCertData,
+			Timestamp:   timestampData,
+			IDToken:     idToken,
 		}
 
 		responses <- resp

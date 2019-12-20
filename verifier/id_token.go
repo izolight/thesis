@@ -2,7 +2,6 @@ package verifier
 
 import (
 	"context"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"github.com/coreos/go-oidc"
@@ -13,15 +12,25 @@ import (
 
 type idTokenVerifier struct {
 	token       []byte
-	nonce       chan string
 	signerEmail chan string
-	certs chan []*x509.Certificate
+	idToken chan idTokenResp
 	notAfter    func() time.Time
 	key         jose.JSONWebKey
 	ltvData     map[string]*LTV
 	verifyLTV   bool
 	ctx         context.Context
 	cfg         *Config
+}
+
+type emailClaims struct {
+	Email         string `json:"email"`
+	EmailVerified bool   `json:"email_verified"`
+}
+
+type idTokenResp struct {
+	oidc.IDToken
+	emailClaims
+	Certs []CertChain `json:"cert_chain"`
 }
 
 func NewIDTokenVerifier(signatureData *SignatureData, notAfter time.Time, cfg Config) (*idTokenVerifier, error) {
@@ -31,9 +40,8 @@ func NewIDTokenVerifier(signatureData *SignatureData, notAfter time.Time, cfg Co
 	cfg.Logger = cfg.Logger.WithField("verifier", "id token")
 	i := &idTokenVerifier{
 		token:       signatureData.IdToken,
-		nonce:       make(chan string, 1),
 		signerEmail: make(chan string, 1),
-		certs: make(chan []*x509.Certificate, 1),
+		idToken: make(chan idTokenResp),
 		notAfter:    notAfter.Local,
 		ltvData:     signatureData.LtvIdp,
 		ctx:         context.Background(),
@@ -60,16 +68,12 @@ func (i *idTokenVerifier) VerifySignature(ctx context.Context, jwtRaw string) (p
 	return signature.Verify(i.key)
 }
 
-func (i *idTokenVerifier) Nonce() string {
-	return <-i.nonce
-}
-
 func (i *idTokenVerifier) SendEmail(signerEmail string) {
 	i.signerEmail <- signerEmail
 }
 
-func (i *idTokenVerifier) Certs() []*x509.Certificate {
-	return <-i.certs
+func (i *idTokenVerifier)IDToken() idTokenResp {
+	return <-i.idToken
 }
 
 func (i *idTokenVerifier) Verify(verifyLTV bool) error {
@@ -92,16 +96,24 @@ func (i *idTokenVerifier) Verify(verifyLTV bool) error {
 		"subject":   idToken.Subject,
 	}).Info("decoded id token")
 
-	i.nonce <- idToken.Nonce
-
-	var emailClaims struct {
-		Email         string `json:"email"`
-		EmailVerified bool   `json:"email_verified"`
-	}
-
+	var emailClaims emailClaims
 	if err = idToken.Claims(&emailClaims); err != nil {
 		return err
 	}
+	idTokenWithClaims := idTokenResp{
+		IDToken: *idToken,
+		emailClaims: emailClaims,
+	}
+	for _, c := range i.key.Certificates {
+		idTokenWithClaims.Certs = append(idTokenWithClaims.Certs, CertChain{
+			Issuer:    c.Issuer.String(),
+			Subject:   c.Subject.String(),
+			NotBefore: c.NotBefore,
+			NotAfter:  c.NotAfter,
+		})
+	}
+	i.idToken <- idTokenWithClaims
+
 	if !emailClaims.EmailVerified {
 		return errors.New("e-mail was not verified")
 	}
@@ -124,7 +136,6 @@ func (i *idTokenVerifier) Verify(verifyLTV bool) error {
 			return fmt.Errorf("verifyLTV information for id token not valid: %w", err)
 		}
 	}
-	i.certs <- i.key.Certificates
 	i.cfg.Logger.Info("finished verifying")
 
 	return nil

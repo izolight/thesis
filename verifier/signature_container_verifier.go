@@ -12,11 +12,16 @@ import (
 type SignatureContainerVerifier struct {
 	container       []byte
 	data            chan SignatureData
-	certs chan []*x509.Certificate
-	signer          chan *x509.Certificate
+	signingCertData chan signingCertDataResp
 	signingTime     chan time.Time
 	additionalCerts []*x509.Certificate
 	cfg             *Config
+}
+
+type signingCertDataResp struct {
+	Signer string `json:"signer"`
+	SignerEmail string `json:"signer_email"`
+	Certs []CertChain `json:"cert_chain"`
 }
 
 func NewSignatureContainerVerifier(c []byte, additionalCerts []*x509.Certificate, cfg Config) *SignatureContainerVerifier {
@@ -24,9 +29,8 @@ func NewSignatureContainerVerifier(c []byte, additionalCerts []*x509.Certificate
 	return &SignatureContainerVerifier{
 		container:       c,
 		data:            make(chan SignatureData, 1),
-		signer:          make(chan *x509.Certificate, 1),
-		certs: make(chan []*x509.Certificate, 1),
 		signingTime:     make(chan time.Time, 1),
+		signingCertData: make(chan signingCertDataResp),
 		additionalCerts: additionalCerts,
 		cfg:             &cfg,
 	}
@@ -78,8 +82,19 @@ func (s *SignatureContainerVerifier) Verify(verifyLTV bool) error {
 	if signer.NotBefore.After(signingTime) {
 		return fmt.Errorf("certificate was issued at %s, which is after the signing time %s", signer.NotBefore, signingTime)
 	}
-	s.signer <- signer
-	s.certs <- p7.Certificates
+	signingCertDataResp := signingCertDataResp{
+		Signer: signer.Subject.String(),
+		SignerEmail:      signer.EmailAddresses[0],
+	}
+	for _, c := range p7.Certificates {
+		signingCertDataResp.Certs = append(signingCertDataResp.Certs, CertChain{
+			Issuer:    c.Issuer.String(),
+			Subject:   c.Subject.String(),
+			NotBefore: c.NotBefore,
+			NotAfter:  c.NotAfter,
+		})
+	}
+	s.signingCertData <- signingCertDataResp
 	s.cfg.Logger.WithFields(log.Fields{
 		"subject":    signer.Subject,
 		"email":      signer.EmailAddresses[0],
@@ -96,14 +111,10 @@ func (s *SignatureContainerVerifier) SignatureData() SignatureData {
 	return <-s.data
 }
 
-func (s *SignatureContainerVerifier) Signer() *x509.Certificate {
-	return <-s.signer
-}
-
-func (s *SignatureContainerVerifier) Certs() []*x509.Certificate {
-	return <-s.certs
-}
-
 func (s *SignatureContainerVerifier) SendSigningTime(signingTime time.Time) {
 	s.signingTime <- signingTime
+}
+
+func (s *SignatureContainerVerifier) SigningCertData() signingCertDataResp {
+	return <-s.signingCertData
 }

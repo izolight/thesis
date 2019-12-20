@@ -1,7 +1,6 @@
 package verifier
 
 import (
-	"crypto/x509"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"go.mozilla.org/pkcs7"
@@ -22,10 +21,14 @@ type TimestampVerifier struct {
 	data        []byte
 	timestamps  [][]byte
 	verifyLTV   bool
-	signingTime chan time.Time
-	certs chan []*x509.Certificate
+	timestampData chan timestampDataResp
 	ltvData     map[string]*LTV
 	cfg         *Config
+}
+
+type timestampDataResp struct {
+	SigningTime time.Time
+	Certs []CertChain `json:"cert_chain"`
 }
 
 func NewTimestampVerifier(timestamps [][]byte, data []byte, verifyLTV bool, ltvData map[string]*LTV, cfg Config) *TimestampVerifier {
@@ -36,15 +39,14 @@ func NewTimestampVerifier(timestamps [][]byte, data []byte, verifyLTV bool, ltvD
 		verifyLTV:   verifyLTV,
 		ltvData:     ltvData,
 		cfg:         &cfg,
-		signingTime: make(chan time.Time, 1),
-		certs: make(chan []*x509.Certificate, 1),
+		timestampData: make(chan timestampDataResp, 1),
 	}
 }
 
-func (t *TimestampVerifier) verifyTimestamp(timestamp []byte, data []byte, index int) (*time.Time, error) {
+func (t *TimestampVerifier) verifyTimestamp(timestamp []byte, data []byte, index int) error {
 	ts, err := pkcs7.ParseTSResponse(timestamp)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if t.verifyLTV {
 		l := LTVVerifier{
@@ -52,22 +54,33 @@ func (t *TimestampVerifier) verifyTimestamp(timestamp []byte, data []byte, index
 			LTVData: t.ltvData,
 		}
 		if err := l.Verify(); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
 	if err = verifyHash(data, ts.HashedMessage, ts.HashAlgorithm, *t.cfg); err != nil {
-		return nil, err
+		return err
 	}
 	if index == 0 {
-		t.certs <- ts.Certificates
+		timestampData := timestampDataResp{
+			SigningTime: ts.Time,
+		}
+		for _, c := range ts.Certificates {
+			timestampData.Certs = append(timestampData.Certs, CertChain{
+				Issuer:    c.Issuer.String(),
+				Subject:   c.Subject.String(),
+				NotBefore: c.NotBefore,
+				NotAfter:  c.NotAfter,
+			})
+		}
+		t.timestampData <- timestampData
 	}
 	t.cfg.Logger.WithFields(log.Fields{
 		"timestamp":        ts.Time,
 		"timestamped_hash": fmt.Sprintf("%x", ts.HashedMessage),
 	}).Info("verified timestamp")
 
-	return &ts.Time, nil
+	return nil
 }
 
 func (t *TimestampVerifier) Verify() error {
@@ -91,22 +104,14 @@ func (t *TimestampVerifier) Verify() error {
 			//	return fmt.Errorf("could not marshal timestamp: %w", err)
 			//}
 		}
-		notAfter, err := t.verifyTimestamp(t.timestamps[i], hashData, i)
-		if err != nil {
+		if err := t.verifyTimestamp(t.timestamps[i], hashData, i); err != nil {
 			return fmt.Errorf("could not verify timestamp: %w", err)
-		}
-		if i == 0 {
-			t.signingTime <- *notAfter
 		}
 	}
 	t.cfg.Logger.Info("finished verifying")
 	return nil
 }
 
-func (t *TimestampVerifier) SigningTime() time.Time {
-	return <-t.signingTime
-}
-
-func (t *TimestampVerifier) Certs() []*x509.Certificate {
-	return <-t.certs
+func (t *TimestampVerifier) TimestampData() timestampDataResp {
+	return <-t.timestampData
 }
