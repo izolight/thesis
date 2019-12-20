@@ -1,10 +1,20 @@
 ---
-image: docker.io/blang/latex
 
-build:
+build:doc:
+  image: docker.io/blang/latex
   script:
     - cd doc/main
     - make
   artifacts:
     paths:
       - doc/main/documentation.pdf
+
+
+build:signingserver:
+  image: docker.io/maven:maven:3.3-jdk-8
+  script:
+    - cd signingserver
+    - mvn clean install -Dmaven.test.skip=true
+  artifacts:
+    paths:
+      - signingserver/target/signingserver-0.0.1-jar-with-dependencies.jar
