@@ -1,4 +1,4 @@
-title Signature validation (offline)
+title Signature verification (offline)
 
 actor Signer
 actor Verifier

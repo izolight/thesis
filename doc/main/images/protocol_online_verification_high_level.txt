@@ -1,11 +1,11 @@
-title Signature validation (online)
+title Signature verification (online)
 
 actor Signer
 actor Verifier
 actor Verification Service
 
 Signer->Verifier: send document and signature
-Verifier->Verification Service: send document and signature
+Verifier->Verification Service: send document hash and signature
 activate Verification Service
 Verification Service->Verification Service: validate signature and chain
 Verifier<--Verification Service: send signature status

@@ -16,9 +16,7 @@ CA->CA: sign CSR and generate certificate
 Signing Service<--CA: send certificate
 deactivate CA
 activate Signing Service
-loop for each document hash
 Signing Service->Signing Service: create signature data for hash
-note right of Signing Service: signature data:\n- document hash\n- hashing algorithm\n- MAC key(salt)\n- MAC algorithm\n- list of MACed other hashes\n- signature level\n- ID token\n- certificate chain of IDP\n- OCSP of IDP CA\n- CRL of IDP CA
 Signing Service->HSM: send signature data
 deactivate Signing Service
 activate HSM
@@ -33,4 +31,3 @@ activate TSS
 TSS->TSS: add signed\ntimestamp
 Signing Service<--TSS: return TSR
 deactivate TSS
-end
