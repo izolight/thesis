@@ -1,0 +1,61 @@
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+  {
+    "valid":true,
+    "id_token":{
+      "Issuer":"https://keycloak.thesis.izolight.xyz/auth/realms/master",
+      "Audience":["thesis"],
+      "Subject":"2d76a06e-651d-4b96-9024-c81cbdbf6948",
+      "Expiry":"2019-12-06T11:26:24+01:00",
+      "IssuedAt":"2019-12-06T11:11:24+01:00",
+      "Nonce":"106c85bbfd85a70dfd99408428c0d67163bce696a57ea97fd1e65d4be3304b41",
+      "AccessTokenHash":"",
+      "email":"test2@thesis.izolight.xyz",
+      "email_verified":true,
+      "cert_chain":[
+        {
+          "issuer":"CN=Thesis Intermediate CA,OU=CA,O=Thesis,L=Bern,ST=BE,C=CH",
+          "subject":"CN=Thesis IdP,OU=CA,O=Thesis,L=Bern,ST=BE,C=CH",
+          "not_before":"2019-11-27T22:58:00Z",
+          "not_after":"2022-11-26T22:58:00Z"
+        },
+        ...
+      ]
+    },
+    "signature":{
+      "salted_hashes":[
+        "b6b0b1064ed7dfdf351db7d7bd5b52123f3e0070fcef40860dfde1e57c8ad5bc",
+        "6a7ec5219706cf7a9c373fe72de5dcdce2dcd1df5a2b97b5282699c31eb5513b"
+      ],
+      "hash_algorithm":"SHA2_256",
+      "mac_key":"c400087d1da8c443988fbf12ea48e56164c5de5a69769bab2eccf93f40560849",
+      "mac_algorithm":"HMAC_SHA2_256",
+      "signature_level":"ADVANCED"
+    },
+    "signing_cert":{
+      "signer":"CN=USER Test2,OU=Demo Signing Service",
+      "signer_email":"test2@thesis.izolight.xyz",
+      "cert_chain":[
+        {
+          "issuer":"CN=Thesis Root CA,OU=CA,O=Thesis,L=Bern,ST=BE,C=CH",
+          "subject":"CN=Thesis Root CA,OU=CA,O=Thesis,L=Bern,ST=BE,C=CH",
+          "not_before":"2019-11-23T05:28:00Z",
+          "not_after":"2049-11-15T05:28:00Z"
+        },
+        ...
+      ]
+    },
+    "timestamp":{
+      "SigningTime":"2019-12-06T10:11:26Z",
+      "cert_chain":[
+        {
+          "issuer":"CN=SwissSign Platinum CA - G2,O=SwissSign AG,C=CH",
+          "subject":"CN=SwissSign Platinum CA - G2,O=SwissSign AG,C=CH",
+          "not_before":"2006-10-25T08:36:00Z",
+          "not_after":"2036-10-25T08:36:00Z"
+        },
+        ...
+      ]
+    }
+  }

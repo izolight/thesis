@@ -563,12 +563,16 @@ Output:
     \textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\ \hline
     valid & MANDATORY & Boolean & validity of signature \\ \hline
     error & OPTIONAL & String & error message why the signature is invalid \\ \hline
+    id\_token & MANDATORY & Object & id token + claims + cert chain \\ \hline
+    signature & MANDATORY & Object & signature data (hashes, salt, algorithms) \\ \hline
+    signing\_cert & MANDATORY & Object & cert chain of signer cert + signer info \\ \hline
+    timestamp & MANDATORY & Object & signing time and cert chain \\ \hline
     \caption{Output of the signature verification endpoint}
 \end{longtable}
 
 Sample Request:
 \begin{lstlisting}[caption={sign request}, captionpos=b, language=JavaScript, label={lst:verifyrequest}]
-    POST /api/v1/sign HTTP/1.1
+    POST /verify HTTP/1.1
     Host: service.example.org
     Content-Type: application/json
 
@@ -580,14 +584,7 @@ Sample Request:
 
 Sample Response:
 
-\begin{lstlisting}[caption={sign response}, captionpos=b, language=JavaScript, label={lst:verifyresponse}]
-    HTTP/1.1 200 OK
-    Content-Type: application/json
-
-    {
-    "valid": true
-    }
-\end{lstlisting}
+\lstinputlisting{listings/verifyResponse.txt}[caption={sign response}, captionpos=b, language=JavaScript, label={lst:verifyresponse}]
 
 Invalid signature:
 
