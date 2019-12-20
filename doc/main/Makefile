@@ -37,7 +37,7 @@ clean:
 		latexmk -CA
 		touch documentation.tex
 
-glossaries:
+glossaries: noglossaries
 		makeglossaries documentation
 
 noglossaries:
