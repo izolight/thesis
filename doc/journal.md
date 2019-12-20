@@ -219,4 +219,14 @@
 #### 18.12.19
 - Arbeit an der Dokumentation (IDP Requirements)
 
+#### 19.12.19
+- Besprechung mit den Betreuenden
+
+#### 20.12.19
+- 10'000 Meter Flughöhe bildliche Darstellung der Aufgabe
+- Booklet verbessern
+- Komponentendiagramme
+- Besserer Verifier-Output für die Demo
+
+
 
