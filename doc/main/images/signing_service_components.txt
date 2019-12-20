@@ -1,0 +1,77 @@
+@startuml
+
+skinparam componentStyle uml2
+
+package "services" {
+component CAService as cas
+interface signCSR as scsr
+cas - scsr
+
+component NonceGenerator as ng
+interface getNonce as gn
+ng - gn
+
+component TimestampingService as tsa
+interface stamp
+tsa - stamp
+
+component OIDCDiscovery as ods
+interface validateIdToken as vidt
+interface marshalJwk as mjwk
+interface constructAuthenticationRequestUrl as caru
+interface getAuthorisationEndpoint as gae
+tsa -[hidden]-> vidt
+ods -up- vidt
+ods -right- mjwk
+ods -down- caru
+caru -[hidden]-> gae
+ods -down- gae
+
+component SecretService as ss
+interface hkdf
+ss - hkdf
+
+component SigningKeysService as sks
+interface generateSigningKey as gsk
+interface signToPkcs7 as stp7
+interface destroySigningKey as dsk
+sks -up- gsk
+sks -right- stp7
+sks -down- dsk
+
+dsk -[hidden]-> cas
+cas -[hidden]-> tsa
+tsa -[hidden]-> ods
+gae -[hidden]-> ng
+ng -[hidden]-> ss
+}
+
+package "views" {
+interface HTTP
+
+component SubmitHashes
+SubmitHashes -- HTTP
+
+component Sign
+Sign -- HTTP
+Sign -> vidt
+Sign -> mjwk
+Sign -> hkdf
+Sign -> gsk
+Sign -> stp7
+Sign -> dsk
+Sign -> scsr
+Sign -> stamp
+
+component Signatures
+Signatures -- HTTP
+Signatures -> gn
+Signatures -> hkdf
+Signatures -> caru
+Signatures -> gae
+
+HTTP -[hidden]-> Signatures
+Signatures -[hidden]-> Sign
+}
+
+@enduml
