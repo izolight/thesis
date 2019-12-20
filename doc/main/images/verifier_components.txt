@@ -26,14 +26,18 @@ interface InjectSigningTime as isst
 interface InjectNonce as isn
 interface InjectEmail as ise
 
+scv -[hidden]-> idv
+idv -[hidden]-> sdv
+sdv -[hidden]-> tsv
+
 itsv -- tsv
 itd -- tsv
 iscv -- scv
 isd -- scv
 isdv -- sdv
 iidv -- idv
-iltv -- ltv
-ihv -- hv
+iltv -right- ltv
+ihv -right- hv
 Verify -- v
 iid -- idv
 iscd -- scv
@@ -53,12 +57,12 @@ v --> isst
 v --> isn
 v --> ise
 
-tsv --> iltv
-tsv --> ihv
-scv --> iltv
-sdv --> iltv
-sdv --> ihv
-idv --> iltv
+tsv -right-> iltv
+tsv -right-> ihv
+scv -right-> iltv
+sdv -right-> iltv
+sdv -right-> ihv
+idv -right-> iltv
 }
 
 package "Webserver" {
@@ -73,9 +77,10 @@ component [Protobuf Decoder] as pd
 interface Decode as ipd
 pd -- ipd
 
-scv --> ipd
-vh --> ipd
+scv -up-> ipd
+vh -right-> ipd
 
 vh --> Verify
 
 @enduml
+
