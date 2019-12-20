@@ -7,16 +7,43 @@ export interface Providers {
 }
 
 export interface PostVerifyResponse {
-    readonly signature_level: number;
-    readonly signature_time: string;
-    readonly signer_email: string;
     readonly valid: boolean;
-    readonly idp_chain: Array<CertChain>;
-    readonly signing_chain: Array<CertChain>;
-    readonly tsa_chain: Array<CertChain>;
-    readonly nonce: string;
-    readonly salt: string;
+    readonly error: string;
+    readonly id_token: IDToken;
+    readonly signature: Signature;
+    readonly signing_cert: SigningCert;
+    readonly timestamp: Timestamp;
+}
+
+export interface IDToken {
+    readonly Issuer: string;
+    readonly Audience: Array<string>;
+    readonly Subject: string;
+    readonly Expiry: string;
+    readonly IssuedAt: string;
+    readonly Nonce: string;
+    readonly email: string;
+    readonly email_verified: boolean;
+    readonly cert_chain: Array<CertChain>;
+}
+
+export interface Signature {
     readonly salted_hashes: Array<string>;
+    readonly hash_algorithm: string;
+    readonly mac_key: string;
+    readonly mac_algorithm: string;
+    readonly signature_level: string;
+}
+
+export interface SigningCert {
+    readonly signer: string;
+    readonly signer_email: string;
+    readonly cert_chain: Array<CertChain>;
+}
+
+export interface Timestamp {
+    readonly SigningTime: string;
+    readonly cert_chain: Array<CertChain>;
 }
 
 export interface CertChain {

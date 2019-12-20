@@ -136,41 +136,41 @@ export class TS {
                 </li>`;
         if (Validate.notNull(cardArea)) {
             let signing_chain = `<ul class="list-unstyled mt-3 mb-4">`;
-            for (let i = 0; i < response.signing_chain.length; i++) {
+            for (let i = 0; i < response.signing_cert.cert_chain.length; i++) {
                 signing_chain += cert_template
-                    .replace('ISSUER', response.signing_chain[i].issuer)
-                    .replace('SUBJECT', response.signing_chain[i].subject)
-                    .replace('NOT_BEFORE', response.signing_chain[i].not_before)
-                    .replace('NOT_AFTER', response.signing_chain[i].not_after)
+                    .replace('ISSUER', response.signing_cert.cert_chain[i].issuer)
+                    .replace('SUBJECT', response.signing_cert.cert_chain[i].subject)
+                    .replace('NOT_BEFORE', response.signing_cert.cert_chain[i].not_before)
+                    .replace('NOT_AFTER', response.signing_cert.cert_chain[i].not_after)
                 signing_chain += `</li>`;
             }
             signing_chain += `</ul>`;
 
             let idp_chain = `<ul class="list-unstyled mt-3 mb-4">`;
-            for (let i = 0; i < response.idp_chain.length; i++) {
+            for (let i = 0; i < response.id_token.cert_chain.length; i++) {
                 idp_chain += cert_template
-                    .replace('ISSUER', response.idp_chain[i].issuer)
-                    .replace('SUBJECT', response.idp_chain[i].subject)
-                    .replace('NOT_BEFORE', response.idp_chain[i].not_before)
-                    .replace('NOT_AFTER', response.idp_chain[i].not_after)
+                    .replace('ISSUER', response.id_token.cert_chain[i].issuer)
+                    .replace('SUBJECT', response.id_token.cert_chain[i].subject)
+                    .replace('NOT_BEFORE', response.id_token.cert_chain[i].not_before)
+                    .replace('NOT_AFTER', response.id_token.cert_chain[i].not_after)
                 idp_chain += `</li>`;
             }
             idp_chain += `</ul>`;
 
             let tsa_chain = `<ul class="list-unstyled mt-3 mb-4">`;
-            for (let i = 0; i < response.tsa_chain.length; i++) {
+            for (let i = 0; i < response.timestamp.cert_chain.length; i++) {
                 tsa_chain += cert_template
-                    .replace('ISSUER', response.tsa_chain[i].issuer)
-                    .replace('SUBJECT', response.tsa_chain[i].subject)
-                    .replace('NOT_BEFORE', response.tsa_chain[i].not_before)
-                    .replace('NOT_AFTER', response.tsa_chain[i].not_after)
+                    .replace('ISSUER', response.timestamp.cert_chain[i].issuer)
+                    .replace('SUBJECT', response.timestamp.cert_chain[i].subject)
+                    .replace('NOT_BEFORE', response.timestamp.cert_chain[i].not_before)
+                    .replace('NOT_AFTER', response.timestamp.cert_chain[i].not_after)
                 tsa_chain += `</li>`;
             }
             tsa_chain += `</ul>`;
 
             let salted_hashes = `<ul class="list-unstyled mt-3 mb-4">`;
-            for (let i = 0; i < response.salted_hashes.length; i++) {
-                salted_hashes += `<li>` + response.salted_hashes[i] + `</li>`;
+            for (let i = 0; i < response.signature.salted_hashes.length; i++) {
+                salted_hashes += `<li>` + response.signature.salted_hashes[i] + `</li>`;
             }
             salted_hashes += `</ul>`;
 
@@ -180,27 +180,75 @@ export class TS {
             </div>
             <div class="card-body">
                 <ul class="list-unstyled mt-3 mb-4">
-                    <li>Signature Level: LEVEL</li>
-                    <li>Signing Time: TIME</li>
-                    <li>Signer E-Mail: EMAIL</li>
                     <li>Valid: VALID</li>
-                    <li>Nonce: NONCE</li>
-                    <li>Salt: DOC_SALT</li>
-                    <li>Salted Hashes: SALTED_HASHES</li>
-                    <li>Signing Cert Chain: SIGNING_CHAIN</li>
-                    <li>IDP Cert Chain: IDP_CHAIN</li>
-                    <li>TSA Cert Chain: TSA_CHAIN</li>
+                    <li>Signer E-Mail: E-MAIL</li>
+                    <li>Signer: SIGNER</li>                                  
+                    <li>Signing Time: TIME</li>
+                    <li>Signature Level: LEVEL</li>
                 </ul>
+            </div>
+        </div>
+        <div class="card mb-4 box-shadow">
+            <div class="card-header">
+                <h5 class="my-0 font-weight-normal">Signature Data</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mt-3 mb-4">
+                     <li>Salted Hashes: SALTED_HASHES</li>
+                     <li>Hash Algorithm: hALGO</li>                    
+                     <li>Salt (MAC Key): DOC_SALT</li>
+                     <li>MAC Algorithm: mALGO</li>
+                </ul>
+            </div>
+        </div>
+        <div class="card mb-4 box-shadow">
+            <div class="card-header">
+                <h5 class="my-0 font-weight-normal">ID Token</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mt-3 mb-4">
+                    <li>Issuer: ISSUER</li>
+                    <li>Issued At: ISSUEDAT</li>
+                    <li>Expiry: EXPIRY</li>
+                    <li>Nonce: NONCE</li>
+                    <li>E-Mail: E-MAIL</li>
+                    <li>E-Mail Verified: vEMAIL</li>
+                    <li>Cert Chain: IDP_CHAIN</li>
+                </ul>
+            </div>
+        </div>
+        <div class="card mb-4 box-shadow">
+            <div class="card-header">
+                <h5 class="my-0 font-weight-normal">Signing Cert Chain</h5>
+            </div>
+            <div class="card-body">
+                SIGNING_CHAIN      
+            </div>
+        </div>
+        <div class="card mb-4 box-shadow">
+            <div class="card-header">
+                <h5 class="my-0 font-weight-normal">Timestamp Cert Chain</h5>
+            </div>
+            <div class="card-body">
+                TSA_CHAIN      
             </div>
         </div>`;
             cardArea.innerHTML = cardArea.innerHTML + template
-                .replace('LEVEL', this.lookupSigLevel(response.signature_level))
-                .replace('TIME', response.signature_time)
-                .replace('EMAIL', response.signer_email)
                 .replace('VALID', String(response.valid))
-                .replace('NONCE', response.nonce)
-                .replace('DOC_SALT', response.salt)
+                .replace('E-MAIL', response.signing_cert.signer_email)
+                .replace('E-MAIL', response.signing_cert.signer_email)
+                .replace('SIGNER', response.signing_cert.signer)
+                .replace('TIME', response.timestamp.SigningTime)
+                .replace('LEVEL', response.signature.signature_level)
                 .replace('SALTED_HASHES', salted_hashes)
+                .replace('hALGO', response.signature.hash_algorithm)
+                .replace('DOC_SALT', response.signature.mac_key)
+                .replace('mALGO', response.signature.mac_algorithm)
+                .replace('ISSUER', response.id_token.Issuer)
+                .replace('ISSUEDAT', response.id_token.IssuedAt)
+                .replace('EXPIRY', response.id_token.Expiry)
+                .replace('NONCE', response.id_token.Nonce)
+                .replace('vEMAIL', String(response.id_token.email_verified))
                 .replace('SIGNING_CHAIN', signing_chain)
                 .replace('IDP_CHAIN', idp_chain)
                 .replace('TSA_CHAIN', tsa_chain)
