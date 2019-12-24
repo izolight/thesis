@@ -35,7 +35,7 @@ The following table lists a short overview which other choices we've discussed b
     \hline
     \textbf{Language} & \textbf{Framework} & \textbf{Reason for non-consideration} \\ \hline
     Java & Spring MVC & Steep learning curve, vast amount of functionality to learn, too large for our needs, little previous knowledge on our part \\ \hline
-    Java & Vaadin & Generated frontend is slow to use because of network latency, too much uncertainty with regards to \gls{WASM} integration:  Is it possible? How? How long will it take us, how much will we have to implement ourselves? \\ \hline
+    Java & Vaadin & Generated frontend is slow to use because of network latency, too much uncertainty with regards to \gls{WASM} integration: Is it possible? How? How long will it take us, how much will we have to implement ourselves? \\ \hline
     C\# & .NET Core & Zero previous knowledge on our part both for the language and the framework, aversion to Microsoft because of their attempts to undermine open-source software~\cite{mseee} \\ \hline
     Scala & Play & Little previous knowledge of the language, uncertainty of the time required to learn it properly, but otherwise an interesting contender \\ \hline
     Python & Django & Huge framework to learn, no type safety, slow runtime performance \\ \hline
@@ -290,6 +290,88 @@ For a \gls{UML} component diagram showing a simplified overview of the component
         \label{fig:verifiercomponents}
     \end{center}
 \end{figure}
+
+
+
+\section{Finding services fitting our requirements}\label{sec:finding-services-fitting-our-requirements}
+
+For our remote signing service to work,
+we need an \gls{IDP} satisfying the requirements documented in section~\ref{sec:requirements-for-idps},
+a \gls{TSA} willing to timestamp our signatures,
+and a \gls{CA} with an \gls{OCSP} responder that will sign our certificates.
+
+\subsection{Finding a TSA}\label{subsec:finding-a-tsa}
+Searching for publicly available \gls{TSA}s, we've found a list as part of the software-library~\texttt{python3-rfc3161ng}~\cite{pythonrfc3161}:
+\begin{itemize}
+    \item \url{http://freetsa.org/tsr}
+    \item \url{http://time.certum.pl}
+    \item \url{http://timestamp.comodoca.com/rfc3161}
+    \item \url{http://timestamp.geotrust.com/tsa}
+    \item \url{http://timestamp.globalsign.com/scripts/timstamp.dll}
+\end{itemize}
+
+However we went with the SwissSign \gls{TSA}, as it seemed the least untrustworthy to us.
+
+It worked as expected the first time we tried requesting a timestamp from it.
+We used the \texttt{openssl ts} command line program.
+Furthermore, to our knowledge, it is available free of charge,
+and during our development and testing they didn't restrict us as to the number of timestamps we requested,
+which was good enough for our \gls{POC}.
+
+It can be found at \url{http://tsa.swisssign.net}.
+
+We construct the timestamping requests using the \texttt{TimeStampRequestGenerator} class from BouncyCastle~\cite{timestamprequestgenerator},
+which works well.
+
+\section{Finding an IDP}\label{sec:finding-an-idp}
+Finding an \gls{IDP} prividing such strong guarantees as required for Swiss citizens was not easy,
+we were able to find only one: SwissID.
+We searched online for documentation from them on how we could integrate their \gls{IDP} into our project,
+but we could find none.
+So we sent them an e-mail and asked, and got a phone call from one of their key account managers,
+who seemed to understand little of our actual request but wanted to send us a whitepaper.
+That turned out to be marketing material with very little technical information and quite useless to us.
+Fearing the sudden appearance of a very large bill we stopped communicating with them.
+
+For the purposes of our \gls{POC} and in the interest of having a working demo soon,
+we don't really need an \gls{IDP} with actual guarantees, we just need any working \gls{OIDC} \gls{IDP}.
+
+That led us to search for publicly available \gls{IDP}s that we could use free of charge,
+with self-onboarding and readily-available online documentation.
+
+We found the following:
+\begin{itemize}
+    \item Github: Doesn't support \gls{OIDC}, only OAuth
+    \item Yahoo, Paypal, Salesforce, Phantauth, Okta, Google: Don't use X.509
+    \item Microsoft: Uses X.509, but the intermediate certificate is self-signed. Why they're doing that is unclear to us, it seems futile.
+\end{itemize}
+
+So, in the end, unfortunately we didn't find a single free-of-charge \gls{IDP} that we could use.
+Thus we were forced to set up our own.
+For this purpose we selected Keycloak, a powerful \gls{IDM}, developed by Red Hat~\cite{keycloak}.
+Keycloak is highly configurable and allowed us to run exactly the \gls{IDP} we needed.
+For the duration of our thesis, it can be found at \url{https://keycloak.thesis.izolight.xyz/auth/realms/master/.well-known/openid-configuration}.
+
+\subsubsection{Infrastructure setup for the IDP}
+It would've been easy to run Keycloak on our local machines, and for the demo this would've been enough,
+but we wanted to do it properly, with an internet-accessible \gls{IDP}.
+To achieve this, we needed an internet-accessible server, a certificate for \gls{HTTPS},
+and \gls{DNS} entries.
+
+For the server, we chose Scaleway's development server simply because it costs as little as 3 EUR per month~\cite{scaleway}.
+For certificates, we used the excellent Let's Encrypt \gls{CA}~\cite{letsencrypt}, which is a trusted \gls{CA} issuing domain validation certificates free of charge.
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=0.7\linewidth]{images/firefox.png}
+        \caption{Firefox trusting the certificate issued by the free and open CA Let's Encrypt}
+        \label{fig:letsencrypt}
+    \end{center}
+\end{figure}
+
+This only left us with \gls{DNS}.
+Fortunately Gabor Tanz already runs his own \gls{DNS} server for other purposes (and also owns a domain),
+so we simply added the appropriate subdomain entries and we were ready to proceed.
 
 
 
