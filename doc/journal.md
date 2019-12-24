@@ -228,6 +228,8 @@
 - Video erstellen
 - Komponentendiagramme
 - Besserer Verifier-Output für die Demo
+- Build in gitlab zum Laufen bekommen
 
 
-
+#### 24.12.19
+- Arbeit an der Doku
