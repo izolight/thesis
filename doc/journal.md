@@ -233,3 +233,9 @@
 
 #### 24.12.19
 - Arbeit an der Doku
+
+#### 25.12.19
+- Arbeit an der Doku
+
+#### 26.12.19
+- Arbeit an der Doku
