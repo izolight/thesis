@@ -396,30 +396,23 @@ we installed \texttt{cfssl}.
 
 \subsubsection{Separation of services using Docker containers}
 
+
 In order to have some separation between the different pieces of software we decided to use Docker.
 
 Table~\ref{tbl:docker} contains a complete list of Docker containers running on our server.
+For a graphical representation, please see figure~\ref{fig:infrastructurebigpicture}.
 
 %\paragraph{\texttt{traefik}} is an open-source edge router implementation.
 \paragraph{traefik} is an open-source edge router implementation.
 It receives outside requests on behalf of the actual system,
 finds out which service is responsible to handle them,
 and then passes them on.
-For a graphical representation\footnote{Graphic courtesy of traefik documentation. Source: https://docs.traefik.io/assets/img/traefik-architecture.png} on what \texttt{traefik} does, please see figure~\ref{fig:traefik}.
 It is able to automatically discover configuration and provide its routing accordingly,
 and it can act as a \gls{HTTPS} termination point.
 This helps lessen the load on backend components.
 In our case, it takes \gls{HTTPS} requests, figures out which container is responsible for handling it,
 and passes it on as \gls{HTTP} (thus terminating \gls{TLS}).
 
-\begin{figure}
-    \begin{center}
-        %        \includegraphics[width=0.9\linewidth]{images/traefik-architecture.png}
-        \includegraphics[scale=0.5]{images/traefik-architecture.png}
-        \caption{Traefik Architecture}
-        \label{fig:traefik}
-    \end{center}
-\end{figure}
 
 \paragraph{Keycloak} is the \gls{IDP}, and \texttt{keycloak-db} contains its PostgreSQL database.
 \paragraph{cfssl-root} and \texttt{cfssl-intermediate} contain the respective root and intermediate certificates,
@@ -429,6 +422,13 @@ The intermediate \gls{CA} exposes a \gls{REST} \gls{API} used by the signing ser
 \paragraph{cfssl-root-ocsp} and \texttt{cfssl-intermediate-ocsp} contain the \gls{OCSP} responders,
 which handle \gls{OCSP} requests for certificates issued by \texttt{cfssl-root} and \texttt{cfssl-intermediate}.
 
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=\linewidth]{images/infrastructure.png}
+        \caption{Infrastructure Big Picture}
+        \label{fig:infrastructurebigpicture}
+    \end{center}
+\end{figure}
 
 \begin{figure}
     \begin{longtable}{p{3.4cm}p{5.7cm}p{6.2cm}}
