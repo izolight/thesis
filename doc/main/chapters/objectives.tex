@@ -8,21 +8,21 @@ This frontend uses the \gls{REST} \gls{API} for signing the users' files.
 On top of that, it offers offline verification of existing signatures on desktop operating systems.
 
 \section{Previous Works}
-\label{sec:previousworks}
+\label{section:previousworks}
 
 We build upon our previous work of Project 2~\cite{projekt2}, where we specified the authentication process
 for qualified signatures, non-qualified batch signatures, the signature file format,
 as well as - to our knowledge - pioneering the secure integration of a digital signature with an \gls{OIDC} ID token without requiring any change to the \gls{IDP}.
 
 \section{Backend}
-\label{sec:backend}
+\label{section:backend}
 
 The server is the centrepiece of the service, where the actual signatures are being created.
 It depends on the \gls{IDP} for authenticating its users.
 In our implementation, we will aim to protect the private keys by using a \gls{HSM}.
 
 \section{Frontend}
-\label{sec:frontend}
+\label{section:frontend}
 
 The frontend must be cross-platform, where cross-platform means supporting the desktop operating systems
 GNU/Linux, Microsoft Windows and Apple MacOS as well as the mobile phone operating systems Google Android and Apple iOS.
@@ -30,14 +30,14 @@ The frontend must support authentication through the \gls{IDP}, creating signatu
 Verification must be available online as well as offline, except for the mobile version, where offline verification is not required.
 
 \section{Comparison With Existing Solutions}
-\label{sec:comparison}
+\label{section:comparison}
 
 The Cloud Signature Consortium standardised a remote signing service with OIDC/oAuth.
 Adobe has made an implementation of this standard.
 The goal is to learn how this implementation works and compare it with our solution, with a focus on security.
 
 \section{Evaluation of the Yubikey HSM for Signing Service}
-\label{sec:evaluateyubikey}
+\label{section:evaluateyubikey}
 
 In order to provide a secure solution for the signing keys, we will evaluate the Yubikey HSM 2.
 This would allow us to avoid having the signing keys on the filesystem, thus strongly improving the security of our solution.

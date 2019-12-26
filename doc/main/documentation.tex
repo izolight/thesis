@@ -29,6 +29,7 @@ parskip=half,			% set paragraph skip to half of a line
 \usepackage[standard-baselineskips]{cmbright}
 
 \usepackage{textcomp}													% additional symbols
+\usepackage{enumitem}
 \usepackage{ae}																% better resolution of Type1-Fonts 
 \usepackage{fancyhdr}													% simple manipulation of header and footer 
 \usepackage{etoolbox}													% color manipulation of header and footer
@@ -215,6 +216,7 @@ headsep=10mm,
 textheight=242mm,
 footskip=15mm
 }
+\usepackage{pdflscape}
 %---------------------------------------------------------------------------
 
 % Makeindex Package
@@ -236,7 +238,6 @@ footskip=15mm
 % for futher informations go to http://ewus.de/tipp-1029.html
 %---------------------------------------------------------------------------
 \usepackage[nonumberlist,acronym]{glossaries}
-\include{database/glossary}
 \include{database/acronyms}
 \makeglossaries
 % Hyperref Package (Create links in a pdf)
@@ -293,7 +294,6 @@ urlcolor = {linkcolor},               % Color of URLs
 %---------------------------------------------------------------------------
 \include{leader/frontpage_without_picture}		% activate for frontpage without picture
 %\include{leader/frontpage_with_picture}		% activate for frontpage with picture
-\include{leader/versions}
 \cleardoubleemptypage
 \setcounter{page}{1}
 \cleardoublepage
@@ -311,6 +311,15 @@ urlcolor = {linkcolor},               % Color of URLs
 %---------------------------------------------------------------------------
 \pagenumbering{arabic}
 
+\part{Functional Specification}
+\include{chapters/introduction}
+\include{chapters/objectives}
+\include{chapters/actors}
+\include{chapters/requirements}
+\include{chapters/usecases}
+\include{chapters/projectmanagement}
+
+\part{Report}
 \include{chapters/intro}
 \include{chapters/protocolevolution}
 \include{chapters/technical_specification}

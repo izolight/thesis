@@ -1,0 +1,92 @@
+\chapter{Use-Cases}
+\label{ch:usecases}
+
+\section{Document Signing}\label{sec:document-signing}
+
+\subsection{Prerequisites}\label{subsec:prerequisites}
+The following prerequisites have to be fulfilled in order for the following use cases to work:
+\begin{enumerate}
+    \item The user (actor~\ref{sec:actorsigner}) has registered with the \gls{RA} (actor~\ref{sec:authoridentifier}) and is known to the \gls{IDP}~(actor~\ref{sec:actorauthenticator})
+    \item The user has created and readied a document file to be signed
+\end{enumerate}
+
+\subsection{Interactive Qualified Signatures}\label{subsec:interactive-qualified-signatures}
+\subsubsection{Steps}
+The user performs the following steps:
+\begin{enumerate}
+    \item Opens the webinterface of the signing service (actor~\ref{sec:actorsigningservice}) on their device
+    \item Selects the document file to be hashed
+    \item Selects the preferred \gls{IDP} out of a list of trusted \gls{IDP}s, if multiple \gls{IDP}s are configured
+    \item Gets redirected to the \gls{IDP}s login page
+    \item Authenticates with the \gls{IDP}
+    \item Gets redirected back to the signing service
+    \item Receives the signature as a file download
+    \item Saves the signature file to their device
+\end{enumerate}
+
+\subsubsection{Result}
+The user has received a signature file for the document file they wanted to sign.
+
+\subsection{Bulk Advanced Signatures}\label{subsec:bulk-advanced-signatures}
+In some cases, users might wish to sign document files all day long without being required to authenticate with the \gls{IDP} for every document.
+In this case the authentication will be cached for a certain duration without needing to re-authenticate for each document.
+In this mode only advanced signatures can be created.
+
+From the users' point of view, it works like this:
+\begin{enumerate}
+    \item The user opens the webinterface of the signing service on their device
+    \item If implemented, they click the button for authentication for batch advanced signatures
+    \item Gets redirected to the \gls{IDP}
+    \item Authenticates with the \gls{IDP}
+    \item Gets redirected back to the signing service
+    \item For the duration of the authentication, the user can now submit document files to be signed,
+        receiving the corresponding signature files, without the need to reauthenticate.
+\end{enumerate}
+\subsubsection{Result}
+The user receives advanced signature files for each of the document files they submit for signing for the duration of the authentication.
+
+
+\section{Signature Validation}\label{sec:signature-validation}
+
+\subsection{Prerequisites}\label{subsec:prerequisites2}
+The following prerequisites have to be fulfilled in order for the following use cases to work:
+\begin{enumerate}
+    \item A signature file has been created beforehand as described in~\ref{subsec:interactive-qualified-signatures}.
+\end{enumerate}
+
+\subsection{Offline Validation}\label{subsec:offline-validation2}
+The signatures can be verified offline with just the document file, the signature file and the verification program.
+This mode will only be supported on desktop operating systems (GNU/Linux, Windows, macOS), not on mobile devices (Android, iOS).
+
+\subsubsection{Steps}
+The user performs the following steps:
+\begin{enumerate}
+    \item The user opens the verification program
+    \item The user selects the document file and corresponding signature file and submits it to the verification program
+    \item The program verifies the signature and displays the result
+\end{enumerate}
+\subsubsection{Result}
+The user knows whether the signature is genuine and whether the document integrity is guaranteed.
+
+\subsection{Semi-Online Validation}\label{subsec:semi-online-validation}
+For mobile clients a website will be provided to validate the signature by providing the document and the signature.
+
+\subsubsection{Prerequisites}
+In addition to the prerequisites specified in subsection~\ref{subsec:prerequisites2},
+it is necessary for the user to have opened the signature services' verification web page in their browser beforehand
+so that it is available to the user without connecting to the server again.
+This is why we call it semi-online.
+For example, the user opens the web browser on their mobile phone and loads the verification page.
+Then they board an aeroplane and turn on aeroplane mode.
+After takeoff, they decide to validate a signature.
+Then they proceed as follows:
+
+\subsubsection{Steps}
+The user performs the following steps:
+\begin{enumerate}
+    \item The user opens the web browser where the verification page is still available
+    \item The user selects the document file and corresponding signature file and submits it to the verification website
+    \item The website verifies the signature in-browser (without needing to connect to any additional servers) and displays the result
+\end{enumerate}
+\subsubsection{Result}
+The user knows whether the signature is genuine and whether the document integrity is guaranteed.

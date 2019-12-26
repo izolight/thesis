@@ -1,0 +1,151 @@
+\chapter{Functional Requirements}
+\label{ch:functionalrequirements}
+
+\section{Terminology}
+
+As always, the usual modal verbs are to be interpreted as in RFC 2119~\cite{rfc2119}.
+
+\subsection{Practically Impossible}
+"Practically impossible" means the probability of it being possible is not zero, but so small for it not to matter in practice.
+An example for this would be finding the prime factors of the product of two carefully chosen 1024 bit numbers within 24 hours.
+
+\subsection{Being made difficult}
+"Made difficult" means something far from impossible for someone with near-unlimited resources like a state actor,
+but extremely difficult if not impossible even for a highly skilled single person with the resources expected for a single person.
+For example, stealing a smart card from someone and misusing the contained private key.
+
+\section{Signature Requirements}
+\label{sec:signaturerequirements}
+\subsection{Authenticity}
+\label{subsec:authenticity}
+It must be practically impossible for anyone to forge a signature without it being detected upon signature verification.
+
+\subsection{Integrity}\label{subsec:integrity}
+It must be practically impossible for anyone to modify a signed document without being detected upon signature verification.
+A secure hash algorithm must be used for hashing the document.
+Secure means the algorithm to be pre-image as well as collision-resistant as validated by the \gls{NIST} Cryptographic Algorithm Validation Program~\cite{nistcavp}.
+
+\subsection{Verifiability}\label{subsec:verifiability}
+Anyone must be able to verify the authenticity of a signature and the integrity of the signed document.
+
+\subsection{Non-repudiation}\label{subsec:non-repudiation}
+It must be practically impossible for anyone to deny having signed a document.
+
+\subsection{Long-Term Validation}\label{subsec:long-term-validation}
+Signatures must be suitable for \gls{LTV} using an RFC3161~\cite{rfc3161} timestamp.
+
+\subsection{Secure Coupling of Authentication and Signature}\label{subsec:secure-coupling-of-authentication-and-signature}
+It must be practically impossible for anyone to abuse a stolen \gls{OIDC} ID token to sign a document other than intended by The Signer.
+
+\subsection{Authentication Protocol}\label{subsec:authentication-protocol}
+Standard \gls{OIDC} must be used for authenticating The Signer as specified in the standard~\cite{oidc}.
+
+\subsection{Supported File Formats}\label{subsec:supported-file-formats}
+It must be possible to sign any file, regardless of its format.
+
+\subsection{Bulk Signatures}\label{subsec:bulk-signatures}
+For qualified signatures, it must be possible to sign more than one document at once.
+
+For advanced signatures, it may be possible to sign several documents one after the other without requiring re-authentication.
+
+\subsection{Device-local Hashing of Documents}\label{subsec:local-hashing-of-documents}
+In order to ensure privacy and protection of information as required by~\ref{subsec:protection-of-information},
+documents to be signed must not leave the users' device.
+For webinterfaces, this means that the document must be hashed in the browser itself.
+
+\section{Signature Server Requiremenents}
+\label{sec:signatureserverrequirements}
+\subsection{CA Key Security}\label{subsec:ca-key-security}
+Technical measures must be taken to make it difficult for the private keys of the signing \gls{CA} to be stolen.
+
+\subsection{Signing Key Security}\label{subsec:signing-key-security}
+Technical measures must be taken to make it difficult to steal the private keys generated on behalf of the users.
+
+\subsection{No unauthorised identity delegation}\label{subsec:no-unauthorised-identity-delegation}
+It must be practically impossible for the signing server to create a signature on its own.
+
+\subsection{Random Number Generation}\label{subsec:random-number-generation}
+The \gls{RNG} used for generating signatures must be a cryptographically secure.
+
+\subsection{REST API}\label{subsec:rest-api}
+The Signature Server must offer a \gls{REST} \gls{API} that can be used by third parties to interface with the signing service,
+for example in order to implement custom frontends or to include it as part of their product,
+or for users that don't like \gls{GUI}s.
+
+\chapter{Non-Functional Requirements}
+\label{ch:nonfunctionalrequirements}
+
+\subsection{Efficient Signature File Format}\label{subsec:efficient-signature-file-format}
+The file format for the signature file shall be based on our previous work~\cite{projekt2}.
+
+\subsection{Protection of Information}\label{subsec:protection-of-information}
+Information not strictly required by the party in order to fulfil their function must not be disclosed to the aforementioned party.
+In particular, the document to be signed must not be disclosed to the signing server nor to the \gls{IDP}.
+The \gls{IDP} must not learn of the document hash.
+More generally, every actor must not have any more information disclosed to it than is necessary for them to perform their function.
+
+\subsection{Offline Validation}\label{subsec:offline-validation}
+The Verifier must be enabled to verify signatures without an active internet connection using a desktop or laptop computer running GNU/Linux, MacOS or Windows.
+
+\section{IDP Requirements}\label{sec:idp-requirements}
+Anything related to the \gls{IDP} is out of scope for our thesis, except for specifying what we require of the same.
+We assume to be using an existing, \gls{OIDC}-conforming \gls{IDP} providing the required registration and authentication levels.
+
+\subsection{Support for OIDC}\label{subsec:support-for-oidc}
+The \gls{IDP} must support standard \gls{OIDC} as specified in the standard~\cite{oidc}.
+
+
+\subsection{Levels of Assurance}\label{subsec:levels-of-assurance}
+The \gls{IDP} must support \gls{AAL} 2 authentication for advanced signatures, and \gls{AAL} 3 authentication for qualified signatures as specified in the \gls{NIST} publication~\cite{nistdigitalidentityguidelines}.
+
+\subsection{Code Quality}\label{subsec:code-quality}
+The code produced should be, wherever possible:
+\begin{itemize}
+    \item Readable
+    \item Well-formatted according to the recommended community standards of the language
+    \item Compileable without any errors nor warnings with the compiler at its strictest setting
+    \item Covered by unit tests
+\end{itemize}
+Public \gls{API}s should be documented.
+
+\subsection{Ease of Use}\label{subsec:ease-of-use}
+In order to ensure usability conforms to a minimum standard, the following requirements should be fulfilled:
+\begin{itemize}
+    \item Unneccessary steps or clicks should be minimised. The minimal amount of user interaction should be strived for for any given user-facing action or use case.
+    \item The user interface should be so simple that non-IT people can use it. Specialised jargon should be avoided.
+\end{itemize}
+
+\subsection{Reactive Design}\label{subsec:reactive-design}
+The user interface should be useable both on mobile devices (smartphones) as well as desktop devices (laptops).
+Useable means that the user isn't required to zoom around on a mobile device because the \gls{UI} is layouted with desktop operating systems in mind alone,
+nor should a desktop user be presented with a tiny rectangle because the \gls{UI} was designed for smartphones only.
+This requirement isn't about the \gls{UI} looking pretty but about it being useable without being annoying on both form factors.
+
+\section{Prioritisation of Requirements}
+\label{sec:prioritisation}
+\begin{longtable}{p{12cm}|p{2.5cm}}
+    \textbf{Requirement} & \textbf{Prioritisation}\\
+    \hline
+    Authenticity of signature~(\ref{subsec:authenticity}) & Must\\
+    Integrity of document~(\ref{subsec:integrity}) & Must\\
+    Verifiability of signature~(\ref{subsec:verifiability}) & Must\\
+    Non-repudiation~(\ref{subsec:non-repudiation}) & Must\\
+    Secure coupling of authentication and signature~(\ref{subsec:secure-coupling-of-authentication-and-signature}) & Must\\
+    Authentication protocol~(\ref{subsec:authentication-protocol}) & Must\\
+    Supported file formats~(\ref{subsec:supported-file-formats}) & Must\\
+    No unauthorised identity delegation~(\ref{subsec:no-unauthorised-identity-delegation}) & Must\\
+    Random number generation~(\ref{subsec:random-number-generation}) & Must\\
+    \gls{REST} \gls{API}~(\ref{subsec:rest-api}) & Must\\
+    Offline validation~(\ref{subsec:offline-validation}) & Must\\
+    Signing key security~(\ref{subsec:signing-key-security}) & Optional\\
+    Protection of information~(\ref{subsec:protection-of-information}) & Optional\\
+    Device-local hashing of documents~(\ref{subsec:local-hashing-of-documents}) & Optional\\
+    Efficient signature file format~(\ref{subsec:efficient-signature-file-format}) & Optional\\
+    \gls{CA} key security~(\ref{subsec:ca-key-security}) & Optional\\
+    Bulk signatures~(\ref{subsec:secure-coupling-of-authentication-and-signature}) & Optional\\
+    Long-term validation~(\ref{subsec:long-term-validation}) & Optional\\
+    Code Quality~(\ref{subsec:code-quality}) & Optional\\
+    Ease of Use~(\ref{subsec:ease-of-use}) & Optional\\
+    Reactive Design~(\ref{subsec:reactive-design}) & Optional\\
+    \caption{Prioritisation of Requirements}
+\end{longtable}
