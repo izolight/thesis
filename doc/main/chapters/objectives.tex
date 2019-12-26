@@ -2,6 +2,9 @@
 \label{ch:objectives}
 
 \subsection{Main Objective}\label{subsec:main-objective}
+The main objective of this work is the finalisation of the concept we began in Projekt 2,
+and its implementation.
+
 The implementation consists of the remote signing service itself in the form of a \gls{REST} \gls{API},
 and a cross-platform frontend authenticating the users through a trusted \gls{OIDC} \gls{IDP}.
 This frontend uses the \gls{REST} \gls{API} for signing the users' files.
@@ -13,13 +16,18 @@ On top of that, it offers offline verification of existing signatures on desktop
 We build upon our previous work of Project 2~\cite{projekt2}, where we specified the authentication process
 for qualified signatures, non-qualified batch signatures, the signature file format,
 as well as - to our knowledge - pioneering the secure integration of a digital signature with an \gls{OIDC} ID token without requiring any change to the \gls{IDP}.
+The main benefit of Projekt 2 for us is that it allowed us to familiarise ourselves with the topic of Remote Signing.
+
 
 \section{Backend}
 \label{section:backend}
 
-The server is the centrepiece of the service, where the actual signatures are being created.
+The signing server is the centrepiece of the service, where the actual signatures are being created.
+To that end, it generates signing keys,
+requests the \gls{CA} to sign them,
+builds the signature file, embeds certificate chain as well as revocation information,
+and adds at least one timestamp.
 It depends on the \gls{IDP} for authenticating its users.
-In our implementation, we will aim to protect the private keys by using a \gls{HSM}.
 
 \section{Frontend}
 \label{section:frontend}
@@ -34,12 +42,11 @@ Verification must be available online as well as offline, except for the mobile 
 
 The Cloud Signature Consortium standardised a remote signing service with OIDC/oAuth.
 Adobe has made an implementation of this standard.
-The goal is to learn how this implementation works and compare it with our solution, with a focus on security.
+We will examine this implementation and compare it with our solution, with a focus on security.
 
 \section{Evaluation of the Yubikey HSM for Signing Service}
 \label{section:evaluateyubikey}
 
-In order to provide a secure solution for the signing keys, we will evaluate the Yubikey HSM 2.
-This would allow us to avoid having the signing keys on the filesystem, thus strongly improving the security of our solution.
+We will evaluate the Yubikey \gls{HSM} 2, and whether it would increase security if we were to integrate it into our solution.
 
 
