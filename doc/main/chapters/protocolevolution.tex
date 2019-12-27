@@ -1,12 +1,16 @@
 \chapter{Evolution of the Signing Protocol}
 \label{ch:signingprotocol}
 
-\section{Overview}
-The purpose of the signing protocol is to specify which steps have to be carried out by which actor in what
-order so as to create a signature.
+\section{Overview}\label{sec:overview}
+It took us many iterations of gradual improvement until we arrived at the final version of the proposed solution.
+In this chapter we will briefly document and explain the main points of how our idea evolved,
+what problems we found and how we've overcome them,
+both for the signature file format as well as the protocol.
 
 \section{Signature Format}
 \label{sec:signatureformat}
+
+\subsection{Support for Arbitrary File Formats}\label{subsec:support-for-arbitrary-file-formats}
 
 When using our signing service, people should be able to sign arbitrary files of any format.
 We don't want to place restrictions upon users such as "\gls{PDF} only" or "Microsoft Word documents only".
@@ -26,7 +30,7 @@ With their solution, arbitrary document formats can be used,
 but the downside is that the user needs to install a program that is able to extract and display the document contained in DigiDoc,
 even if they just wished to view the document without verifying the signature.
 
-For this reason, we chose to have a detached signature file, that is,
+We chose to have a detached signature file, that is,
 the signature data resides in a file separate from the document that was signed.
 In contrast to the Estonian solution,
 the advantage is that people don't need to install additional software if all they want is to view the signed document.
@@ -90,22 +94,30 @@ A qualified electronic signature is legally equivalent to a hand-written signatu
 it is admissible in a court of law, it can be used to sign legally binding contracts, and so on.
 
 
-\section{Flaws of the Original Protocol}\label{sec:flaws-of-the-original-protocol}
-The original protocol, which we specified in Projekt~2~\cite{projekt2} employed a server-side secret nonce to generate the nonce used in the \gls{OIDC} authentication request,
+\section{Signature Protocol}\label{sec:flaws-of-the-original-protocol}
+The original protocol,
+which we specified in Projekt~2~\cite{projekt2} employed a server-side secret nonce to generate the nonce used in the \gls{OIDC} authentication request,
 which needed to be kept in memory until the signer returned with the ID token from their trip to the \gls{IDP}.
-This could be abused to \gls{DoS} the signing server, and it made this part of the signing server stateful.
+This introduces two disadvantages for the signing server:
+\begin{itemize}
+    \item It could be used to \gls{DoS} the signing server, by forcing it to store immense amounts of nonce values
+    \item It makes the server stateful
+\end{itemize}
 
-Furthermore,
+
+Furthermore, with our original idea,
 for the verification of the signature all documents that were signed together needed to be present at the time of verification,
 since their hashes were incorporated in the \gls{OIDC} nonce.
 
-Moreover, multi-signatures, while technically possible, were made impractical for some applications:
+On top of that, multi-signatures, while technically possible, were made impractical for some applications:
 If a single person wishes to sign multiple documents at once that will be used together,
 (for example, an apartment rental contract, house rules, and a bank deposit confirmation)
 this won't be a problem.
 However, if multiple, independent documents are to be signed together
 (for example, a company sending 50 bills to 50 different customers),
 having to send each customer all the bills is just silly.
+
+We wanted to do better than that.
 
 \subsection{Draft 1: Making the Protocol stateless}\label{subsec:draft-1:-making-the-protocol-stateless}
 Since storing the secret nonce on the signing server is undesirable,
@@ -154,39 +166,7 @@ the only information that the receiver of the signature file could learn is the 
 Draft 2 (section~\ref{subsec:draft-2:-improving-signing-of-multiple-documents})
 resulted in a rather complicated schema that looked something like listing~\ref{lst:draft2schema1}.
 
-\begin{lstlisting}[caption={Draft 2 schema 1}, captionpos=b, label={lst:draft2schema1}]
-    message SignatureData {
-    bytes document_hash = 1;
-    HashAlgorithm hash_algorithm = 2;
-    bytes mac_key = 3;
-    MACAlgorithm mac_algorithm = 4;
-    repeated bytes other_macs = 5;
-    SignatureLevel signature_level = 6;
-    bytes id_token = 7;
-    repeated bytes jwk_idp = 8;
-    map<string, LTV> ltv_idp = 9;
-    }
-
-    message Timestamped {
-    bytes rfc3161_timestamp = 1;
-    map<string, LTV> ltv_timestamp = 2;
-    }
-
-    message SignatureContainer {
-    bytes enveloped_signature_data_pkcs7 = 1;
-    map<string, LTV> ltv_signing = 2;
-    }
-
-    message LTV {
-    bytes ocsp = 1;
-    bytes crl = 2;
-    }
-
-    message SignatureFile {
-    SignatureContainer signature_container = 1;
-    repeated Timestamped timestamps = 2;
-    }
-\end{lstlisting}
+\lstinputlisting[caption={Draft 2 schema 1}, captionpos=b, label={lst:draft2schema1}]{listings/draft2schema1.txt}
 
 \texttt{SignatureData} is the information that gets signed.
 It obviously contains the hash of the document in \texttt{document\_hash},
@@ -215,28 +195,7 @@ but the main advantage of this change is that it speeds up issuance of multi-fil
 When before, we created a signature file per document hash, now we create one signature file for all documents signed together.
 Since creating a signature file entails a nontrivial amount of work this change represents a vast improvement in signature creation speed.
 
-\begin{lstlisting}[caption={Simplified schema}, captionpos=b, label={lst:draft2schema2}]
-    message SignatureData {
-    repeated bytes salted_document_hash = 1;
-    HashAlgorithm hash_algorithm = 2;
-    bytes mac_key = 3;
-    MACAlgorithm mac_algorithm = 4;
-    SignatureLevel signature_level = 5;
-    bytes id_token = 6;
-    bytes jwk_idp = 7;
-    map<string, LTV> ltv_idp = 8;
-    }
-
-    message LTV {
-    bytes ocsp = 1;
-    bytes crl = 2;
-    }
-
-    message SignatureFile {
-    bytes signature_data = 1;
-    repeated bytes rfc3161 = 2;
-    }
-\end{lstlisting}
+\lstinputlisting[caption={Simplified schema}, captionpos=b, label={lst:draft2schema2}]{listings/simplifiedschema.txt}
 
 
 Unfortunately we can't get rid of \texttt{LTV} completely because there is no way to add revocation information
