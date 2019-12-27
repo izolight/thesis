@@ -423,26 +423,92 @@ The intermediate \gls{CA} exposes a \gls{REST} \gls{API} used by the signing ser
 which handle \gls{OCSP} requests for certificates issued by \texttt{cfssl-root} and \texttt{cfssl-intermediate}.
 
 \begin{figure}
-    \begin{center}
-        \includegraphics[width=\linewidth]{images/infrastructure.png}
-        \caption{Infrastructure Big Picture}
-        \label{fig:infrastructurebigpicture}
-    \end{center}
+    \includegraphics[width=0.9\linewidth]{images/infrastructure.png}
+    \caption{Infrastructure Big Picture}
+    \label{fig:infrastructurebigpicture}
 \end{figure}
 
 \begin{figure}
-    \begin{longtable}{p{3.4cm}p{5.7cm}p{6.2cm}}
-        \hline
-        \textbf{Name} & \textbf{Command} & \textbf{Ports} \\ \hline
-        traefik & /entrypoint.sh --docker\ldots & 0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp \\*
-        keycloak & /opt/jboss/tools/docker-entrypoint\ldots & 127.0.0.1:8080->8080/tcp, 8443/tcp \\*
-        keycloak-db & docker-entrypoint.sh postgres & 5432/tcp \\*
-        cfssl-root & cfssl serve -db-config=/data/cfssl/\ldots & 8888/tcp \\*
-        cfssl-root-db & docker-entrypoint.sh postgres & 127.0.0.1:5432->5432/tcp \\*
-        cfssl-intermediate & cfssl serve -db-config=\ldots & 8888/tcp \\*
-        cfssl-intermediate-db & docker-entrypoint.sh postgres & 127.0.0.1:5433->5432/tcp \\*
-        cfssl-root-ocsp & cfssl ocspserve -address=0.0.0.0\ldots & 8888/tcp \\*
-        cfssl-intermediate-ocsp & cfssl ocspserve -address=\ldots & 8888/tcp \\*
+    \begin{center}
+        \begin{tabular}{p{3.4cm}p{5.7cm}p{6.2cm}}
+            \hline
+            \textbf{Name} & \textbf{Command} & \textbf{Ports} \\ \hline
+            traefik & /entrypoint.sh --docker\ldots & 0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp \\*
+            keycloak & /opt/jboss/tools/docker-entrypoint\ldots & 127.0.0.1:8080->8080/tcp, 8443/tcp \\*
+            keycloak-db & docker-entrypoint.sh postgres & 5432/tcp \\*
+            cfssl-root & cfssl serve -db-config=/data/cfssl/\ldots & 8888/tcp \\*
+            cfssl-root-db & docker-entrypoint.sh postgres & 127.0.0.1:5432->5432/tcp \\*
+            cfssl-intermediate & cfssl serve -db-config=\ldots & 8888/tcp \\*
+            cfssl-intermediate-db & docker-entrypoint.sh postgres & 127.0.0.1:5433->5432/tcp \\*
+            cfssl-root-ocsp & cfssl ocspserve -address=0.0.0.0\ldots & 8888/tcp \\*
+            cfssl-intermediate-ocsp & cfssl ocspserve -address=\ldots & 8888/tcp \\*
+        \end{tabular}
         \caption{Docker containers running on our POC server}\label{tbl:docker}
-    \end{longtable}
+    \end{center}
 \end{figure}
+
+\section{Method of Work}\label{sec:method-of-work}
+Two people hacking away at a shared project each on their own rarely works out well.
+If we're lucky the code produced might even work, but it's probably going to be of low quality,
+and there's risk of duplication of effort,
+coordination and communication difficulties,
+as well as exceeding deadlines.
+
+This is why before starting work, we agreed upon a minimum of methodology.
+
+\subsection{Version Control for Source Code}\label{subsec:version-control-for-source-code}
+We put all source code under version control, in a shared repository.
+This way each student can see what the other person is working on,
+and the thesis advisors can keep an eye on what we're doing.
+The commit log comes in handy for documenting the work timeline after the fact as well,
+and it's a way of backing up our work.
+Thankfully \gls{BFH} offers its students a Gitlab instance~\cite{gitlab}, so we will be using that.
+
+\subsection{Standardised Build Tools and Environment}\label{subsec:standardised-build-tools-and-environment}
+Few things are more annoying in a developer's life than troubleshooting build failures.
+One developer adds a dependency, installs it on their machine, and forgets to tell the others.
+Another developer updates their system and now uses a later version of a library, causing incompatibilities.
+
+Furthermore,
+our advisors most likely aren't very keen on installing the toolchains necessary for building our artefacts on their own machines,
+they'd rather directly examine the results.
+
+This is why a standardised, centralised build environment is a good thing to have.
+Since \gls{BFH} is so kind as to offer us Gitlab runners toghether with their Gitlab instance~\cite{gitlab},
+we will use that.
+We've set up build pipelines based on Docker images to build our components as well as the documentation each time new commits are pushed to the master branch.
+Figure~\ref{fig:gitlabcijobs} contains a screenshot of what this looks like in Gitlab's web interface.
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=0.8\linewidth]{images/gitlabcijobs.png}
+        \caption{Gitlab CI Jobs}
+        \label{fig:gitlabcijobs}
+    \end{center}
+\end{figure}
+
+\subsection{Subdividing Work Packages}\label{subsec:subdividing-work-packages}
+To be able to plan and schedule our work efficiently,
+we divided the work packages into user stories,
+as is customary in SCRUM.
+We again used Gitlab for filing, planning and tracking the user stories.
+Gitlab's issue system isn't exactly meant for use with SCRUM,
+but we've managed to adapt it by using it as follows:
+\begin{itemize}
+    \item Issues are used for User Stories
+    \item Labels are used for tracking progress ("todo", "doing", "done")
+    \item Milestones are used for Sprint boundaries
+\end{itemize}
+Together with the issue board view used as a Storyboard view,
+this works quite well for smaller projects such as ours.
+Figure~\ref{fig:scrumboard} contains a screenshot of what this looks like.
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=0.8\linewidth]{images/board.png}
+        \caption{SCRUM Storyboard}
+        \label{fig:scrumboard}
+    \end{center}
+\end{figure}
+
+
