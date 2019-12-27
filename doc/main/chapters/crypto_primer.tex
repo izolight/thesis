@@ -1,9 +1,9 @@
-\section{A cryptographic primer}\label{sec:a-cryptographic-primer}
-In this section we well very briefly introduce the most important IT security and cryptography building blocks we use to make remote digital signing possible.
+\chapter{A cryptographic primer}\label{ch:a-cryptographic-primer}
+In this chapter we well very briefly introduce the most important IT security and cryptography building blocks we use to make remote digital signing possible.
 Readers with a basic knowledge of IT security topics such as hash functions, X.509, \gls{PKI} and \gls{DSA} can safely skip it.
 The descriptions given are as brief as possible in order to introduce the topics, they're not meant to be complete nor excruciatingly precise.
 
-\subsection{Hash Function}\label{subsec:hash-function}
+\section{Hash Function}\label{sec:hash-function}
 A hash function in cryptography is an one-way function which is able to map data of arbitrary length to fixed-size values~\cite{hashing}.
 One-way means that for a given hash value, it is infeasible to find the corresponding input data.
 Ideally, the only way for someone to invert such a hash function is to do an exhaustive brute-force search.
@@ -20,7 +20,7 @@ Hash functions fulfilling these properties are fundamental to our work (and to m
 Without them we would be completely powerless.
 An example for such a hash function is \gls{SHA-2}~\cite{sha2patent}.
 
-\subsection{Asymmetric cryptography}\label{subsec:asymmetric-cryptography}
+\section{Asymmetric cryptography}\label{sec:asymmetric-cryptography}
 Asymmetric cryptography, sometimes called public-key cryptography, is a type of encryption which uses pairs of keys.
 This is in contrast to symmetric encryption which uses only one key (for example, a passphrase encrypting a file).
 
@@ -47,8 +47,8 @@ see figure~\ref{fig:simplepubkeycomm}.
 \end{figure}
 
 
-\subsection{Digital Signatures}\label{subsec:digital-signatures}
-Having briefly explained Hash Functions in~\ref{subsec:hash-function} and Asymmetric Encryption in~\ref{subsec:asymmetric-cryptography} we can now move on to introducing digital signatures.
+\section{Digital Signatures}\label{sec:digital-signatures}
+Having briefly explained Hash Functions in~\ref{sec:hash-function} and Asymmetric Encryption in~\ref{sec:asymmetric-cryptography} we can now move on to introducing digital signatures.
 A digital signature is a way for verifying the integrity and authenticity of a message, that is,
 to know who the message author is and to guarantee that it wasn't tampered with~\cite{digitalsignature}.
 
@@ -91,7 +91,7 @@ However, there is a serious problem still: an evil actor with the ability to int
 between Alice and Bob could not only read their messages,
 but change them at will, effectively impersonating Bob as seen from Alice,
 and Alice as seen from Bob.
-For a solution to this problem please see section~\ref{subsec:digital-signatures}.
+For a solution to this problem please see section~\ref{sec:digital-signatures}.
 
 Figure~\ref{fig:pubkeymidm} expands upon figure~\ref{fig:simplepubkeycomm} to illustrate this attack.
 
@@ -103,8 +103,8 @@ Figure~\ref{fig:pubkeymidm} expands upon figure~\ref{fig:simplepubkeycomm} to il
 \end{figure}
 
 
-\subsection{Public-Key Infrastructure and Certificate Authorities}\label{subsec:public-key-infrastructure-and-certificate-authorities}
-Public-key encrypted and authenticated communication as described in chapter~\ref{subsec:digital-signatures}
+\section{Public-Key Infrastructure and Certificate Authorities}\label{sec:public-key-infrastructure-and-certificate-authorities}
+Public-key encrypted and authenticated communication as described in chapter~\ref{sec:digital-signatures}
 is vulnerable to man-in-the-middle attacks as illustrated in figure~\ref{fig:pubkeymidm}.
 This attack works because Malroy is able to mislead Bob and Alice to use his keys instead of theirs
 by intercepting their public keys in the initial key exchange.
@@ -128,14 +128,14 @@ A well-known and widely-used example for such a \gls{PKI} is X.509~\cite{x509}.
 In practice such \gls{PKI}s are complex,
 and because this section's already become longer than we like we'll forego explaining how X.509 works.
 
-\subsection{Trusted Digital Timestamping}\label{subsec:timestamps}
+\section{Trusted Digital Timestamping}\label{sec:timestamps}
 Trusted digital timestamping is a scheme for proving the existence of a piece of information at a certain point in time.
 There are several such schemes, such as X9.95 or ISO/IEC 18014.
 In this section we will focus on \gls{PKI}-based timestamping as defined in RFC 3161~\cite{rfc3161}.
 
 In RFC 3161, timestamps are issued by a trusted third party, the \acrfull{TSA}.
 
-Trusted timestamps are created by using digital signatures (see~\ref{subsec:digital-signatures}) and hash functions (see~\ref{subsec:hash-function}).
+Trusted timestamps are created by using digital signatures (see~\ref{sec:digital-signatures}) and hash functions (see~\ref{sec:hash-function}).
 In order to create a timestamp, the following steps are performed:
 \begin{enumerate}
     \item We feed the information to be timestamped to a hash function and obtain its the hash value
@@ -156,7 +156,7 @@ For an illustration of this process, see figure~\ref{fig:timestamping}
     \label{fig:timestamping}
 \end{figure}
 
-\subsection{Summary}
+\section{Summary}
 In a nutshell, the main ideas to take away from this chapter are:
 \begin{itemize}
     \item Hash functions are one-way functions, mapping data of arbitrary length to fixed-length values
