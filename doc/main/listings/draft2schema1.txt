@@ -1,0 +1,31 @@
+message SignatureData {
+    bytes document_hash = 1;
+    HashAlgorithm hash_algorithm = 2;
+    bytes mac_key = 3;
+    MACAlgorithm mac_algorithm = 4;
+    repeated bytes other_macs = 5;
+    SignatureLevel signature_level = 6;
+    bytes id_token = 7;
+    repeated bytes jwk_idp = 8;
+    map<string, LTV> ltv_idp = 9;
+}
+
+message Timestamped {
+    bytes rfc3161_timestamp = 1;
+    map<string, LTV> ltv_timestamp = 2;
+}
+
+message SignatureContainer {
+    bytes enveloped_signature_data_pkcs7 = 1;
+    map<string, LTV> ltv_signing = 2;
+}
+
+message LTV {
+    bytes ocsp = 1;
+    bytes crl = 2;
+}
+
+message SignatureFile {
+    SignatureContainer signature_container = 1;
+    repeated Timestamped timestamps = 2;
+}
