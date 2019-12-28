@@ -19,7 +19,8 @@ build:signingserver:
     paths:
       - signingserver/target/signingserver-0.0.1-shaded.jar
 
-build:verifier-frontend:
+build:frontend:
+  stage: .pre
   image: izolight/rust-webpack
   script:
     - cd verifier/frontend
@@ -33,9 +34,10 @@ build:verifier:
     - go generate static/assets_generate.go
     - go generate config/assets_generate.go
   dependencies:
-    - build:verifier-frontend
+    - build:frontend
 
 build:verifier:linux:
+  stage: .post
   image: golang:1.13-buster
   script:
     - cd verifier
@@ -47,6 +49,7 @@ build:verifier:linux:
     - build:verifier
 
 build:verifier:mac:
+  stage: .post
   image: golang:1.13-buster
   script:
     - cd verifier
@@ -58,6 +61,7 @@ build:verifier:mac:
     - build:verifier
 
 build:verifier:windows:
+  stage: .post
   image: golang:1.13-buster
   script:
     - cd verifier
