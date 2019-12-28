@@ -45,9 +45,10 @@ The following table lists a short overview which other choices we've discussed b
 
 \subsubsection{Verifier}
 The verification service is implemented in the Go programming language~\cite{golang}.
-The verification service being separate allows us to distribute a smaller program,
-and since Go binaries are always statically linked we don't have to worry about shipping dependencies.
-TODO more reasoning about not using generics.
+For the verifier we chose Go, because it allows us to generate statically linked binaries for all major platforms, without worrying about dependencies.
+Further the Go standard library already includes a lot of cryptographic functionality, requiring fewer third party dependencies.
+Go's built-in concurrency primitives(goroutines and channels) make it easy implement the verification of the many parts of the signatures asynchronously.
+With only having a single API endpoint for verifying the signature it isn't necessary to use a complicated web framework as the http package of the Go standard library provide all needed functions.
 
 
 \subsection{Frontend}
