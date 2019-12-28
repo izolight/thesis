@@ -14,7 +14,7 @@ build:signingserver:
   image: docker.io/maven:3.3-jdk-8
   script:
     - cd signingserver
-    - mvn clean install -Dmaven.test.skip=true
+    - mvn package -Dmaven.test.skip=true
   artifacts:
     paths:
-      - signingserver/target/signingserver-0.0.1-jar-with-dependencies.jar
+      - signingserver/target/signingserver-0.0.1-shaded.jar
