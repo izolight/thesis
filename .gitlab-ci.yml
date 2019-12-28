@@ -12,6 +12,7 @@ build:doc:
 
 
 build:signingserver:
+  stage: .pre
   image: docker.io/maven:3.3-jdk-8
   script:
     - cd signingserver
