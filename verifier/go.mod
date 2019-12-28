@@ -20,6 +20,6 @@ require (
 	gopkg.in/square/go-jose.v2 v2.4.0
 )
 
-replace go.mozilla.org/pkcs7 v0.0.0-20180702141046-401d3877331b => github.com/izolight/pkcs7 v0.0.0-20191228183143-088f22d8115a
+replace go.mozilla.org/pkcs7 v0.0.0-20180702141046-401d3877331b => github.com/izolight/pkcs7 v0.0.0-20191228213752-1580532522eb
 
 // replace go.mozilla.org/pkcs7 v0.0.0-20180702141046-401d3877331b => ../../pkcs7

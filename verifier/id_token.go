@@ -129,8 +129,8 @@ func (i *idTokenVerifier) Verify(verifyLTV bool) error {
 
 	if verifyLTV {
 		l := LTVVerifier{
-			Certs:   i.key.Certificates,
-			LTVData: i.ltvData,
+			certs: i.key.Certificates,
+			//LTVData: i.ltvData,
 		}
 		if err = l.Verify(); err != nil {
 			return fmt.Errorf("verifyLTV information for id token not valid: %w", err)

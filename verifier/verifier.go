@@ -112,4 +112,6 @@ type CertChain struct {
 	Subject   string    `json:"subject"`
 	NotBefore time.Time `json:"not_before"`
 	NotAfter  time.Time `json:"not_after"`
+	OCSPStatus string `json:"ocsp_status,omitempty"`
+	OCSPGenerationTime time.Time `json:"ocsp_generation_time,omitempty"`
 }

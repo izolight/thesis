@@ -1,11 +1,13 @@
 package verifier
 
 import (
+	"crypto/sha256"
 	"crypto/x509"
 	"fmt"
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
 	"go.mozilla.org/pkcs7"
+	"golang.org/x/crypto/ocsp"
 	"time"
 )
 
@@ -68,14 +70,16 @@ func (s *SignatureContainerVerifier) Verify(verifyLTV bool) error {
 	}
 	s.cfg.Logger.Info("verified pkcs7 certificate chain")
 
+	ocspStatus := make(map[string]*ocsp.Response)
 	if verifyLTV {
-		l, err := NewLTVVerifier(p7.Certificates, p7.CRLs, p7.OCSPs)
+		l, err := NewLTVVerifier(p7.Certificates, p7.CRLs, p7.RawOCSPResponses)
 		if err != nil {
 			return fmt.Errorf("could not create ltv verifier for p7: %w", err)
 		}
 		if err := l.Verify(); err != nil {
 			return fmt.Errorf("verifyLTV information for signature is not valid: %w", err)
 		}
+		ocspStatus = l.OCSPStatus
 	}
 	signer := p7.GetOnlySigner()
 	signingTime := <-s.signingTime
@@ -87,12 +91,19 @@ func (s *SignatureContainerVerifier) Verify(verifyLTV bool) error {
 		SignerEmail: signer.EmailAddresses[0],
 	}
 	for _, c := range p7.Certificates {
-		signingCertDataResp.Certs = append(signingCertDataResp.Certs, CertChain{
+		cert := CertChain{
 			Issuer:    c.Issuer.String(),
 			Subject:   c.Subject.String(),
 			NotBefore: c.NotBefore,
 			NotAfter:  c.NotAfter,
-		})
+		}
+		ocspResponse, ok := ocspStatus[fmt.Sprintf("%x", sha256.Sum256(c.Raw))]
+		if ok {
+			cert.OCSPStatus = ocspStatusString(ocspResponse.Status)
+			cert.OCSPGenerationTime = ocspResponse.ProducedAt
+		}
+
+		signingCertDataResp.Certs = append(signingCertDataResp.Certs, cert)
 	}
 	s.signingCertData <- signingCertDataResp
 	s.cfg.Logger.WithFields(log.Fields{
@@ -117,4 +128,17 @@ func (s *SignatureContainerVerifier) SendSigningTime(signingTime time.Time) {
 
 func (s *SignatureContainerVerifier) SigningCertData() signingCertData {
 	return <-s.signingCertData
+}
+
+func ocspStatusString(status int) string {
+	switch status {
+	case ocsp.Good:
+		return "Good"
+	case ocsp.Revoked:
+		return "Revoked"
+	case ocsp.Unknown:
+		return "Unknown"
+	default:
+		return "ServerFailed"
+	}
 }

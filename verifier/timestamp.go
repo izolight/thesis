@@ -50,8 +50,8 @@ func (t *TimestampVerifier) verifyTimestamp(timestamp []byte, data []byte, index
 	}
 	if t.verifyLTV {
 		l := LTVVerifier{
-			Certs:   ts.Certificates,
-			LTVData: t.ltvData,
+			certs: ts.Certificates,
+			//LTVData: t.ltvData,
 		}
 		if err := l.Verify(); err != nil {
 			return err
