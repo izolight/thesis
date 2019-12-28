@@ -122,10 +122,18 @@ class SigningKeysServiceImpl : ISigningKeysService {
             val futureBundle = async { fetchBundle(signedCertificate) }
             val crl = async { retrieveCrl(signedCertificate) }
             val bundle = futureBundle.await()
-            val ocsp = async {
+            val issuerCert = extractIssuerCertificate(signedCertificate, bundle)
+            val rootCert = extractIssuerCertificate(issuerCert, bundle)
+            val ocspCert = async {
                 retrieveOcsp(
                     signedCertificate,
-                    extractIssuerCertificate(signedCertificate, bundle)
+                    issuerCert
+                )
+            }
+            val ocspIssuer = async {
+                retrieveOcsp(
+                    issuerCert,
+                    rootCert
                 )
             }
             it.addSignerInfoGenerator(
@@ -142,7 +150,11 @@ class SigningKeysServiceImpl : ISigningKeysService {
             )
             it.addOtherRevocationInfo(
                 OCSPObjectIdentifiers.id_pkix_ocsp_basic,
-                ocsp.await().toASN1Structure()
+                ocspCert.await().toASN1Structure()
+            )
+            it.addOtherRevocationInfo(
+                OCSPObjectIdentifiers.id_pkix_ocsp_basic,
+                ocspIssuer.await().toASN1Structure()
             )
             it.addCertificates(
                 bundle
