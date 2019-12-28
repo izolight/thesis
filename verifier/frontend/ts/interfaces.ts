@@ -51,6 +51,8 @@ export interface CertChain {
     readonly subject: string;
     readonly not_before: string;
     readonly not_after: string;
+    readonly ocsp_status?: string;
+    readonly ocsp_generation_time?: string;
 }
 
 export interface PoorPeoplePersistence {

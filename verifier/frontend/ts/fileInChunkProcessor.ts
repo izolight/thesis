@@ -132,6 +132,7 @@ export class TS {
                         <li>Subject: SUBJECT</li>
                         <li>Not Before: NOT_BEFORE</li>
                         <li>Not After: NOT_AFTER</li>
+                        OCSPInfo
                     </ul>
                 </li>`;
         if (Validate.notNull(cardArea)) {
@@ -141,8 +142,14 @@ export class TS {
                     .replace('ISSUER', response.signing_cert.cert_chain[i].issuer)
                     .replace('SUBJECT', response.signing_cert.cert_chain[i].subject)
                     .replace('NOT_BEFORE', response.signing_cert.cert_chain[i].not_before)
-                    .replace('NOT_AFTER', response.signing_cert.cert_chain[i].not_after)
+                    .replace('NOT_AFTER', response.signing_cert.cert_chain[i].not_after);
                 signing_chain += `</li>`;
+                if (response.signing_cert.cert_chain[i].ocsp_status) {
+                    signing_chain = signing_chain.replace('OCSPInfo', '<li>OCSPStatus: ' + response.signing_cert.cert_chain[i].ocsp_status +'</li>' +
+                    '<li>OCSP Generation Time: ' + response.signing_cert.cert_chain[i].ocsp_generation_time + '</li>');
+                } else {
+                    signing_chain = signing_chain.replace('OCSPInfo', "");
+                }
             }
             signing_chain += `</ul>`;
 
@@ -152,8 +159,14 @@ export class TS {
                     .replace('ISSUER', response.id_token.cert_chain[i].issuer)
                     .replace('SUBJECT', response.id_token.cert_chain[i].subject)
                     .replace('NOT_BEFORE', response.id_token.cert_chain[i].not_before)
-                    .replace('NOT_AFTER', response.id_token.cert_chain[i].not_after)
+                    .replace('NOT_AFTER', response.id_token.cert_chain[i].not_after);
                 idp_chain += `</li>`;
+                if (response.id_token.cert_chain[i].ocsp_status) {
+                    idp_chain = idp_chain.replace('OCSPInfo', '<li>OCSPStatus: ' + response.id_token.cert_chain[i].ocsp_status +'</li>' +
+                        '<li>OCSP Generation Time: ' + response.id_token.cert_chain[i].ocsp_generation_time + '</li>');
+                } else {
+                    idp_chain = idp_chain.replace('OCSPInfo', "");
+                }
             }
             idp_chain += `</ul>`;
 
@@ -163,8 +176,14 @@ export class TS {
                     .replace('ISSUER', response.timestamp.cert_chain[i].issuer)
                     .replace('SUBJECT', response.timestamp.cert_chain[i].subject)
                     .replace('NOT_BEFORE', response.timestamp.cert_chain[i].not_before)
-                    .replace('NOT_AFTER', response.timestamp.cert_chain[i].not_after)
+                    .replace('NOT_AFTER', response.timestamp.cert_chain[i].not_after);
                 tsa_chain += `</li>`;
+                if (response.timestamp.cert_chain[i].ocsp_status) {
+                    tsa_chain = tsa_chain.replace('OCSPInfo', '<li>OCSPStatus: ' + response.timestamp.cert_chain[i].ocsp_status +'</li>' +
+                        '<li>OCSP Generation Time: ' + response.timestamp.cert_chain[i].ocsp_generation_time + '</li>');
+                } else {
+                    tsa_chain = tsa_chain.replace('OCSPInfo', "");
+                }
             }
             tsa_chain += `</ul>`;
 
