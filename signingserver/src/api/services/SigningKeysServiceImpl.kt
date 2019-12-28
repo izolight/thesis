@@ -110,7 +110,7 @@ class SigningKeysServiceImpl : ISigningKeysService {
     ): JcaX509CertificateHolder = bundle.getMatches(null)
         .filterIsInstance<JcaX509CertificateHolder>()
         .filter {
-            it.issuer == cert.issuer
+            it.subject == cert.issuer
         }[0]
 
     override suspend fun signToPkcs7(
