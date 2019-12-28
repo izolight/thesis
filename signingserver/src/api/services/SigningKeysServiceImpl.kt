@@ -120,22 +120,13 @@ class SigningKeysServiceImpl : ISigningKeysService {
     ): CMSSignedData = CMSSignedDataGenerator().also {
         withContext(Dispatchers.IO) {
             val futureBundle = async { fetchBundle(signedCertificate) }
-            val crl = async { retrieveCrl(signedCertificate) }
+            val crlCert = async { retrieveCrl(signedCertificate) }
             val bundle = futureBundle.await()
             val issuerCert = extractIssuerCertificate(signedCertificate, bundle)
+//            val crlIssuer = async { retrieveCrl(issuerCert) }
             val rootCert = extractIssuerCertificate(issuerCert, bundle)
-            val ocspCert = async {
-                retrieveOcsp(
-                    signedCertificate,
-                    issuerCert
-                )
-            }
-            val ocspIssuer = async {
-                retrieveOcsp(
-                    issuerCert,
-                    rootCert
-                )
-            }
+            val ocspCert = async { retrieveOcsp(signedCertificate, issuerCert) }
+            val ocspIssuer = async { retrieveOcsp(issuerCert, rootCert) }
             it.addSignerInfoGenerator(
                 JcaSignerInfoGeneratorBuilder(
                     JcaDigestCalculatorProviderBuilder().build()
@@ -145,9 +136,8 @@ class SigningKeysServiceImpl : ISigningKeysService {
                     signedCertificate
                 )
             )
-            it.addCRL(
-                crl.await()
-            )
+            it.addCRL(crlCert.await())
+//            it.addCRL(crlIssuer.await())
             it.addOtherRevocationInfo(
                 OCSPObjectIdentifiers.id_pkix_ocsp_basic,
                 ocspCert.await().toASN1Structure()
@@ -156,9 +146,7 @@ class SigningKeysServiceImpl : ISigningKeysService {
                 OCSPObjectIdentifiers.id_pkix_ocsp_basic,
                 ocspIssuer.await().toASN1Structure()
             )
-            it.addCertificates(
-                bundle
-            )
+            it.addCertificates(bundle)
         }
     }.generate(CMSProcessableByteArray(dataToSign.toByteArray()), true)
 
