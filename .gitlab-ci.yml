@@ -32,7 +32,38 @@ build:verifier:
     - cd verifier
     - go generate static/assets_generate.go
     - go generate config/assets_generate.go
-    - go build -o verifier ./cmd/main.go
+  dependencies:
+    - build:verifier-frontend
+
+build:verifier:linux:
+  image: golang:1.13-buster
+  script:
+    - cd verifier
+    - GOOS=linux GOARCH=amd64 go build -o verifier-linux-amd64 ./cmd/main.go
   artifacts:
     paths:
-      - verifier/verifier
+      - verifier/verifier-linux-amd64
+  dependencies:
+    - build:verifier
+
+build:verifier:mac:
+  image: golang:1.13-buster
+  script:
+    - cd verifier
+    - GOOS=darwin GOARCH=amd64 go build -o verifier-darwin-amd64 ./cmd/main.go
+  artifacts:
+    paths:
+      - verifier/verifier-darwin-amd64
+  dependencies:
+    - build:verifier
+
+build:verifier:windows:
+  image: golang:1.13-buster
+  script:
+    - cd verifier
+    - GOOS=windows GOARCH=amd64 go build -o verifier-windows-amd64.exe ./cmd/main.go
+  artifacts:
+    paths:
+      - verifier/verifier-windows-amd64.exe
+  dependencies:
+    - build:verifier
