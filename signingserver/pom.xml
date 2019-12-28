@@ -309,9 +309,6 @@
                         </goals>
                         <configuration>
                             <protocVersion>${protobuf.version}</protocVersion>
-<!--                            <inputDirectories>-->
-<!--                                <include>${protobuf.input.directory}</include>-->
-<!--                            </inputDirectories>-->
                         </configuration>
                     </execution>
                 </executions>
