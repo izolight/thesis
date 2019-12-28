@@ -35,7 +35,7 @@ func (s *SignatureVerifier) VerifySignatureFile(file *SignatureFile, hash string
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if err := signatureContainerVerifier.Verify(false); err != nil {
+			if err := signatureContainerVerifier.Verify(true); err != nil {
 				errors <- fmt.Errorf("could not verify signatureContainer: %w", err)
 			}
 		}()
