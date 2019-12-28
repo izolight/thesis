@@ -104,17 +104,29 @@ class SigningKeysServiceImpl : ISigningKeysService {
         this.keyCache.remove(subjectInformation)
     }
 
+    private fun extractIssuerCertificate(
+        cert: JcaX509CertificateHolder,
+        bundle: JcaCertStore
+    ): JcaX509CertificateHolder = bundle.getMatches(null)
+        .filterIsInstance<JcaX509CertificateHolder>()
+        .filter {
+            it.issuer == cert.issuer
+        }[0]
+
     override suspend fun signToPkcs7(
         subjectInformation: SigningKeySubjectInformation,
         dataToSign: Signature.SignatureData,
         signedCertificate: JcaX509CertificateHolder
     ): CMSSignedData = CMSSignedDataGenerator().also {
         withContext(Dispatchers.IO) {
-            val bundle = async { fetchBundle(signedCertificate) }
+            val futureBundle = async { fetchBundle(signedCertificate) }
             val crl = async { retrieveCrl(signedCertificate) }
+            val bundle = futureBundle.await()
             val ocsp = async {
-                //                delay(Duration.ofSeconds(61))
-                retrieveOcsp(signedCertificate)
+                retrieveOcsp(
+                    signedCertificate,
+                    extractIssuerCertificate(signedCertificate, bundle)
+                )
             }
             it.addSignerInfoGenerator(
                 JcaSignerInfoGeneratorBuilder(
@@ -133,11 +145,10 @@ class SigningKeysServiceImpl : ISigningKeysService {
                 ocsp.await().toASN1Structure()
             )
             it.addCertificates(
-                bundle.await()
+                bundle
             )
         }
     }.generate(CMSProcessableByteArray(dataToSign.toByteArray()), true)
-//    }.generate(CMSEnvelopedDataGenerator(dataToSign.toByteArray(), CMSEnvelopedDataGenerator.), true)
 
 
     @Suppress("MemberVisibilityCanBePrivate", "unused")
@@ -193,13 +204,16 @@ class SigningKeysServiceImpl : ISigningKeysService {
     }
 
 
-    private fun constructOcspRequest(signedCertificate: X509CertificateHolder) = OCSPReqBuilder()
+    private fun constructOcspRequest(
+        signedCertificate: X509CertificateHolder,
+        issuer: X509CertificateHolder
+    ) = OCSPReqBuilder()
         .addRequest(
             CertificateID(
                 JcaDigestCalculatorProviderBuilder()
                     .build()
                     .get(CertificateID.HASH_SHA1),
-                signedCertificate,
+                issuer,
                 signedCertificate.serialNumber
             )
         )
@@ -217,7 +231,10 @@ class SigningKeysServiceImpl : ISigningKeysService {
             )
         ).build()
 
-    private suspend fun retrieveOcsp(signedCertificate: X509CertificateHolder) = withContext(Dispatchers.IO) {
+    private suspend fun retrieveOcsp(
+        signedCertificate: X509CertificateHolder,
+        issuer: X509CertificateHolder
+    ) = withContext(Dispatchers.IO) {
         OCSPResp(
             HttpClient(Apache) {
                 defaultConfig()
@@ -225,7 +242,10 @@ class SigningKeysServiceImpl : ISigningKeysService {
                 it.post<ByteArray> {
                     url(extractOcspUrl(signedCertificate))
                     body = ByteArrayContent(
-                        bytes = constructOcspRequest(signedCertificate).encoded,
+                        bytes = constructOcspRequest(
+                            signedCertificate,
+                            issuer
+                        ).encoded,
                         contentType = ContentType(
                             "application", "ocsp-request"
                         )
