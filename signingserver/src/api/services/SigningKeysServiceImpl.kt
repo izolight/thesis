@@ -142,9 +142,10 @@ class SigningKeysServiceImpl : ISigningKeysService {
 
     @Serializable
     class CfsslCrlResponse(
-        private val success: Boolean,
+        val success: Boolean,
         val result: String,
-        private val errors: List<CertificateAuthorityServiceImpl.ResponseMessage>
+        val errors: List<CertificateAuthorityServiceImpl.ResponseMessage>,
+        val messages: List<CertificateAuthorityServiceImpl.ResponseMessage>
     ) : Validatable<CfsslCrlResponse> {
         override fun validate(): Validated<CfsslCrlResponse> {
             return when {
