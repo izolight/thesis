@@ -246,3 +246,6 @@
 #### 28.12.19
 - Fat-JAR Paketierung richtigstellen
 - cfssl OCSP responder debuggen und Implementation anpassen so dass er in Echtzeit funktioniert
+- ASN.1 parser in Mozilla CMS/PKCS7 library fixen
+- OCSP Query fixen
+- OCSP für Issuer und für Signing Cert hinzufügen
