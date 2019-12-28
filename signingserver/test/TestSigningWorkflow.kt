@@ -33,7 +33,7 @@ import kotlin.test.assertTrue
 class TestSubmitHashes : KoinTest {
     @KtorExperimentalAPI
     @Test
-    fun testSubmitHashes() {
+    fun test() {
 
         val TESTUSERNAME = "testuser2"
         val TESTPASSWORD = "test1234"
