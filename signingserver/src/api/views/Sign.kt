@@ -21,7 +21,6 @@ import org.bouncycastle.cms.CMSSignedData
 import org.koin.ktor.ext.inject
 import org.slf4j.Logger
 import java.io.ByteArrayOutputStream
-import java.io.File
 
 @UnstableDefault
 @KtorExperimentalLocationsAPI
@@ -87,13 +86,11 @@ fun Routing.sign() {
                     )
                 )
                 signingKeyService.destroySigningKey(subjectInformation)
-                File("/tmp/innerpkcs7").writeBytes(pkcs7Signature)
                 logger.info("Requesting timestamp from TSA")
                 val signatureFile = buildSignaturefile(
                     pkcs7Signature,
                     timestamp = tsaService.stamp(pkcs7Signature)
                 )
-                File("/tmp/signaturefile").writeBytes(signatureFile.toByteArray())
                 signatureHoldingService.generateId().also { id ->
                     signatureHoldingService.set(id, signatureFile.toByteArray())
                     logger.info("Signing successful, storing signature with ID {}", id)

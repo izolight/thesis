@@ -43,7 +43,6 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.SecureRandom
@@ -101,7 +100,7 @@ class SigningKeysServiceImpl : ISigningKeysService {
         ).build(this.contentSignerBuilder.build(keyPair.private)) ?: throw CryptoException("Unable to construct CSR")
     }
 
-    override fun destroySigningKey(subjectInformation: SigningKeySubjectInformation)  {
+    override fun destroySigningKey(subjectInformation: SigningKeySubjectInformation) {
         this.keyCache.remove(subjectInformation)
     }
 
@@ -114,8 +113,9 @@ class SigningKeysServiceImpl : ISigningKeysService {
             val bundle = async { fetchBundle(signedCertificate) }
             val crl = async { retrieveCrl(signedCertificate) }
             val ocsp = async {
-//                delay(Duration.ofSeconds(61))
-                retrieveOcsp(signedCertificate) }
+                //                delay(Duration.ofSeconds(61))
+                retrieveOcsp(signedCertificate)
+            }
             it.addSignerInfoGenerator(
                 JcaSignerInfoGeneratorBuilder(
                     JcaDigestCalculatorProviderBuilder().build()
@@ -225,15 +225,11 @@ class SigningKeysServiceImpl : ISigningKeysService {
                 it.post<ByteArray> {
                     url(extractOcspUrl(signedCertificate))
                     body = ByteArrayContent(
-                        bytes = constructOcspRequest(signedCertificate).encoded.also { bytes ->
-                            File("/tmp/ocsp_req").writeBytes(bytes)
-                        },
+                        bytes = constructOcspRequest(signedCertificate).encoded,
                         contentType = ContentType(
                             "application", "ocsp-request"
                         )
                     )
-                }.also { response ->
-                    File("/tmp/ocsp_resp").writeBytes(response)
                 }
             }
         )
@@ -253,8 +249,8 @@ class SigningKeysServiceImpl : ISigningKeysService {
 }
 
 fun OCSPResp.toDER(): ByteArray = ByteArrayOutputStream().also {
-        ASN1OutputStream.create(it, ASN1Encoding.DER).also { asn1outputStream ->
-            asn1outputStream.writeObject(this.toASN1Structure())
-            asn1outputStream.close()
-        }
-    }.toByteArray()
+    ASN1OutputStream.create(it, ASN1Encoding.DER).also { asn1outputStream ->
+        asn1outputStream.writeObject(this.toASN1Structure())
+        asn1outputStream.close()
+    }
+}.toByteArray()

@@ -12,7 +12,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bouncycastle.cms.CMSAlgorithm
 import org.bouncycastle.tsp.TimeStampRequestGenerator
-import java.io.File
 
 class TimestampingServiceImpl : ITimestampingService {
     companion object {
@@ -31,14 +30,10 @@ class TimestampingServiceImpl : ITimestampingService {
                     }.generate(
                         CMSAlgorithm.SHA256,
                         sha256(dataToStamp)
-                    ).encoded.also { tsq ->
-                        File("/tmp/tsa_req").writeBytes(tsq)
-                    },
+                    ).encoded,
                     contentType = ContentType("application", "timestamp-query")
                 )
             }
-        }.also {
-            File("/tmp/tsa_resp").writeBytes(it)
         }
     }
 }
