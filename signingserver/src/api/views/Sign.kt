@@ -12,6 +12,7 @@ import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.Routing
 import io.ktor.routing.post
+import kotlinx.serialization.UnstableDefault
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import org.bouncycastle.asn1.ASN1Encoding
@@ -22,6 +23,7 @@ import org.slf4j.Logger
 import java.io.ByteArrayOutputStream
 import java.io.File
 
+@UnstableDefault
 @KtorExperimentalLocationsAPI
 fun Routing.sign() {
     val oidcService by inject<IOIDCService>()

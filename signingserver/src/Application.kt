@@ -28,7 +28,7 @@ import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.Koin
 import org.slf4j.event.Level
 
-fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
+fun main(args: Array<String>) = io.ktor.server.jetty.EngineMain.main(args)
 
 //fun main(args: Array<String>): Unit {
 //    Security.addProvider(BouncyCastleProvider())

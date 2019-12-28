@@ -19,9 +19,8 @@
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <main.class>io.ktor.server.jetty.EngineMain</main.class>
         <kotlin.version>1.3.61</kotlin.version>
-        <protobuf.input.directory>${project.basedir}/resources/proto</protobuf.input.directory>
-        <protobuf.output.directory>${project.basedir}/src/proto</protobuf.output.directory>
-        <protobuf.version>3.11.0</protobuf.version>
+        <protobuf.version>3.8.0</protobuf.version>
+        <protoc.version>3.8.0</protoc.version>
     </properties>
     <repositories>
         <repository>
@@ -63,7 +62,7 @@
         </dependency>
         <dependency>
             <groupId>io.ktor</groupId>
-            <artifactId>ktor-server-netty</artifactId>
+            <artifactId>ktor-server-jetty</artifactId>
             <version>${ktor_version}</version>
         </dependency>
         <dependency>
@@ -195,12 +194,17 @@
     </dependencies>
     <build>
         <sourceDirectory>src</sourceDirectory>
-        <testSourceDirectory>test</testSourceDirectory>
         <resources>
             <resource>
-                <directory>${protobuf.input.directory}</directory>
+                <directory>resources</directory>
             </resource>
         </resources>
+        <testSourceDirectory>test</testSourceDirectory>
+<!--        <resources>-->
+<!--            <resource>-->
+<!--                <directory>${protobuf.input.directory}</directory>-->
+<!--            </resource>-->
+<!--        </resources>-->
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -263,33 +267,40 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.2.0</version>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.1</version>
+                <configuration>
+                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                    <transformers>
+                        <transformer
+                                implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <mainClass>${main.class}</mainClass>
+                        </transformer>
+                    </transformers>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                </configuration>
                 <executions>
                     <execution>
                         <phase>package</phase>
                         <goals>
-                            <goal>single</goal>
+                            <goal>shade</goal>
                         </goals>
-                        <configuration>
-                            <archiveBaseDirectory>${project.basedir}</archiveBaseDirectory>
-                            <archive>
-                                <manifest>
-                                    <addClasspath>true</addClasspath>
-                                    <mainClass>${main.class}</mainClass>
-                                </manifest>
-                            </archive>
-                            <descriptorRefs>
-                                <descriptorRef>jar-with-dependencies</descriptorRef>
-                            </descriptorRefs>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
                 <groupId>com.github.os72</groupId>
                 <artifactId>protoc-jar-maven-plugin</artifactId>
-                <version>3.7.0.1</version>
+                <version>${protoc.version}</version>
                 <executions>
                     <execution>
                         <phase>generate-sources</phase>
@@ -298,9 +309,9 @@
                         </goals>
                         <configuration>
                             <protocVersion>${protobuf.version}</protocVersion>
-                            <inputDirectories>
-                                <include>${protobuf.input.directory}</include>
-                            </inputDirectories>
+<!--                            <inputDirectories>-->
+<!--                                <include>${protobuf.input.directory}</include>-->
+<!--                            </inputDirectories>-->
                         </configuration>
                     </execution>
                 </executions>
