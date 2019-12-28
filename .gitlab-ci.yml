@@ -28,6 +28,9 @@ build:frontend:
     - cd verifier/frontend
     - npm install
     - npm run build
+  artifacts:
+    paths:
+      - verifier/static/files
 
 build:verifier:
   stage: build
@@ -36,6 +39,10 @@ build:verifier:
     - cd verifier
     - go generate static/assets_generate.go
     - go generate config/assets_generate.go
+  artifacts:
+    paths:
+      - verifier/static/assets_vfsdata.go
+      - verifier/config/assets_vfsdata.go
   dependencies:
     - build:frontend
 
