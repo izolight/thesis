@@ -12,6 +12,7 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.auth0.jwt.interfaces.JWTVerifier
 import io.ktor.client.HttpClient
+import io.ktor.client.engine.apache.Apache
 import io.ktor.client.request.get
 import io.ktor.http.Parameters
 import io.ktor.http.Url
@@ -109,7 +110,7 @@ class OurDemoOIDCService private constructor(
     companion object {
         suspend operator fun invoke() = coroutineScope {
             OurDemoOIDCService(futureDiscoveryDocument = async {
-                HttpClient { defaultConfig() }.use {
+                HttpClient(Apache) { defaultConfig() }.use {
                     it.get<OIDCDiscoveryDocument>(Config.OIDC_CONFIGURATION_DISCOVERY_URL)
                 }
             })

@@ -5,6 +5,7 @@ import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.defaultConfig
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.hexStringToByteArray
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.hmacSha256
 import io.ktor.client.HttpClient
+import io.ktor.client.engine.apache.Apache
 import io.ktor.client.request.post
 import io.ktor.client.request.url
 import io.ktor.http.ContentType
@@ -136,7 +137,7 @@ class CertificateAuthorityServiceImpl : ICertificateAuthorityService {
     }
 
     override suspend fun signCSR(certificateSigningRequest: PKCS10CertificationRequest) = when (
-        val validatedResponse = HttpClient { defaultConfig() }.use {
+        val validatedResponse = HttpClient(Apache) { defaultConfig() }.use {
             it.post<CfsslResponse> {
                 url(CA_SIGN_URL)
                 contentType(ContentType.Application.Json)

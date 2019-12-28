@@ -3,6 +3,7 @@ package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.defaultConfig
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.sha256
 import io.ktor.client.HttpClient
+import io.ktor.client.engine.apache.Apache
 import io.ktor.client.request.post
 import io.ktor.client.request.url
 import io.ktor.http.ContentType
@@ -19,7 +20,7 @@ class TimestampingServiceImpl : ITimestampingService {
     }
 
     override suspend fun stamp(dataToStamp: ByteArray): ByteArray = withContext(Dispatchers.IO) {
-        HttpClient {
+        HttpClient(Apache) {
             defaultConfig()
         }.use {
             it.post<ByteArray> {

@@ -25,8 +25,7 @@ class ApplicationTest : KoinTest {
     fun testRoot() {
         withTestApplication({ module() }) {
             handleRequest(HttpMethod.Get, "/").apply {
-                assertEquals(HttpStatusCode.OK, response.status())
-                assertEquals("lol generics", response.content)
+                assertEquals(HttpStatusCode.Found, response.status())
             }
         }
     }

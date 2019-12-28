@@ -4,6 +4,7 @@ import Signature
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.*
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.defaultConfig
 import io.ktor.client.HttpClient
+import io.ktor.client.engine.apache.Apache
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.url
@@ -171,7 +172,7 @@ class SigningKeysServiceImpl : ISigningKeysService {
     )
 
     private suspend fun retrieveCrl(signedCertificate: X509CertificateHolder): JcaX509CRLHolder = when (
-        val response = HttpClient {
+        val response = HttpClient(Apache) {
             defaultConfig()
         }.use {
             it.get<CfsslCrlResponse> {
@@ -216,7 +217,7 @@ class SigningKeysServiceImpl : ISigningKeysService {
 
     private suspend fun retrieveOcsp(signedCertificate: X509CertificateHolder) = withContext(Dispatchers.IO) {
         OCSPResp(
-            HttpClient {
+            HttpClient(Apache) {
                 defaultConfig()
             }.use {
                 it.post<ByteArray> {
@@ -238,7 +239,7 @@ class SigningKeysServiceImpl : ISigningKeysService {
 
     override suspend fun fetchBundle(cert: JcaX509CertificateHolder) =
         JcaCertStore(
-            HttpClient {
+            HttpClient(Apache) {
                 defaultConfig()
             }.use {
                 it.post<CertificateAuthorityServiceImpl.CfsslBundleResponse> {
