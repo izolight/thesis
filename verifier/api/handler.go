@@ -1,18 +1,16 @@
-package verifier
+package api
 
 import (
 	"crypto/rand"
-	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
-	"encoding/pem"
 	"errors"
 	"fmt"
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
+	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier"
 	"io/ioutil"
 	"net/http"
-	"time"
 )
 
 type VerifyRequest struct {
@@ -20,43 +18,11 @@ type VerifyRequest struct {
 	Signature string `json:"signature"` // base64 encoded protobuf file
 }
 
-type VerifyResponse struct {
-	Valid       bool                `json:"valid"`
-	Error       string              `json:"error,omitempty"`
-	IDToken     idTokenResp         `json:"id_token"`
-	Signature   signatureDataResp   `json:"signature"`
-	SigningCert signingCertDataResp `json:"signing_cert"`
-	Timestamp   timestampDataResp   `json:"timestamp"`
-}
-
-type CertChain struct {
-	Issuer    string    `json:"issuer"`
-	Subject   string    `json:"subject"`
-	NotBefore time.Time `json:"not_before"`
-	NotAfter  time.Time `json:"not_after"`
-}
-
-func NewDefaultCfg(caFile []byte) Config {
-	cfg := Config{
-		Issuer:   "https://keycloak.thesis.izolight.xyz/auth/realms/master",
-		ClientId: "thesis",
-	}
-	filePEM, _ := pem.Decode(caFile)
-	rootCA, err := x509.ParseCertificate(filePEM.Bytes)
-	if err != nil {
-		log.Fatal(err)
-	}
-	cfg.AdditionalCerts = []*x509.Certificate{
-		rootCA,
-	}
-	return cfg
-}
-
 type VerifyService struct {
-	cfg Config
+	cfg verifier.Config
 }
 
-func NewVerifyService(cfg Config) *VerifyService {
+func NewVerifyService(cfg verifier.Config) *VerifyService {
 	return &VerifyService{cfg: cfg}
 }
 
@@ -68,7 +34,7 @@ func (v *VerifyService) VerifyHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	var in VerifyRequest
-	resp := VerifyResponse{
+	resp := verifier.VerifyResponse{
 		Valid: false,
 	}
 	if r.Body == nil {
@@ -98,14 +64,14 @@ func (v *VerifyService) VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	logger.Trace("decoded signature")
 
-	signatureFile := &SignatureFile{}
+	signatureFile := &verifier.SignatureFile{}
 	if err := proto.Unmarshal(signatureBytes, signatureFile); err != nil {
 		errorHandler(w, logger, fmt.Errorf("could not unmarshal signature to protobuf: %w", err), http.StatusBadRequest)
 		return
 	}
 	logger.Info("unmarshaled signature file")
 
-	s := NewSignatureVerifier(localCfg)
+	s := verifier.NewSignatureVerifier(localCfg)
 	resp, err = s.VerifySignatureFile(signatureFile, in.Hash)
 	logger.Info("verified signature file")
 	if err != nil {
@@ -127,7 +93,7 @@ func (v *VerifyService) VerifyHandler(w http.ResponseWriter, r *http.Request) {
 func errorHandler(w http.ResponseWriter, logger *log.Entry, err error, code int) {
 	logger.Error(err)
 	w.WriteHeader(code)
-	resp := VerifyResponse{
+	resp := verifier.VerifyResponse{
 		Valid: false,
 		Error: err.Error(),
 	}

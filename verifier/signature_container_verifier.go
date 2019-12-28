@@ -12,13 +12,13 @@ import (
 type SignatureContainerVerifier struct {
 	container       []byte
 	data            chan SignatureData
-	signingCertData chan signingCertDataResp
+	signingCertData chan signingCertData
 	signingTime     chan time.Time
 	additionalCerts []*x509.Certificate
 	cfg             *Config
 }
 
-type signingCertDataResp struct {
+type signingCertData struct {
 	Signer      string      `json:"signer"`
 	SignerEmail string      `json:"signer_email"`
 	Certs       []CertChain `json:"cert_chain"`
@@ -30,7 +30,7 @@ func NewSignatureContainerVerifier(c []byte, additionalCerts []*x509.Certificate
 		container:       c,
 		data:            make(chan SignatureData, 1),
 		signingTime:     make(chan time.Time, 1),
-		signingCertData: make(chan signingCertDataResp),
+		signingCertData: make(chan signingCertData),
 		additionalCerts: additionalCerts,
 		cfg:             &cfg,
 	}
@@ -82,7 +82,7 @@ func (s *SignatureContainerVerifier) Verify(verifyLTV bool) error {
 	if signer.NotBefore.After(signingTime) {
 		return fmt.Errorf("certificate was issued at %s, which is after the signing time %s", signer.NotBefore, signingTime)
 	}
-	signingCertDataResp := signingCertDataResp{
+	signingCertDataResp := signingCertData{
 		Signer:      signer.Subject.String(),
 		SignerEmail: signer.EmailAddresses[0],
 	}
@@ -115,6 +115,6 @@ func (s *SignatureContainerVerifier) SendSigningTime(signingTime time.Time) {
 	s.signingTime <- signingTime
 }
 
-func (s *SignatureContainerVerifier) SigningCertData() signingCertDataResp {
+func (s *SignatureContainerVerifier) SigningCertData() signingCertData {
 	return <-s.signingCertData
 }

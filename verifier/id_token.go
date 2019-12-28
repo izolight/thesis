@@ -13,7 +13,7 @@ import (
 type idTokenVerifier struct {
 	token       []byte
 	signerEmail chan string
-	idToken     chan idTokenResp
+	idToken     chan idToken
 	notAfter    func() time.Time
 	key         jose.JSONWebKey
 	ltvData     map[string]*LTV
@@ -27,7 +27,7 @@ type emailClaims struct {
 	EmailVerified bool   `json:"email_verified"`
 }
 
-type idTokenResp struct {
+type idToken struct {
 	oidc.IDToken
 	emailClaims
 	Certs []CertChain `json:"cert_chain"`
@@ -41,7 +41,7 @@ func NewIDTokenVerifier(signatureData *SignatureData, notAfter time.Time, cfg Co
 	i := &idTokenVerifier{
 		token:       signatureData.IdToken,
 		signerEmail: make(chan string, 1),
-		idToken:     make(chan idTokenResp),
+		idToken:     make(chan idToken),
 		notAfter:    notAfter.Local,
 		ltvData:     signatureData.LtvIdp,
 		ctx:         context.Background(),
@@ -72,7 +72,7 @@ func (i *idTokenVerifier) SendEmail(signerEmail string) {
 	i.signerEmail <- signerEmail
 }
 
-func (i *idTokenVerifier) IDToken() idTokenResp {
+func (i *idTokenVerifier) IDToken() idToken {
 	return <-i.idToken
 }
 
@@ -83,25 +83,25 @@ func (i *idTokenVerifier) Verify(verifyLTV bool) error {
 		Now:      i.notAfter,
 	}
 	verifier := oidc.NewVerifier(i.cfg.Issuer, i, oidcCfg)
-	idToken, err := verifier.Verify(i.ctx, string(i.token))
+	decodedIDToken, err := verifier.Verify(i.ctx, string(i.token))
 	if err != nil {
 		return err
 	}
 	i.cfg.Logger.WithFields(log.Fields{
-		"issuer":    idToken.Issuer,
-		"expiry":    idToken.Expiry,
-		"issued_at": idToken.IssuedAt,
-		"nonce":     idToken.Nonce,
-		"audience":  idToken.Audience,
-		"subject":   idToken.Subject,
+		"issuer":    decodedIDToken.Issuer,
+		"expiry":    decodedIDToken.Expiry,
+		"issued_at": decodedIDToken.IssuedAt,
+		"nonce":     decodedIDToken.Nonce,
+		"audience":  decodedIDToken.Audience,
+		"subject":   decodedIDToken.Subject,
 	}).Info("decoded id token")
 
 	var emailClaims emailClaims
-	if err = idToken.Claims(&emailClaims); err != nil {
+	if err = decodedIDToken.Claims(&emailClaims); err != nil {
 		return err
 	}
-	idTokenWithClaims := idTokenResp{
-		IDToken:     *idToken,
+	idTokenWithClaims := idToken{
+		IDToken:     *decodedIDToken,
 		emailClaims: emailClaims,
 	}
 	for _, c := range i.key.Certificates {

@@ -1,18 +1,11 @@
 package verifier
 
 import (
-	"crypto/x509"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"sync"
+	"time"
 )
-
-type Config struct {
-	Issuer          string
-	ClientId        string
-	AdditionalCerts []*x509.Certificate
-	Logger          *log.Entry
-}
 
 type SignatureVerifier struct {
 	cfg Config
@@ -103,4 +96,20 @@ func (s *SignatureVerifier) VerifySignatureFile(file *SignatureFile, hash string
 		break
 	}
 	return resp, err
+}
+
+type VerifyResponse struct {
+	Valid       bool              `json:"valid"`
+	Error       string            `json:"error,omitempty"`
+	IDToken     idToken           `json:"id_token"`
+	Signature   signatureData     `json:"signature"`
+	SigningCert signingCertData   `json:"signing_cert"`
+	Timestamp   timestampDataResp `json:"timestamp"`
+}
+
+type CertChain struct {
+	Issuer    string    `json:"issuer"`
+	Subject   string    `json:"subject"`
+	NotBefore time.Time `json:"not_before"`
+	NotAfter  time.Time `json:"not_after"`
 }

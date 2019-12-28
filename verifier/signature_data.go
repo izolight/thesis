@@ -14,11 +14,11 @@ type signatureDataVerifier struct {
 	data          *SignatureData
 	documentHash  string
 	nonce         chan string
-	signatureData chan signatureDataResp
+	signatureData chan signatureData
 	cfg           *Config
 }
 
-type signatureDataResp struct {
+type signatureData struct {
 	SaltedHashes   []string `json:"salted_hashes"`
 	HashAlgorithm  string   `json:"hash_algorithm"`
 	MacKey         string   `json:"mac_key"`
@@ -31,7 +31,7 @@ func NewSignatureDataVerifier(data *SignatureData, documentHash string, cfg Conf
 	v := &signatureDataVerifier{
 		data:          data,
 		nonce:         make(chan string, 1),
-		signatureData: make(chan signatureDataResp, 1),
+		signatureData: make(chan signatureData, 1),
 		cfg:           &cfg,
 		documentHash:  documentHash,
 	}
@@ -42,7 +42,7 @@ func (s *signatureDataVerifier) SendNonce(nonce string) {
 	s.nonce <- nonce
 }
 
-func (s *signatureDataVerifier) SignatureData() signatureDataResp {
+func (s *signatureDataVerifier) SignatureData() signatureData {
 	return <-s.signatureData
 }
 
@@ -97,7 +97,7 @@ func (s *signatureDataVerifier) Verify(verifyLTV bool) error {
 	for i := range s.data.SaltedDocumentHash {
 		saltedHashes = append(saltedHashes, fmt.Sprintf("%x", s.data.SaltedDocumentHash[i]))
 	}
-	s.signatureData <- signatureDataResp{
+	s.signatureData <- signatureData{
 		SaltedHashes:   saltedHashes,
 		HashAlgorithm:  s.data.HashAlgorithm.String(),
 		MacKey:         fmt.Sprintf("%x", s.data.MacKey),
