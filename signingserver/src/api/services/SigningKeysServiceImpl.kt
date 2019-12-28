@@ -140,6 +140,7 @@ class SigningKeysServiceImpl : ISigningKeysService {
 //    }.generate(CMSEnvelopedDataGenerator(dataToSign.toByteArray(), CMSEnvelopedDataGenerator.), true)
 
 
+    @Suppress("MemberVisibilityCanBePrivate", "unused")
     @Serializable
     class CfsslCrlResponse(
         val success: Boolean,
