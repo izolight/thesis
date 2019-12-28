@@ -18,3 +18,21 @@ build:signingserver:
   artifacts:
     paths:
       - signingserver/target/signingserver-0.0.1-shaded.jar
+
+build:verifier-frontend:
+  image: izolight/rust-webpack
+  script:
+    - cd verifier/frontend
+    - npm install
+    - npm run build
+
+build:verifier:
+  image: golang:1.13-buster
+  script:
+    - cd verifier
+    - go generate static/assets_generate.go
+    - go generate config/assets_generate.go
+    - go build -o verifier ./cmd/main.go
+  artifacts:
+    paths:
+      - verifier/verifier
