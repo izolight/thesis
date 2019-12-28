@@ -239,3 +239,10 @@
 
 #### 26.12.19
 - Arbeit an der Doku
+
+#### 27.12.19
+- Arbeit an der Doku
+
+#### 28.12.19
+- Fat-JAR Paketierung richtigstellen
+- cfssl OCSP responder debuggen und Implementation anpassen so dass er in Echtzeit funktioniert
