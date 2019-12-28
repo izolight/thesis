@@ -3,6 +3,7 @@ package verifier
 import (
 	"crypto/sha256"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"errors"
 	"fmt"
 	"golang.org/x/crypto/ocsp"
@@ -11,6 +12,18 @@ import (
 type LTVVerifier struct {
 	Certs   []*x509.Certificate
 	LTVData map[string]*LTV
+}
+
+func NewLTVVerifier(certs []*x509.Certificate, crls []pkix.CertificateList, ocsps []ocsp.Response) (*LTVVerifier, error) {
+	l := &LTVVerifier{
+		Certs: certs,
+		LTVData: make(map[string]*LTV),
+	}
+	for _, o := range ocsps {
+		l.LTVData[fmt.Sprintf("%x", o.Certificate.Raw)] = &LTV{Ocsp:o.TBSResponseData}
+	}
+
+	return l, nil
 }
 
 func (l LTVVerifier) Verify() error {

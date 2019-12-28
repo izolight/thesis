@@ -69,9 +69,9 @@ func (s *SignatureContainerVerifier) Verify(verifyLTV bool) error {
 	s.cfg.Logger.Info("verified pkcs7 certificate chain")
 
 	if verifyLTV {
-		l := LTVVerifier{
-			Certs: p7.Certificates,
-			//LTVData: s.container,
+		l, err := NewLTVVerifier(p7.Certificates, p7.CRLs, p7.OCSPs)
+		if err != nil {
+			return fmt.Errorf("could not create ltv verifier for p7: %w", err)
 		}
 		if err := l.Verify(); err != nil {
 			return fmt.Errorf("verifyLTV information for signature is not valid: %w", err)
