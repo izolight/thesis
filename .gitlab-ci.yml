@@ -1,6 +1,7 @@
 ---
 
 build:doc:
+  stage: .pre
   image: docker.io/blang/latex
   script:
     - cd doc/main
