@@ -1,0 +1,24 @@
+\chapter{Abstract}\label{ch:abstract}
+To enable a future digital single market,
+the European Union has proposed a standard for Remote Digital Signing.
+Remote Signing means that cryptographic operations are outsourced to a trust service provider,
+including the storage of the private keys.
+This is done to make digital signing more user-friendly,
+and to remove the burden of key management from the end-user.
+However, this means that effectively, end users have no control over their private keys.
+Remote signing services implementing the EU standard could sign arbitrary documents in their users' names,
+without their authorisation, and without them even noticing.
+
+In this thesis,
+we expand upon the EU's standard by designing a remote signing service in such a way that cannot sign any document without the users' direct authorisation,
+despite having control over the users' private keys.
+Contrary to proposals involving secret sharing schemes,
+with our design, no client-side software is necessary, except for a web browser.
+
+To illustrate our solution,
+we create a proof-of-concept implementation consisting of the signing service itself as well as a
+ platform-independent verification program capable of both online and offline verification.
+
+
+
+
