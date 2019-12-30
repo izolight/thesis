@@ -252,3 +252,5 @@
 - Verifier und Frontend Build Pipelines in Gitlab CI
 - OCSP Parser fixen in Verifier
 
+#### 30.12.19
+- Arbeit an der Doku
