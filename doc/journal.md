@@ -249,3 +249,6 @@
 - ASN.1 parser in Mozilla CMS/PKCS7 library fixen
 - OCSP Query fixen
 - OCSP für Issuer und für Signing Cert hinzufügen
+- Verifier und Frontend Build Pipelines in Gitlab CI
+- OCSP Parser fixen in Verifier
+
