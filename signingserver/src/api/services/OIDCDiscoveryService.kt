@@ -1,14 +1,14 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
 
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.InvalidDataException
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.Either
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.attempt
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.compose
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.defaultConfig
 import com.auth0.jwk.Jwk
+import com.auth0.jwk.JwkException
 import com.auth0.jwk.UrlJwkProvider
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.exceptions.JWTDecodeException
+import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.auth0.jwt.interfaces.JWTVerifier
 import io.ktor.client.HttpClient
@@ -167,18 +167,20 @@ class OurDemoOIDCService private constructor(
         .build()
 
     override fun validateIdToken(idToken: String): IOIDCService.JwtValidationResult {
-        val result = compose {
-            val jwt = attempt { JWT.decode(idToken) }
-            val jwk = attempt(jwt) { jwkProvider.get(it.keyId) }
-            val algo = attempt(jwk) { getAlgorithm(it) }
-            val verifier = attempt(algo) { buildVerifier(it) }
-            attempt(verifier, jwk) { v, j ->
-                IOIDCService.JwtValidationResult(idToken = v.verify(idToken), jwk = j)
-            }
-        }
-        when(result) {
-            is Either.Success -> return result.value
-            is Either.Error -> throw result.e
+        try {
+            val jwt = JWT.decode(idToken)
+            val jwk = jwkProvider.get(jwt.keyId)
+            val algo = getAlgorithm(jwk)
+            val verifier = buildVerifier(algo)
+            return IOIDCService.JwtValidationResult(idToken = verifier.verify(idToken), jwk = jwk)
+        } catch (e: JWTDecodeException) {
+            throw InvalidDataException(message = "Invalid JWT: Unable to decode")
+        } catch (e: JwkException) {
+            throw InvalidDataException(message = "JWK error: $e")
+        } catch (e: JWTVerificationException) {
+            throw InvalidDataException(message = "Invalid JWT: Unable to verify")
+        } catch (e: Exception) {
+            throw InvalidDataException(message = "Invalid input: $e")
         }
     }
 
