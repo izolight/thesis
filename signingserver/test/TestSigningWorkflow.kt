@@ -33,7 +33,7 @@ import kotlin.test.assertTrue
 class TestSubmitHashes : KoinTest {
     @KtorExperimentalAPI
     @Test
-    fun test() {
+    fun testSigningWorkflow() {
 
         val TESTUSERNAME = "testuser2"
         val TESTPASSWORD = "test1234"
@@ -54,6 +54,11 @@ class TestSubmitHashes : KoinTest {
             val seed: String,
             val salt: String,
             val hashes: List<String>
+        )
+
+        @Serializable
+        data class SignatureResponse(
+            val signature: String
         )
 
         withTestApplication({ module() }) {
@@ -112,7 +117,7 @@ class TestSubmitHashes : KoinTest {
                 )
             }
 
-            with(handleRequest(HttpMethod.Post, URLs.SIGN) {
+            val signatureUrl = with(handleRequest(HttpMethod.Post, URLs.SIGN) {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
 
@@ -124,6 +129,15 @@ class TestSubmitHashes : KoinTest {
                 )
             }) {
                 assertEquals(HttpStatusCode.OK, response.status(), response.content)
+                assertNotNull(response.content)
+                return@with Url(json.parse(SignatureResponse.serializer(), response.content!!).signature)
+            }
+
+            with(handleRequest(HttpMethod.Get, signatureUrl.encodedPath) {
+                addHeader(HttpHeaders.Accept, ContentType.Application.OctetStream.toString())
+            }) {
+                assertEquals(HttpStatusCode.OK, response.status(), response.content)
+                assertNotNull(response.content)
             }
 //
 //            with(handleRequest(HttpMethod.Post, URLs.SIGN) {
