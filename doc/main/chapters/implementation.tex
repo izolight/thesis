@@ -519,4 +519,10 @@ any time they want.
 On top of that we met with them regularly during the whole work,
 discussing the progress, potential issues and of course to receive regular feedback.
 
+\subsection{Test Coverage}\label{subsec:test-coverage}
+For the signing server, we achieve a test coverage of 86.4\%,
+as measured by the Intellij coverage runner.
+This value, while respectable, isn't that as high as we'd like.
+We inspected the coverage report and found that this is mainly due to deserialisation code in data classes that must take fields that are never used.
+Excluding these classes, we achieve a coverage of 94.9\%.
 
