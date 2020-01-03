@@ -276,7 +276,7 @@ or offline (figure~\ref{fig:offlinesignatureverificationprotocol}).
 
 For online verification, the user simply uploads the list of hashes and the signature file to the verification service.
 
-\begin{figure}
+\begin{figure}[H]
     \begin{center}
         \includegraphics[scale=0.5]{images/protocol_online_verification_high_level.png}
         \caption{Online Signature Verification Protocol}
@@ -289,32 +289,32 @@ Then, they upload the list of hashes and signature file just as if they were usi
 but to their own copy of the verification service running on their computer without needing any network connection
 instead of a remote verification service.
 
-\begin{figure}
+\begin{figure}[H]
     \begin{center}
         \includegraphics[scale=0.5]{images/protocol_offline_verification_high_level.png}
         \caption{Offline Signature Verification Protocol}
         \label{fig:offlinesignatureverificationprotocol}
     \end{center}
 \end{figure}
+\pagebreak
 
-To verify a signature,
-the verifier first needs to verify the chain of signed timestamps and their respective \gls{CA} chains (figure~\ref{fig:timestampverificationstep}).
+To verify a signature, the verifier first needs to verify the chain of signed timestamps and their respective \gls{CA} chains (figure~\ref{fig:timestampverificationstep}).
 
-\begin{figure}
+\begin{figure}[H]
     \begin{center}
-        % TODO update this figure since we no longer loop
         \includegraphics[scale=0.5]{images/protocol_verification_step1_timestamp.png}
         \caption{Timestamp verification step}
         \label{fig:timestampverificationstep}
     \end{center}
 \end{figure}
+\pagebreak
 
 The signature itself can then be verified (figure~\ref{fig:signaturegenerationstep}), along with
 the certificate chain for the signing certificate.
 
-\begin{figure}
+\begin{figure}[H]
     \begin{center}
-        \includegraphics[scale=0.5]{images/protocol_verification_step2_signature.png}
+        \includegraphics[scale=0.48]{images/protocol_verification_step2_signature.png}
         \caption{Signature verification step}
         \label{fig:signatureverificationstep}
     \end{center}
@@ -323,9 +323,9 @@ the certificate chain for the signing certificate.
 Then, the ID token itself needs to be verified,
 as well as the certificate chain of the key used to sign the ID token (figure~\ref{fig:idtokenverification}).
 
-\begin{figure}
+\begin{figure}[H]
     \begin{center}
-        \includegraphics[scale=0.5]{images/protocol_verification_step3_id_token.png}
+        \includegraphics[scale=0.48]{images/protocol_verification_step3_id_token.png}
         \caption{ID token verification}
         \label{fig:idtokenverification}
     \end{center}
@@ -338,7 +338,7 @@ The result must be the same as the nonce in the ID token.
 At last, the hash of the document must match the included hash.
 Figure~\ref{fig:signaturedataverification} illustrates this process.
 
-\begin{figure}
+\begin{figure}[H]
     \begin{center}
         \includegraphics[scale=0.5]{images/protocol_verification_step4_signature_data.png}
         \caption{Signature data verification}
