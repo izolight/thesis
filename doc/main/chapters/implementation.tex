@@ -221,6 +221,204 @@ as shown in figure~\ref{fig:dtside}.
 \end{figure}
 
 
+\subsection{Software Libraries}\label{subsec:software-libraries}
+Table~\ref{table:libraries} summarises the software libraries used in the implementation of the signing service.
+All libraries we use are of high maturity, widely used, well tested and above all,
+free and open source software.
+That is, they are licenced with \gls{FSF} approved open source licences.
+
+\begin{longtable}{p{3cm}p{12cm}}
+    \hline
+    \textbf{Name} & \textbf{Description} \\ \hline
+    logback &
+    An implementation of the \gls{SLF4J} \gls{API}.
+    It's a replacement for log4j, but brings a large number of improvements.
+    Also, it's Swiss, which we found nice.
+    We use it as the \gls{SLF4J} implementation.
+    \\ \hline
+    Apache HttpClient &
+    Ktor's built-in \gls{HTTP} client isn't usable on its own,
+    it requires a backing engine.
+    We've selected the Apache HttpClient for this.
+    Other alternatives were \gls{CIO}, Jetty, and OkHttp.
+    It's probably the most configurable and complete \gls{HTTP} client available at the time of writing. It supports both \gls{HTTP}/1.1 and \gls{HTTP}/2,
+    and is the only one available that supports following redirects and allows for configuration of timeouts and proxies.
+    \\ \hline
+    kotlinx.serialization &
+    Kotlin Serialization is comparable to Jackson in that it provides serialisation of \gls{JSON},
+    but unlike Jackson,
+    it works without reflection.
+    Instead it's implemented as a compiler plugin and a runtime library.
+    The compiler plugin automatically generates the visitor code for the data classes,
+    while the runtime library uses the generated code for serialisation without reflection.
+    This massively improves runtime performance.
+    \\ \hline
+    JUnit &
+    JUnit is probably the most widely used unit testing framework in the Java ecosystem.
+    We use it to write our unit tests with it,
+    as it provides convenient integration into Ktor.
+    \\ \hline
+    Bouncy Castle &
+    Bouncy Castle is an extensive cryptography library for Java (and C\#).
+    We use it extensively in the signing service:
+    to build \gls{CMS} messages,
+    to generate \gls{RSA} keys,
+    to work with X.509,
+    to create \gls{OCSP} and \gls{TSP} requests and read the responses,
+    and more.
+    Without this library we couldn't have achieved what we did.
+    Unfortunately, the documentation isn't very good (sometimes non-existent),
+    and we've spent a lot of time figuring out how to use it correctly.
+    \\ \hline
+    auth0 jwt/jwks &
+    Java implementations of the \gls{JWKS} and \gls{JWT} standards,
+    used for \gls{OIDC} integration and id\_token verification.
+    We haven't looked for alternatives because this library works well,
+    has on-point documentation, and is MIT-licenced.
+    \\ \hline
+    jsoup &
+    Jsoup is a library for working with \gls{HTML}.
+    It provides a well-designed \gls{API} for extracting data from the \gls{DOM},
+    using jquery-like methods.
+    We use it to submit the login form on the Keycloack \gls{IDP} in the unit tests.
+    We can't POST the form directly because there is a hidden \gls{CSRF} token field in the form,
+    whose value we have to extract.
+    This is what jsoup is good in.
+    \\ \hline
+    protobuf &
+    This is the reference implementation of protocol buffers.
+    We use it to build the signature file.
+    \\ \hline
+    Koin &
+    Insert-Koin is a pragmatic, light-weight dependency injection framework for Kotlin.
+    What distinguishes it from other \gls{DI} frameworks,
+    and in our opinion makes it better,
+    is that it uses purely functional resolution.
+    There is no reflection, no proxies, and not even code generation.
+    \\ \hline
+    \caption{Software libraries used in the development of the signing service}
+    \label{table:libraries}
+\end{longtable}
+
+TODO verifier libraries
+
+
+\subsection{Dependency Management}\label{subsec:dependency-management}
+For the signing service's dependency management,
+we use Apache Maven~\cite{mvn}.
+It allows us to specify project metadata,
+build configuration,
+and of course build- and runtime dependencies in a central location.
+Most Java developers are familiar with Maven and should be able to feel right at home.
+We chose Maven over alternatives such as Gradle and Ant because it is the most widely used dependency and build management system available in the Java world.
+
+For the verifier,
+we use Go's built-in module system.
+A Go module is a set of Go packages in a file tree with a \texttt{go.mod} file at the root of the tree.
+This file defines the dependency requirements,
+which are pulled by the Go build system before compilation.
+
+For the frontend we have to combine two dependency management tools.
+\paragraph{npm} The node package manager is used to install the TypeScript compiler \texttt{tsc},
+which type-checks, then translates the TypeScript source code into JavaScript.
+We also use \texttt{webpack},
+a tool which allows us to combine all of the compiled JavaScript files into a single bundle file.
+The code in that bundle file is minified,
+a process in which the code is transformed in such a way as to be as small as possible.
+This reduces the amount of data that has to be transmitted over the network.
+
+\paragraph{Cargo} Cargo is the package manager for the Rust programming language.
+It downloads dependencies, compiles packages,
+and builds binaries ready for distribution.
+We use Cargo to build the \gls{WASM}-based in-browser hashing binary,
+which in turn is used by the frontend of the signing server as well as the verifier.
+
+\subsection{Software Packaging}\label{subsec:software-packaging}
+For the signing service,
+we use the \texttt{shade} plugin for Maven.
+This plugin allows us to package our artifact into a \gls{JAR},
+including all runtime dependencies and resources.
+
+For the signing server,
+the resource files that have to be included into the production-ready \gls{JAR}
+are the frontend files (\gls{HTML}, \gls{CSS}, \gls{JS} and \gls{WASM}),
+as well as the Ktor configuration file.
+This allows for simple deployment:
+all that's needed on the target server is a \gls{JRE},
+and the rest is contained in the \gls{JAR}.
+The admin doesn't even have to set up Tomcat,
+and running the server is as easy as executing \texttt{java -jar signingserver-shaded.jar}.
+
+Go uses static linking by default,
+it even includes its own \gls{VM} into the binaries it builds.
+This has the advantage of vastly simplified deployment:
+all anyone needs to do is to copy the binary and run it.
+The downside is that the binary is somewhat larger.
+
+However, Go's build system doesn't support including additional files in that single binary.
+As a workaround, we've used the \texttt{vfsgen} library.
+For a given set of files and directories represented as the \texttt{http.FileSystem} interface,
+it generates Go code that statically implements that interface,
+which in turn is used just like any other Go module.
+The end result is one single executable file which contains everything it needs,
+even its own runtime, unlike the fat \gls{JAR} which doesn't work without a \gls{JRE}.
+
+\subsection{Custom Docker Image for Rust+Webpack Build}\label{subsec:custom-docker-image-for-rust+webpack-build}
+Gitlab \gls{CI} uses docker images as the build environment in which to compile and package artifacts.
+For all but one of our components we were lucky enough to find pre-built images providing what we needed (for example, a Maven 3 environment).
+Unfortunately it seems with Rust + Webpack we're a bit on the forefront of things,
+and no one's published a usable docker image for that build configuration to Dockerhub yet.
+
+This is why we built our own image on top of a base Ubuntu+Rust image by adding the following:
+\begin{enumerate}
+    \item Installing \texttt{curl}
+    \item Installing \texttt{wasm-pack}.
+    This tool implements the workflow necessary for building Rust into \gls{WASM},
+    generating the \gls{JS} and TypeScript binding code,
+    and generates npm packages ready to be included into our project.
+    \item Installing \texttt{cargo-generate}, a scaffolding tool which generates the boilerplate necessary for Cargo to work.
+    \item Installing \texttt{npm}, the node package manager.
+\end{enumerate}
+
+We published this image onto Dockerhub as \texttt{izolight/rust-webpack},
+hoping that others might find it useful.
+
+\subsection{Combined Build Process}\label{subsec:combined-build-process}
+Since we use so many languages, tools and frameworks,
+the build process gets a bit complicated.
+For this reason we document it here.
+
+\begin{enumerate}
+    \item \texttt{npm} downloads and installs the \texttt{webpack} and TypeScript toolchains
+    \item \texttt{wasm-pack} calls \texttt{Cargo},
+    which downloads and installs the Rust dependencies,
+    and compiles the \gls{WASM} binaries
+    \item \texttt{wasm-pack} generates glue code allowing for \gls{WASM} to \gls{JS} bindings
+    \item \texttt{webpack} starts \texttt{tsc}, which typechecks,
+    then translates the TypeScript source code into JavaScript.
+    Then, it combines the generated \gls{JS} from \texttt{tsc} as well as \texttt{wasm-pack} into a minified bundle file,
+    and packages it together with the \texttt{HTML} and \texttt{CSS} files.
+    \item The verifier uses \texttt{go generate} to compile the frontend files it requires into a Go module,
+    which were built in steps 1-4
+    \item The signing server copies its frontend files built in steps 1-4 into its resources directory,
+    then calls Maven to build its fat \gls{JAR}.
+    \item The verifier calls \texttt{go build} three times,
+    once respectively for GNU/Linux, Mac OSX and Windows,
+    resulting in the binaries for each platform.
+\end{enumerate}
+
+
+Figure~\ref{fig:pipelines} illustrates the combined build process as implemented in Gitlab \gls{CI}.
+
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=0.7\linewidth]{images/pipelines.png}
+        \caption{Gitlab CI pipelines combining different build tools and the artifacts they produce}
+        \label{fig:pipelines}
+    \end{center}
+\end{figure}
+
 \section{Implementation Components}\label{sec:implementation-components}
 \subsection{Design Principles}\label{subsec:design-principles}
 We've split the implementation of the Signing Service and the Verifier into small,
@@ -526,4 +724,5 @@ This value, while respectable, isn't that as high as we'd like.
 We inspected the coverage report and found that this is mainly due to deserialisation code in data classes that must take fields that are never used.
 Excluding these classes, we achieve a coverage of 94.9\%.
 TODO coverage of verifier.
+
 
