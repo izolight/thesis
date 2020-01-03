@@ -52,20 +52,17 @@ func (l LTVVerifier) Verify() error {
 			return errors.New("crl not supported yet")
 		}
 
-		var ocspError error
+
 		for _, ocspResponse := range l.ocspResponses {
-			response, ocspError := ocsp.ParseResponseForCert(ocspResponse, cert, issuingCA)
-			if ocspError != nil {
-				continue
+			response, err := ocsp.ParseResponseForCert(ocspResponse, cert, issuingCA)
+			if err != nil {
+				return fmt.Errorf("couldn't verify ocsp response for %s: %w", cert.Subject.String(), err)
 			}
 			if response.Status != ocsp.Good {
 				return fmt.Errorf("certificate %s has ocsp status: %d", cert.Subject.String(), response.Status)
 			}
 			l.OCSPStatus[fingerprint] = response
 			break
-		}
-		if ocspError != nil {
-			return fmt.Errorf("could not parse ocsp response: %w", ocspError)
 		}
 	}
 	return nil
