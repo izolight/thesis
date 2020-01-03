@@ -72,7 +72,7 @@ func (v *VerifyService) VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Info("unmarshaled signature file")
 
 	s := verifier.NewSignatureVerifier(localCfg)
-	resp, err = s.VerifySignatureFile(signatureFile, in.Hash)
+	resp, err = s.VerifySignatureFile(signatureFile, in.Hash, true)
 	logger.Info("verified signature file")
 	if err != nil {
 		errorHandler(w, logger, err, http.StatusInternalServerError)

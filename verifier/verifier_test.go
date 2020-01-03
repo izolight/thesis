@@ -47,7 +47,7 @@ func TestVerifySignatureFile(t *testing.T) {
 			}
 
 			s := verifier.NewSignatureVerifier(cfg)
-			resp, err := s.VerifySignatureFile(signatureFile, tt.args.hash)
+			resp, err := s.VerifySignatureFile(signatureFile, tt.args.hash, false)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("VerifySignatureFile() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -56,7 +56,6 @@ func TestVerifySignatureFile(t *testing.T) {
 			if err != nil {
 				t.Error(body)
 			}
-			fmt.Printf("%s\n", body)
 		})
 	}
 }

@@ -15,7 +15,7 @@ func NewSignatureVerifier(cfg Config) *SignatureVerifier {
 	return &SignatureVerifier{cfg: cfg}
 }
 
-func (s *SignatureVerifier) VerifySignatureFile(file *SignatureFile, hash string) (VerifyResponse, error) {
+func (s *SignatureVerifier) VerifySignatureFile(file *SignatureFile, hash string, verifyLTV bool) (VerifyResponse, error) {
 	errors := make(chan error, 1)
 	responses := make(chan VerifyResponse)
 	wg := sync.WaitGroup{}
@@ -35,7 +35,7 @@ func (s *SignatureVerifier) VerifySignatureFile(file *SignatureFile, hash string
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if err := signatureContainerVerifier.Verify(true); err != nil {
+			if err := signatureContainerVerifier.Verify(verifyLTV); err != nil {
 				errors <- fmt.Errorf("could not verify signatureContainer: %w", err)
 			}
 		}()
@@ -46,7 +46,7 @@ func (s *SignatureVerifier) VerifySignatureFile(file *SignatureFile, hash string
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if err := signatureDataVerifier.Verify(false); err != nil {
+			if err := signatureDataVerifier.Verify(); err != nil {
 				errors <- fmt.Errorf("could not verify signatureData: %w", err)
 			}
 		}()

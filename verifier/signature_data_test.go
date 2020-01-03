@@ -45,7 +45,7 @@ func TestVerifySignatureData(t *testing.T) {
 				tt.nonce = generateNonce(t, tt.args.data.SaltedDocumentHash)
 			}
 			v.SendNonce(tt.args.nonce)
-			if err := v.Verify(tt.args.verifyLTV); err != nil != tt.wantErr {
+			if err := v.Verify(); err != nil != tt.wantErr {
 				t.Errorf("verifiy signature data error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

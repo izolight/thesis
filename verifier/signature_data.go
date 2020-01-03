@@ -46,7 +46,7 @@ func (s *signatureDataVerifier) SignatureData() signatureData {
 	return <-s.signatureData
 }
 
-func (s *signatureDataVerifier) Verify(verifyLTV bool) error {
+func (s *signatureDataVerifier) Verify() error {
 	s.cfg.Logger.Info("started verifying")
 	macAlgo, err := s.data.MacAlgorithm.Algorithm()
 	if err != nil {
