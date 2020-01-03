@@ -10,18 +10,7 @@ build:doc:
     paths:
       - doc/main/documentation.pdf
 
-
-build:signingserver:
-  stage: .pre
-  image: docker.io/maven:3.3-jdk-8
-  script:
-    - cd signingserver
-    - mvn package -Dmaven.test.skip=true
-  artifacts:
-    paths:
-      - signingserver/target/signingserver-0.0.1-shaded.jar
-
-build:frontend:
+build:verifierfrontend:
   stage: .pre
   image: izolight/rust-webpack
   script:
@@ -31,6 +20,30 @@ build:frontend:
   artifacts:
     paths:
       - verifier/static/files
+
+build:signingserverfrontend:
+  stage: .pre
+  image: izolight/rust-webpack
+  script:
+    - cd src/frontend/rust-wasm-hashing
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - src/frontend/rust-wasm-hashing/dist
+
+build:signingserver:
+  stage: .pre
+  image: docker.io/maven:3.3-jdk-8
+  script:
+    - cp -v src/frontend/rust-wasm-hashing/dist/* signingserver/resources/static/.
+    - cd signingserver
+    - mvn package -Dmaven.test.skip=true
+  artifacts:
+    paths:
+      - signingserver/target/signingserver-0.0.1-shaded.jar
+  dependencies:
+    - build:signingserverfrontend
 
 build:verifier:
   stage: build
@@ -44,7 +57,7 @@ build:verifier:
       - verifier/static/assets_vfsdata.go
       - verifier/config/assets_vfsdata.go
   dependencies:
-    - build:frontend
+    - build:verifierfrontend
 
 build:verifier:linux:
   stage: .post
