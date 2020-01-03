@@ -18,16 +18,14 @@ type LTVVerifier struct {
 	CRLStatus map[string]*pkix.CertificateList
 }
 
-func NewLTVVerifier(certs []*x509.Certificate, crls []pkix.CertificateList, ocsps [][]byte) (*LTVVerifier, error) {
-	l := &LTVVerifier{
+func NewLTVVerifier(certs []*x509.Certificate, crls []pkix.CertificateList, ocsps [][]byte) *LTVVerifier {
+	return &LTVVerifier{
 		certs:         certs,
 		crls:          crls,
 		ocspResponses: ocsps,
 		OCSPStatus:    make(map[string]*ocsp.Response),
 		CRLStatus:     make(map[string]*pkix.CertificateList),
 	}
-
-	return l, nil
 }
 
 func (l LTVVerifier) Verify() error {

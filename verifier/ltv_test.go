@@ -1,10 +1,9 @@
 package verifier_test
 
 import (
-	"crypto/sha256"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/pem"
-	"fmt"
 	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier"
 	"testing"
 )
@@ -20,113 +19,67 @@ func TestVerifyLTV(t *testing.T) {
 	revokedIntermediateCA := parsePEM(t, "SwissSign Personal Silver CA 2014 - G22.pem")
 	revokedIntermediateOCSPFile := readFile(t, "SwissSign Personal Silver CA 2014 - G22.pem.ocsp")
 
+	type args struct {
+		certs []*x509.Certificate
+		crls []pkix.CertificateList
+		ocspResponses [][]byte
+	}
 	tests := []struct {
 		name     string
-		verifier verifier.LTVVerifier
+		args args
 		wantErr  bool
 	}{
 		{
 			name: "root CA",
-			verifier: verifier.LTVVerifier{
-				certs:   []*x509.Certificate{rootCA},
-				LTVData: nil,
+			args:args{
+				certs:[]*x509.Certificate{rootCA},
 			},
 			wantErr: false,
 		},
 		{
 			name: "intermediate CA without verifyLTV info",
-			verifier: verifier.LTVVerifier{
+			args: args{
 				certs:   []*x509.Certificate{rootCA, intermediateCA},
-				LTVData: nil,
-			},
-			wantErr: true,
-		},
-		{
-			name: "intermediate CA with nil verifyLTV",
-			verifier: verifier.LTVVerifier{
-				certs: []*x509.Certificate{rootCA, intermediateCA},
-				LTVData: map[string]*verifier.LTV{
-					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): nil,
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "intermediate CA with nil ocsp",
-			verifier: verifier.LTVVerifier{
-				certs: []*x509.Certificate{rootCA, intermediateCA},
-				LTVData: map[string]*verifier.LTV{
-					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
-						Ocsp: nil,
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "intermediate CA with crl",
-			verifier: verifier.LTVVerifier{
-				certs: []*x509.Certificate{rootCA, intermediateCA},
-				LTVData: map[string]*verifier.LTV{
-					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
-						Crl: []byte("test"),
-					},
-				},
 			},
 			wantErr: true,
 		},
 		{
 			name: "intermediate CA with ocsp response",
-			verifier: verifier.LTVVerifier{
+			args: args{
 				certs: []*x509.Certificate{rootCA, intermediateCA},
-				LTVData: map[string]*verifier.LTV{
-					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
-						Ocsp: intermediateCAOCSPFile,
-					},
-				},
+				ocspResponses: [][]byte{intermediateCAOCSPFile},
 			},
 			wantErr: false,
 		},
 		{
 			name: "intermediate CA with ocsp response and different ca order",
-			verifier: verifier.LTVVerifier{
+			args: args{
 				certs: []*x509.Certificate{intermediateCA, rootCA},
-				LTVData: map[string]*verifier.LTV{
-					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
-						Ocsp: intermediateCAOCSPFile,
-					},
-				},
+				ocspResponses: [][]byte{intermediateCAOCSPFile},
 			},
 			wantErr: false,
 		},
 		{
 			name: "intermediate CA with wrong ocsp response",
-			verifier: verifier.LTVVerifier{
+			args: args{
 				certs: []*x509.Certificate{rootCA, intermediateCA},
-				LTVData: map[string]*verifier.LTV{
-					fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
-						Ocsp: tsaCAOCSPFile,
-					},
-				},
+				ocspResponses: [][]byte{tsaCAOCSPFile},
 			},
 			wantErr: true,
 		},
 		{
 			name: "revoked ca",
-			verifier: verifier.LTVVerifier{
+			args: args{
 				certs: []*x509.Certificate{silverCA, revokedIntermediateCA},
-				LTVData: map[string]*verifier.LTV{
-					fmt.Sprintf("%x", sha256.Sum256(revokedIntermediateCA.Raw)): {
-						Ocsp: revokedIntermediateOCSPFile,
-					},
-				},
+				ocspResponses: [][]byte{revokedIntermediateOCSPFile},
 			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.verifier.Verify(); err != nil != tt.wantErr {
+			v := verifier.NewLTVVerifier(tt.args.certs, tt.args.crls, tt.args.ocspResponses)
+			if err := v.Verify(); err != nil != tt.wantErr {
 				t.Errorf("VerifyLTV() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

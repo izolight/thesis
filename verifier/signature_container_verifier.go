@@ -72,7 +72,7 @@ func (s *SignatureContainerVerifier) Verify(verifyLTV bool) error {
 
 	ocspStatus := make(map[string]*ocsp.Response)
 	if verifyLTV {
-		l, err := NewLTVVerifier(p7.Certificates, p7.CRLs, p7.RawOCSPResponses)
+		l := NewLTVVerifier(p7.Certificates, p7.CRLs, p7.RawOCSPResponses)
 		if err != nil {
 			return fmt.Errorf("could not create ltv verifier for p7: %w", err)
 		}
