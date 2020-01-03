@@ -350,6 +350,8 @@ For more information about our contributions to open source software during this
             github.com/golang/protobuf & Reference implementation of protocol buffers, which are used in our signature format. \\
             \hline
             golang.org/x/crypto & Extended part of the Go standard library. Mainly used for parsing and verifying \gls{OCSP} responses. \\
+            \hline
+            github.com/shurcooL/vfsgen & Generates go "code" from static files and makes them accessible via a virtual filesystem. This is used to work around Go's limitation of not being able to embed files in the compiled binary.
         \end{tabular}
         \captionof{table}{Software libraries used in the development of the verification service\label{table:libraries-verifier}}
     \end{center}
@@ -414,7 +416,7 @@ However, Go's build system doesn't support including additional files in that si
 As a workaround, we've used the \texttt{vfsgen} library.
 For a given set of files and directories represented as the \texttt{http.FileSystem} interface,
 it generates Go code that statically implements that interface,
-which in turn is used just like any other Go module.
+which in turn is used just like any other Go package.
 The end result is one single executable file which contains everything it needs,
 even its own runtime, unlike the fat \gls{JAR} which doesn't work without a \gls{JRE}.
 
