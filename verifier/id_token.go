@@ -41,7 +41,7 @@ func NewIDTokenVerifier(signatureData *SignatureData, notAfter time.Time, cfg Co
 	i := &idTokenVerifier{
 		token:       signatureData.IdToken,
 		signerEmail: make(chan string, 1),
-		idToken:     make(chan idToken),
+		idToken:     make(chan idToken, 1),
 		notAfter:    notAfter.Local,
 		ltvData:     signatureData.LtvIdp,
 		ctx:         context.Background(),
