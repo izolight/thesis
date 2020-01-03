@@ -370,6 +370,8 @@ we use Go's built-in module system.
 A Go module is a set of Go packages in a file tree with a \texttt{go.mod} file at the root of the tree.
 This file defines the dependency requirements,
 which are pulled by the Go build system before compilation.
+A go package has a import path, which is actually an url path, where the package source is hosted.
+At this path the go tool expects to be a source repository (git, svn, mercurial) with the tagging system of the \gls{VCS} used for determening the version (if any).
 
 For the frontend we have to combine two dependency management tools.
 \paragraph{npm} The node package manager is used to install the TypeScript compiler \texttt{tsc},
