@@ -11,21 +11,29 @@ import (
 
 type LTVVerifier struct {
 	certs         []*x509.Certificate
-	crls          []pkix.CertificateList
-	ocspResponses [][]byte
-
+	ocspResponses map[string][]byte // maps the AKI to the ocsp response
+	crls []pkix.CertificateList
 	OCSPStatus map[string]*ocsp.Response
 	CRLStatus map[string]*pkix.CertificateList
 }
 
 func NewLTVVerifier(certs []*x509.Certificate, crls []pkix.CertificateList, ocsps [][]byte) *LTVVerifier {
-	return &LTVVerifier{
+	l := &LTVVerifier{
 		certs:         certs,
-		crls:          crls,
-		ocspResponses: ocsps,
+		crls: make([]pkix.CertificateList, 0),
+		ocspResponses:make(map[string][]byte),
 		OCSPStatus:    make(map[string]*ocsp.Response),
 		CRLStatus:     make(map[string]*pkix.CertificateList),
 	}
+	l.crls = append(l.crls, crls...)
+	for _, ocspResponse := range ocsps {
+		response, err := ocsp.ParseResponse(ocspResponse, nil)
+		if err != nil {
+			continue
+		}
+		l.ocspResponses[fmt.Sprintf("%x", response.Certificate.AuthorityKeyId)] = ocspResponse
+	}
+	return l
 }
 
 func (l LTVVerifier) Verify() error {
@@ -33,9 +41,6 @@ func (l LTVVerifier) Verify() error {
 		// check if is root CA -> no ocsp/crl possible
 		if err := cert.CheckSignatureFrom(cert); err == nil {
 			continue
-		}
-		if l.ocspResponses == nil && l.crls == nil {
-			return errors.New("no crls or ocsp responses included")
 		}
 		var issuingCA *x509.Certificate
 		for _, issuing := range l.certs {
@@ -56,22 +61,18 @@ func (l LTVVerifier) Verify() error {
 		}
 
 
-		var ocspErrors []error
-		for _, ocspResponse := range l.ocspResponses {
-			response, ocspError := ocsp.ParseResponseForCert(ocspResponse, cert, issuingCA)
-			if ocspError != nil {
-				ocspErrors = append(ocspErrors, ocspError)
-				continue
-			}
-			if response.Status != ocsp.Good {
-				return fmt.Errorf("certificate %s has ocsp status: %d", cert.Subject.String(), response.Status)
-			}
-			l.OCSPStatus[fingerprint] = response
-			break
+		responseRaw, ok := l.ocspResponses[fmt.Sprintf("%x", cert.AuthorityKeyId)]
+		if !ok {
+			return fmt.Errorf("no ocsp response for %s", fingerprint)
 		}
-		if len(ocspErrors) != 0 {
-			return fmt.Errorf("couldn't verify ocsp response for %s: %v", cert.Subject.String(), ocspErrors)
+		response, err := ocsp.ParseResponseForCert(responseRaw, cert, issuingCA)
+		if err != nil {
+			return fmt.Errorf("couldn't verify ocsp response for %s: %w", cert.Subject.String(), err)
 		}
+		if response.Status != ocsp.Good {
+			return fmt.Errorf("certificate %s has ocsp status: %d", cert.Subject.String(), response.Status)
+		}
+		l.OCSPStatus[fingerprint] = response
 	}
 	return nil
 }
