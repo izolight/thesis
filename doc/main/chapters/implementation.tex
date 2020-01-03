@@ -337,15 +337,19 @@ For more information about our contributions to open source software during this
 
 \begin{figure}
     \begin{center}
-        \begin{tabular}{p{3cm}|p{12cm}}
+        \begin{tabular}{p{4.2cm}|p{12cm}}
             \textbf{Name} & \textbf{Description} \\ \hline
-            sirupsen/logrus & A highly configurable, structured logger \\
+            github.com/sirupsen/logrus & A structured logger, that is API compatible with the Go standard library logger. Used so we don't have to do the log formatting all by ourself. \\
             \hline
-            mozilla/pkcs7 & Library for parsing and verifying \gls{PKCS7}/\gls{CMS} and RFC3161 timestamps. As the library only supported crls for checking the revocation data, we added support for ocsp. \\
+            go.mozilla.org/pkcs7 & Library for parsing and verifying \gls{PKCS7}/\gls{CMS} and RFC3161\cite{rfc3161} timestamps. As the library only supported \gls{CRL}s for checking the revocation data, we added support for \gls{OCSP}. \\
             \hline
-            square/go-jose & Implements most of the \gls{JOSE} Standard like \gls{JWT} and \gls{JWK}. \\
+            gopkg.in/square/go-jose.v2 & Implementation of the \gls{JOSE} set of standard like \gls{JWT} and \gls{JWK}. Used for extracting the X.509 certificates from the \gls{JWK}s in the signature data and for verifying the ID token signature. \\
             \hline
-            coreos/go-oidc & Used for verifying the \gls{OIDC} ID tokens. \\
+			github.com/coreos/go-oidc & Used for verifying and parsing the \gls{OIDC} ID tokens. \\
+            \hline
+            github.com/golang/protobuf & Reference implementation of protocol buffers, which are used in our signature format. \\
+            \hline
+            golang.org/x/crypto & Extended part of the Go standard library. Mainly used for parsing and verifying \gls{OCSP} responses. \\
         \end{tabular}
         \captionof{table}{Software libraries used in the development of the verification service\label{table:libraries-verifier}}
     \end{center}
