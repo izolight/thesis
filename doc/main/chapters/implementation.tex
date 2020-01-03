@@ -50,6 +50,17 @@ Further the Go standard library already includes a lot of cryptographic function
 Go's built-in concurrency primitives(goroutines and channels) make it easy implement the verification of the many parts of the signatures asynchronously.
 With only having a single \gls{API} endpoint for verifying the signature it isn't necessary to use a complicated web framework as the http package of the Go standard library provide all needed functions.
 
+As with the signing service implementation we made an evaluation for the verification service technology stack.
+
+\begin{longtable}{p{1.5cm}p{2cm}p{11cm}}
+    \hline
+    \textbf{Language} & \textbf{Framework} & \textbf{Reason for non-consideration} \\ \hline
+    Java & JavaFX & Requires the user to either have java installed or will be bundled with the program, which makes it quite large.  \\ \hline
+    Anything & Electron & Electron is quite rwsource hungry, having the chromium engine underneath. It also requires more frontend(javascript) code than any of us is comfortable with. \\ \hline
+    Python & Django & Huge framework to learn, no type safety, slow runtime performance \\ \hline
+    \caption{Programming languages and frameworks considered for use in the verification service implementation}
+\end{longtable}
+
 
 \subsection{Frontend}
 \label{subsec:techfrontend}
@@ -300,7 +311,25 @@ That is, they are licenced with \gls{FSF} approved open source licences.
     \label{table:libraries}
 \end{longtable}
 
+\subsection{Software Libraries - Verification Service}\label{subsec:software-libraries-verifier}
+Table~\ref{table:libraries} summarises the software libraries used in the implementation of the verification service.
+Most libraries we use are of high maturity, widely used, well tested and above all,
+free and open source software.
+That is, they are licenced with \gls{FSF} approved open source licences.
+In some cases we needed to fork a libary and extend functionality for which we created pull requests in the respective project repositories.
+
+\begin{longtable}{p{3cm}p{12cm}}
+    \hline
+    \textbf{Name} & \textbf{Description} \\ \hline
+    sirupsen/logrus & a highly configurable structured logger \hline
+    mozilla/pkcs7 & library for parsing and verifying pkcs7/cms and rfc3161 timestamps. As the library only supported crls for checking the revocation data, we added support for ocsp. \hline
+    square/go-jose & Implements most of the JOSE (JSON Signing and Encryption) Standard like JWT and JWK. \hline
+    coreos/go-oidc & Used for verifying of the oidc IDntokens. \hline
+
 TODO verifier libraries
+    \caption{Software libraries used in the development of the verification service}
+    \label{table:libraries-verifier}
+\end{longtable}
 
 
 \subsection{Dependency Management}\label{subsec:dependency-management}
