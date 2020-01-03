@@ -49,10 +49,11 @@ func (t *TimestampVerifier) verifyTimestamp(timestamp []byte, data []byte, index
 		return err
 	}
 	if t.verifyLTV {
-		l := LTVVerifier{
-			certs: ts.Certificates,
-			//LTVData: t.ltvData,
+		var ocspResponses [][]byte
+		for _, ltv := range t.ltvData {
+			ocspResponses = append(ocspResponses, ltv.Ocsp)
 		}
+		l := NewLTVVerifier(ts.Certificates, nil, ocspResponses)
 		if err := l.Verify(); err != nil {
 			return err
 		}

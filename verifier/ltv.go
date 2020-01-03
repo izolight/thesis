@@ -34,6 +34,9 @@ func (l LTVVerifier) Verify() error {
 		if err := cert.CheckSignatureFrom(cert); err == nil {
 			continue
 		}
+		if l.ocspResponses == nil && l.crls == nil {
+			return errors.New("no crls or ocsp responses included")
+		}
 		var issuingCA *x509.Certificate
 		for _, issuing := range l.certs {
 			if err := cert.CheckSignatureFrom(issuing); err == nil {
@@ -53,16 +56,21 @@ func (l LTVVerifier) Verify() error {
 		}
 
 
+		var ocspErrors []error
 		for _, ocspResponse := range l.ocspResponses {
-			response, err := ocsp.ParseResponseForCert(ocspResponse, cert, issuingCA)
-			if err != nil {
-				return fmt.Errorf("couldn't verify ocsp response for %s: %w", cert.Subject.String(), err)
+			response, ocspError := ocsp.ParseResponseForCert(ocspResponse, cert, issuingCA)
+			if ocspError != nil {
+				ocspErrors = append(ocspErrors, ocspError)
+				continue
 			}
 			if response.Status != ocsp.Good {
 				return fmt.Errorf("certificate %s has ocsp status: %d", cert.Subject.String(), response.Status)
 			}
 			l.OCSPStatus[fingerprint] = response
 			break
+		}
+		if len(ocspErrors) != 0 {
+			return fmt.Errorf("couldn't verify ocsp response for %s: %v", cert.Subject.String(), ocspErrors)
 		}
 	}
 	return nil
