@@ -29,37 +29,52 @@ and it's genuinely nice to program in.
 Kotlin offers seamless Java interoperability, allowing us to make use of the excellent and extensive Java ecosystem.
 
 We haven't picked Kotlin and Ktor at random, we've discussed which language and framework to use for the signing server at length.
-The following table lists a short overview which other choices we've discussed but chosen not to pursue.
+The table~\ref{tab:langandfram} lists a short overview which other choices we've discussed but chosen not to pursue.
 
-\begin{longtable}{p{1.5cm}p{2cm}p{11cm}}
-    \hline
-    \textbf{Language} & \textbf{Framework} & \textbf{Reason for non-consideration} \\ \hline
-    Java & Spring MVC & Steep learning curve, vast amount of functionality to learn, too large for our needs, little previous knowledge on our part \\ \hline
-    Java & Vaadin & Generated frontend is slow to use because of network latency, too much uncertainty with regards to \gls{WASM} integration: Is it possible? How? How long will it take us, how much will we have to implement ourselves? \\ \hline
-    C\# & .NET Core & Zero previous knowledge on our part both for the language and the framework, aversion to Microsoft because of their attempts to undermine open-source software~\cite{mseee} \\ \hline
-    Scala & Play & Little previous knowledge of the language, uncertainty of the time required to learn it properly, but otherwise an interesting contender \\ \hline
-    Python & Django & Huge framework to learn, no type safety, slow runtime performance \\ \hline
-    \caption{Programming languages and frameworks considered for use in the signing service implementation}
-\end{longtable}
+\begin{figure}
+    \begin{center}
+        \begin{tabular}{p{1.5cm}|p{2cm}|p{11cm}}
+            \textbf{Language} & \textbf{Framework} & \textbf{Reason for non-consideration} \\
+            \hline
+            Java & Spring MVC & Steep learning curve, vast amount of functionality to learn, too large for our needs, little previous knowledge on our part \\
+            \hline
+            Java & Vaadin & Generated frontend is slow to use because of network latency, too much uncertainty with regards to \gls{WASM} integration: Is it possible? How? How long will it take us, how much will we have to implement ourselves? \\
+            \hline
+            C\# & .NET Core & Zero previous knowledge on our part both for the language and the framework, aversion to Microsoft because of their attempts to undermine open-source software~\cite{mseee} \\
+            \hline
+            Scala & Play & Little previous knowledge of the language, uncertainty of the time required to learn it properly, but otherwise an interesting contender \\
+            \hline
+            Python & Django & Huge framework to learn, no type safety, slow runtime performance \\
+        \end{tabular}
+        \captionof{table}{Programming languages and frameworks considered for use in the signing service implementation\label{tab:langandfram}}
+    \end{center}
+\end{figure}
 
 
 \subsubsection{Verifier}
 The verification service is implemented in the Go programming language~\cite{golang}.
-For the verifier we chose Go, because it allows us to generate statically linked binaries for all major platforms, without worrying about dependencies.
-Further the Go standard library already includes a lot of cryptographic functionality, requiring fewer third party dependencies.
-Go's built-in concurrency primitives(goroutines and channels) make it easy implement the verification of the many parts of the signatures asynchronously.
-With only having a single \gls{API} endpoint for verifying the signature it isn't necessary to use a complicated web framework as the http package of the Go standard library provide all needed functions.
+For the verifier we chose Go,
+because it allows us to generate statically linked binaries for all major platforms,
+without worrying about dependencies.
+Further the Go standard library already includes a lot of cryptographic functionality,
+requiring fewer third party dependencies.
+Go's built-in concurrency primitives (goroutines and channels) make it easy implement the verification of the many parts of the signatures asynchronously.
+With only having a single \gls{API} endpoint for verifying the signature it isn't necessary to use a complicated web framework as the \texttt{http} package of the Go standard library provide all needed functions.
 
-As with the signing service implementation we made an evaluation for the verification service technology stack.
+As with the signing service implementation, we evaluated alternatives, which are summarised in table~\ref{tab:goalts}.
 
-\begin{longtable}{p{1.5cm}p{2cm}p{11cm}}
-    \hline
-    \textbf{Language} & \textbf{Framework} & \textbf{Reason for non-consideration} \\ \hline
-    Java & JavaFX & Requires the user to either have java installed or will be bundled with the program, which makes it quite large.  \\ \hline
-    Anything & Electron & Electron is quite rwsource hungry, having the chromium engine underneath. It also requires more frontend(javascript) code than any of us is comfortable with. \\ \hline
-    Python & Django & Huge framework to learn, no type safety, slow runtime performance \\ \hline
-    \caption{Programming languages and frameworks considered for use in the verification service implementation}
-\end{longtable}
+\begin{figure}
+    \begin{center}
+        \begin{tabular}{p{1.5cm}|p{2cm}|p{11cm}}
+            \textbf{Language} & \textbf{Framework} & \textbf{Reason for non-consideration} \\
+            \hline
+            Java & JavaFX & Requires the user to either have Java installed or will be bundled with the program, which makes it quite large.  \\
+            \hline
+            Anything & Electron & Electron is ludicrously resource-hungry, having the Chromium engine underneath. It also requires more frontend (javascript) code than any of us is comfortable with. \\
+        \end{tabular}
+        \captionof{table}{Programming languages and frameworks considered for use in the verification service implementation\label{tab:goalts}}
+    \end{center}
+\end{figure}
 
 
 \subsection{Frontend}
@@ -238,78 +253,80 @@ All libraries we use are of high maturity, widely used, well tested and above al
 free and open source software.
 That is, they are licenced with \gls{FSF} approved open source licences.
 
-\begin{longtable}{p{3cm}p{12cm}}
-    \hline
-    \textbf{Name} & \textbf{Description} \\ \hline
-    logback &
-    An implementation of the \gls{SLF4J} \gls{API}.
-    It's a replacement for log4j, but brings a large number of improvements.
-    Also, it's Swiss, which we found nice.
-    We use it as the \gls{SLF4J} implementation.
-    \\ \hline
-    Apache HttpClient &
-    Ktor's built-in \gls{HTTP} client isn't usable on its own,
-    it requires a backing engine.
-    We've selected the Apache HttpClient for this.
-    Other alternatives were \gls{CIO}, Jetty, and OkHttp.
-    It's probably the most configurable and complete \gls{HTTP} client available at the time of writing. It supports both \gls{HTTP}/1.1 and \gls{HTTP}/2,
-    and is the only one available that supports following redirects and allows for configuration of timeouts and proxies.
-    \\ \hline
-    kotlinx.serialization &
-    Kotlin Serialization is comparable to Jackson in that it provides serialisation of \gls{JSON},
-    but unlike Jackson,
-    it works without reflection.
-    Instead it's implemented as a compiler plugin and a runtime library.
-    The compiler plugin automatically generates the visitor code for the data classes,
-    while the runtime library uses the generated code for serialisation without reflection.
-    This massively improves runtime performance.
-    \\ \hline
-    JUnit &
-    JUnit is probably the most widely used unit testing framework in the Java ecosystem.
-    We use it to write our unit tests with it,
-    as it provides convenient integration into Ktor.
-    \\ \hline
-    Bouncy Castle &
-    Bouncy Castle is an extensive cryptography library for Java (and C\#).
-    We use it extensively in the signing service:
-    to build \gls{CMS} messages,
-    to generate \gls{RSA} keys,
-    to work with X.509,
-    to create \gls{OCSP} and \gls{TSP} requests and read the responses,
-    and more.
-    Without this library we couldn't have achieved what we did.
-    Unfortunately, the documentation isn't very good (sometimes non-existent),
-    and we've spent a lot of time figuring out how to use it correctly.
-    \\ \hline
-    auth0 jwt/jwks &
-    Java implementations of the \gls{JWKS} and \gls{JWT} standards,
-    used for \gls{OIDC} integration and id\_token verification.
-    We haven't looked for alternatives because this library works well,
-    has on-point documentation, and is MIT-licenced.
-    \\ \hline
-    jsoup &
-    Jsoup is a library for working with \gls{HTML}.
-    It provides a well-designed \gls{API} for extracting data from the \gls{DOM},
-    using jquery-like methods.
-    We use it to submit the login form on the Keycloack \gls{IDP} in the unit tests.
-    We can't POST the form directly because there is a hidden \gls{CSRF} token field in the form,
-    whose value we have to extract.
-    This is what jsoup is good in.
-    \\ \hline
-    protobuf &
-    This is the reference implementation of protocol buffers.
-    We use it to build the signature file.
-    \\ \hline
-    Koin &
-    Insert-Koin is a pragmatic, light-weight dependency injection framework for Kotlin.
-    What distinguishes it from other \gls{DI} frameworks,
-    and in our opinion makes it better,
-    is that it uses purely functional resolution.
-    There is no reflection, no proxies, and not even code generation.
-    \\ \hline
-    \caption{Software libraries used in the development of the signing service}
-    \label{table:libraries}
-\end{longtable}
+\begin{figure}
+    \begin{center}
+        \begin{tabular}{p{3cm}|p{12cm}}
+            \textbf{Name} & \textbf{Description} \\ \hline
+            logback &
+            An implementation of the \gls{SLF4J} \gls{API}.
+            It's a replacement for log4j, but brings a large number of improvements.
+            Also, it's Swiss, which we found nice.
+            We use it as the \gls{SLF4J} implementation.
+            \\ \hline
+            Apache HttpClient &
+            Ktor's built-in \gls{HTTP} client isn't usable on its own,
+            it requires a backing engine.
+            We've selected the Apache HttpClient for this.
+            Other alternatives were \gls{CIO}, Jetty, and OkHttp.
+            It's probably the most configurable and complete \gls{HTTP} client available at the time of writing. It supports both \gls{HTTP}/1.1 and \gls{HTTP}/2,
+            and is the only one available that supports following redirects and allows for configuration of timeouts and proxies.
+            \\ \hline
+            kotlinx.serialization &
+            Kotlin Serialization is comparable to Jackson in that it provides serialisation of \gls{JSON},
+            but unlike Jackson,
+            it works without reflection.
+            Instead it's implemented as a compiler plugin and a runtime library.
+            The compiler plugin automatically generates the visitor code for the data classes,
+            while the runtime library uses the generated code for serialisation without reflection.
+            This massively improves runtime performance.
+            \\ \hline
+            JUnit &
+            JUnit is probably the most widely used unit testing framework in the Java ecosystem.
+            We use it to write our unit tests with it,
+            as it provides convenient integration into Ktor.
+            \\ \hline
+            Bouncy Castle &
+            Bouncy Castle is an extensive cryptography library for Java (and C\#).
+            We use it extensively in the signing service:
+            to build \gls{CMS} messages,
+            to generate \gls{RSA} keys,
+            to work with X.509,
+            to create \gls{OCSP} and \gls{TSP} requests and read the responses,
+            and more.
+            Without this library we couldn't have achieved what we did.
+            Unfortunately, the documentation isn't very good (sometimes non-existent),
+            and we've spent a lot of time figuring out how to use it correctly.
+            \\ \hline
+            auth0 jwt/jwks &
+            Java implementations of the \gls{JWKS} and \gls{JWT} standards,
+            used for \gls{OIDC} integration and id\_token verification.
+            We haven't looked for alternatives because this library works well,
+            has on-point documentation, and is MIT-licenced.
+            \\ \hline
+            jsoup &
+            Jsoup is a library for working with \gls{HTML}.
+            It provides a well-designed \gls{API} for extracting data from the \gls{DOM},
+            using jquery-like methods.
+            We use it to submit the login form on the Keycloack \gls{IDP} in the unit tests.
+            We can't POST the form directly because there is a hidden \gls{CSRF} token field in the form,
+            whose value we have to extract.
+            This is what jsoup is good in.
+            \\ \hline
+            protobuf &
+            This is the reference implementation of protocol buffers.
+            We use it to build the signature file.
+            \\ \hline
+            Koin &
+            Insert-Koin is a pragmatic, light-weight dependency injection framework for Kotlin.
+            What distinguishes it from other \gls{DI} frameworks,
+            and in our opinion makes it better,
+            is that it uses purely functional resolution.
+            There is no reflection, no proxies, and not even code generation.
+            \\
+        \end{tabular}
+        \captionof{table}{Software libraries used in the development of the signing service\label{table:libraries}}
+    \end{center}
+\end{figure}
 
 \subsection{Software Libraries - Verification Service}\label{subsec:software-libraries-verifier}
 Table~\ref{table:libraries} summarises the software libraries used in the implementation of the verification service.
@@ -318,17 +335,21 @@ they are all of high quality and free and open source software.
 In some cases, we needed to fork a library and extend functionality for which we created pull requests in the respective project repositories.
 For more information about our contributions to open source software during this thesis see TODO document PRs and link here.
 
-\begin{longtable}{p{3cm}p{12cm}}
-    \hline
-    \textbf{Name} & \textbf{Description} \\ \hline
-    sirupsen/logrus & A highly configurable, structured logger \\ \hline
-    mozilla/pkcs7 & Library for parsing and verifying \gls{PKCS7}/\gls{CMS} and RFC3161 timestamps. As the library only supported crls for checking the revocation data, we added support for ocsp. \\ \hline
-    square/go-jose & Implements most of the \gls{JOSE} Standard like \gls{JWT} and \gls{JWK}. \\ \hline
-    coreos/go-oidc & Used for verifying the \gls{OIDC} ID tokens. \\ \hline
-
-    \caption{Software libraries used in the development of the verification service}
-    \label{table:libraries-verifier}
-\end{longtable}
+\begin{figure}
+    \begin{center}
+        \begin{tabular}{p{3cm}|p{12cm}}
+            \textbf{Name} & \textbf{Description} \\ \hline
+            sirupsen/logrus & A highly configurable, structured logger \\
+            \hline
+            mozilla/pkcs7 & Library for parsing and verifying \gls{PKCS7}/\gls{CMS} and RFC3161 timestamps. As the library only supported crls for checking the revocation data, we added support for ocsp. \\
+            \hline
+            square/go-jose & Implements most of the \gls{JOSE} Standard like \gls{JWT} and \gls{JWK}. \\
+            \hline
+            coreos/go-oidc & Used for verifying the \gls{OIDC} ID tokens. \\
+        \end{tabular}
+        \captionof{table}{Software libraries used in the development of the verification service\label{table:libraries-verifier}}
+    \end{center}
+\end{figure}
 
 
 \subsection{Dependency Management}\label{subsec:dependency-management}
@@ -657,20 +678,28 @@ which handle \gls{OCSP} requests for certificates issued by \texttt{cfssl-root} 
 
 \begin{figure}
     \begin{center}
-        \begin{tabular}{p{3.4cm}p{5.7cm}p{6.2cm}}
+        \begin{tabular}{p{3.4cm}|p{5.7cm}|p{6.2cm}}
+            \textbf{Name} & \textbf{Command} & \textbf{Ports} \\
             \hline
-            \textbf{Name} & \textbf{Command} & \textbf{Ports} \\ \hline
             traefik & /entrypoint.sh --docker\ldots & 0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp \\*
+            \hline
             keycloak & /opt/jboss/tools/docker-entrypoint\ldots & 127.0.0.1:8080->8080/tcp, 8443/tcp \\*
+            \hline
             keycloak-db & docker-entrypoint.sh postgres & 5432/tcp \\*
+            \hline
             cfssl-root & cfssl serve -db-config=/data/cfssl/\ldots & 8888/tcp \\*
+            \hline
             cfssl-root-db & docker-entrypoint.sh postgres & 127.0.0.1:5432->5432/tcp \\*
+            \hline
             cfssl-intermediate & cfssl serve -db-config=\ldots & 8888/tcp \\*
+            \hline
             cfssl-intermediate-db & docker-entrypoint.sh postgres & 127.0.0.1:5433->5432/tcp \\*
+            \hline
             cfssl-root-ocsp & cfssl ocspserve -address=0.0.0.0\ldots & 8888/tcp \\*
+            \hline
             cfssl-intermediate-ocsp & cfssl ocspserve -address=\ldots & 8888/tcp \\*
         \end{tabular}
-        \caption{Docker containers running on our POC server}\label{tbl:docker}
+        \captionof{table}{Docker containers running on our POC server\label{tbl:docker}}
     \end{center}
 \end{figure}
 
