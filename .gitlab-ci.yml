@@ -33,7 +33,7 @@ build:signingserverfrontend:
       - src/frontend/rust-wasm-hashing/dist
 
 build:signingserver:
-  stage: .build
+  stage: build
   image: docker.io/maven:3.3-jdk-8
   script:
     - cp -v src/frontend/rust-wasm-hashing/dist/* signingserver/resources/static/.
