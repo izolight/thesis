@@ -60,6 +60,21 @@ func TestVerifyIDToken(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "valid id token without ltv",
+			args: args{
+				token:     idTokenFile,
+				issuer:    "https://keycloak.thesis.izolight.xyz/auth/realms/master",
+				nonce:     "5093b0fb5a68144fd3fddda5156f232e975c6eb857cba5b5fd9d64b7b31bbe45",
+				clientId:  "thesis",
+				notAfter:  time.Unix(1575021202, 0),
+				key:       jwkFile,
+				ltv:       ltv,
+				verifyLTV: true,
+				email:     "test2@thesis.izolight.xyz",
+			},
+			wantErr: true,
+		},
+		{
 			name: "valid , but expired id token (okta)",
 			args: args{
 				token:     idTokenFile,

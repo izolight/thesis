@@ -114,6 +114,7 @@ func TestVerifyTimestamp(t *testing.T) {
 			if tt.wantErr && !errors.Is(err, tt.expectedErr) && tt.expectedErr != nil {
 				t.Errorf("expected %s, got %s", tt.expectedErr, err)
 			}
+			verifier.ErrNoTimestamps.Error()
 		})
 	}
 }
