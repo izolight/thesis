@@ -16,15 +16,17 @@ func TestVerifyHandler(t *testing.T) {
 	tests := []struct {
 		name     string
 		filename string
-		hash     string
 		wantErr  bool
 	}{
-		{name: "valid signature file", filename: "signaturefile", hash: "06180c7ede6c6936334501f94ccfc5d0ff828e57a4d8f6dc03f049eaad5fb308", wantErr: false},
+		{name: "valid signature file", filename: "signaturefile_06180c.json", wantErr: false},
+		{name: "no request body", filename: "empty.json", wantErr: true},
+		{name: "invalid base64 file", filename: "invalid_base64.json", wantErr: true},
+		{name: "invalid hash", filename: "invalid_hash.json", wantErr: true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			requestJSON := generateReqJSON(t, tt.filename, tt.hash)
+			requestJSON := readFile(t, tt.filename)
 
 			req, err := http.NewRequest("POST", "/verify", bytes.NewReader(requestJSON))
 			if err != nil {
@@ -49,7 +51,11 @@ func TestVerifyHandler(t *testing.T) {
 	}
 }
 
-func generateReqJSON(t *testing.T, filename, hash string) []byte {
+func TestGenerateReqJSON(t *testing.T) {
+	generateReqJSON(t, "signaturefile", "06180c7ede6c6936334501f94ccfc5d0ff828e57a4d8f6dc03f049eaad5fb308")
+}
+
+func generateReqJSON(t *testing.T, filename, hash string) {
 	t.Helper()
 	signatureFile := readFile(t, filename)
 	sigbase64 := base64.StdEncoding.EncodeToString(signatureFile)
@@ -61,7 +67,7 @@ func generateReqJSON(t *testing.T, filename, hash string) []byte {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return requestJson
+	ioutil.WriteFile("testdata/" + filename + "_" + hash[:6] + ".json", requestJson, 0644)
 }
 
 func readFile(t *testing.T, filename string) []byte {

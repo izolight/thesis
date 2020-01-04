@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
+	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier/pb"
 	"go.mozilla.org/pkcs7"
 	"golang.org/x/crypto/ocsp"
 	"time"
@@ -13,7 +14,7 @@ import (
 
 type SignatureContainerVerifier struct {
 	container       []byte
-	data            chan SignatureData
+	data            chan pb.SignatureData
 	signingCertData chan signingCertData
 	signingTime     chan time.Time
 	additionalCerts []*x509.Certificate
@@ -30,7 +31,7 @@ func NewSignatureContainerVerifier(c []byte, additionalCerts []*x509.Certificate
 	cfg.Logger = cfg.Logger.WithField("verifier", "signature container")
 	return &SignatureContainerVerifier{
 		container:       c,
-		data:            make(chan SignatureData, 1),
+		data:            make(chan pb.SignatureData, 1),
 		signingTime:     make(chan time.Time, 1),
 		signingCertData: make(chan signingCertData),
 		additionalCerts: additionalCerts,
