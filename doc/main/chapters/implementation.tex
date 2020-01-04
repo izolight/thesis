@@ -209,13 +209,13 @@ in order to see how they compare both in performance and ease of development.
 No one likes waiting for slow software to do its work, and neither do we.
 This is why we decided to compare the performance of the aforementioned options in a simple test:
 we measure the time it takes for the browser to calculate the checksum of 1GB of random data using the aforementioned methods.
-The code used for each example is in appendix~\ref{ch:appendix-in-browser-hashing-code}.
 The tests were run on Debian 10 using Firefox 69 on an Intel i7-8550U.
 The results can be seen in figure~\ref{fig:hashingperformance}.
 
+To have a baseline reference to compare the hashing speeds to,
+we include the performance of the \texttt{openssl} command-line programme.
 As expected, the in-browser \texttt{SubtleCrypto}-implementation is the fastest, followed by the Rust-based implementation.
 JavaScript is so ridiculously slow it's not even trying to compete.
-In order to provide a reference to compare the hashing speeds to we include the performance of the \texttt{openssl} command-line programme.
 
 \begin{figure}
     \begin{center}
@@ -372,10 +372,13 @@ we use Go's built-in module system.
 A Go module is a set of Go packages in a file tree with a \texttt{go.mod} file at the root of the tree.
 This file defines the dependency requirements,
 which are pulled by the Go build system before compilation.
-A go package has a import path, which is actually an url path, where the package source is hosted.
-At this path the go tool expects to be a source repository (git, svn, mercurial) with the tagging system of the \gls{VCS} used for determening the version (if any).
+A Go package is included with an import path,
+which is actually simply an \gls{URL} pointing to the package source code.
+At this path the Go tool expects to find a source code repository (Git, SVN, Mercurial),
+with the tagging system of the \gls{VCS} used for determining the version to use, if specified.
 
-For the frontend we have to combine two dependency management tools.
+Unfortunately, in the web world, there are no such well thought out and coherent solutions,
+and we are forced to combine multiple dependency management and build tools.
 \paragraph{npm} The node package manager is used to install the TypeScript compiler \texttt{tsc},
 which type-checks, then translates the TypeScript source code into JavaScript.
 We also use \texttt{webpack},
@@ -418,7 +421,7 @@ For a given set of files and directories represented as the \texttt{http.FileSys
 it generates Go code that statically implements that interface,
 which in turn is used just like any other Go package.
 The end result is one single executable file which contains everything it needs,
-even its own runtime, unlike the fat \gls{JAR} which doesn't work without a \gls{JRE}.
+even its own runtime (unlike the fat \gls{JAR} which doesn't work without a \gls{JRE}).
 
 \subsection{Custom Docker Image for Rust+Webpack Build}\label{subsec:custom-docker-image-for-rust+webpack-build}
 Gitlab \gls{CI} uses docker images as the build environment in which to compile and package artifacts.
@@ -515,12 +518,60 @@ However in our experience, modularisation, decoupling, and separation of concern
 to apply to software development to achieve some level of code quality.
 
 \subsection{Components of the Signing Service}\label{subsec:modules-of-the-signing-service}
-There are two groups of components in the signing service:
+There are three groups of components in the signing service:
 \begin{itemize}
     \item The views: They implement the \gls{REST} interface to the outside world.
     \item The services: Replaceable components providing functionality needed by the views in order to
     be able to meet their purpose.
+    \item Marshalling: Classes which provide type-safe serialisation and de-serialisation of input and output data,
+    as well as validation
 \end{itemize}
+
+\begin{figure}
+    \begin{center}
+        \begin{tabular}{p{4.2cm}|p{12cm}}
+            \textbf{Name} & \textbf{Description}
+            \\ \hline
+            SigningKeysService &
+            Generates signing keys and associated \gls{PKCS10} certificate signing requests,
+            signs \gls{CMS} messages using the \gls{CA}-signed certificate and its key.
+            The signing key never leaves this service.
+            It can be backed by a \gls{HSM}.
+            \\ \hline
+            CAService &
+            Provides an interface to the \gls{PKI} services offered by a \gls{CA}.
+            It submits \gls{PKCS10} certificate signing requests to the \gls{CA} and returns the signed certificate.
+            \\ \hline
+            TimestampingService &
+            Provides an interface to the RFC 3161 trusted timestamping services.
+            Given the data to timestamp, it constructs a timestamping request (including a nonce for increased security),
+            submits it, and returns the timestamping response.
+            The response is a \gls{CMS} containing the signature of the hash of the data
+            as well as the certificate chain of the signing certificate.
+            \\ \hline
+            OIDCService &
+            Implements \gls{OIDC}-related functionality.
+            An \gls{OIDC} client is configured using a discovery document usually located under \texttt{.well-known/openid-configuration}.
+            Upon instantiation,
+            this service fetches the discovery document as configured and set itself up.
+            It validates \gls{JWT} id\_tokens,
+            and it constructs authorisation endpoint \gls{URL}s for the frontend based on the discovery document.
+            \\ \hline
+            NonceGenerator &
+            Generates nonce values in a secure manner.
+            \\ \hline
+            SecretService &
+            Stores the static server secret used for authentication of the nonce values as described in~\ref{subsec:draft-1:-making-the-protocol-stateless},
+            and operates on it.
+            The server secret never leaves this service,
+            and it could be backed by a \gls{HSM} or other hardware crypto device for increased security.
+            At the moment, the secret is generated randomly at instantiation time, and not configurable nor persisted,
+            for security.
+            We would like to apologise for the pun, but we couldn't help ourselves.
+        \end{tabular}
+        \captionof{table}{Services and their responsibilities in the signing service\label{table:services}}
+    \end{center}
+\end{figure}
 
 For a \gls{UML} component diagram showing a simplified overview of the components, see figure~\ref{fig:signingservicecomponents}.
 
