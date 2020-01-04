@@ -23,9 +23,14 @@ func NewDefaultCfg(caFile []byte) Config {
 		return cfg
 	}
 	filePEM, _ := pem.Decode(caFile)
+	if filePEM == nil {
+		logrus.Println("couldn't decode pem")
+		return cfg
+	}
 	rootCA, err := x509.ParseCertificate(filePEM.Bytes)
 	if err != nil {
-		logrus.Fatal(err)
+		logrus.Println(err)
+		return cfg
 	}
 	cfg.AdditionalCerts = []*x509.Certificate{
 		rootCA,
