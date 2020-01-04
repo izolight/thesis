@@ -3,6 +3,7 @@ package verifier
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier/pb"
 	"sync"
 	"time"
 )
@@ -15,7 +16,7 @@ func NewSignatureVerifier(cfg Config) *SignatureVerifier {
 	return &SignatureVerifier{cfg: cfg}
 }
 
-func (s *SignatureVerifier) VerifySignatureFile(file *SignatureFile, hash string, verifyLTV bool) (VerifyResponse, error) {
+func (s *SignatureVerifier) VerifySignatureFile(file *pb.SignatureFile, hash string, verifyLTV bool) (VerifyResponse, error) {
 	errors := make(chan error, 1)
 	responses := make(chan VerifyResponse)
 	wg := sync.WaitGroup{}

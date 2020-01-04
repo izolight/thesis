@@ -46,7 +46,7 @@ func (s *SignatureContainerVerifier) Verify(verifyLTV bool) error {
 		return fmt.Errorf("could not decode signature container: %w", err)
 	}
 	s.cfg.Logger.Info("parsed pkcs7 signature container")
-	signatureData := SignatureData{}
+	signatureData := pb.SignatureData{}
 	if err := proto.Unmarshal(p7.Content, &signatureData); err != nil {
 		return fmt.Errorf("could not unmarshal signature data: %w", err)
 	}
@@ -119,7 +119,7 @@ func (s *SignatureContainerVerifier) Verify(verifyLTV bool) error {
 	return nil
 }
 
-func (s *SignatureContainerVerifier) SignatureData() SignatureData {
+func (s *SignatureContainerVerifier) SignatureData() pb.SignatureData {
 	return <-s.data
 }
 

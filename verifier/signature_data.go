@@ -2,16 +2,16 @@ package verifier
 
 import (
 	"bytes"
-	"crypto"
 	"crypto/hmac"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier/pb"
 )
 
 type signatureDataVerifier struct {
-	data          *SignatureData
+	data          *pb.SignatureData
 	documentHash  string
 	nonce         chan string
 	signatureData chan signatureData
@@ -26,7 +26,7 @@ type signatureData struct {
 	SignatureLevel string   `json:"signature_level"`
 }
 
-func NewSignatureDataVerifier(data *SignatureData, documentHash string, cfg Config) *signatureDataVerifier {
+func NewSignatureDataVerifier(data *pb.SignatureData, documentHash string, cfg Config) *signatureDataVerifier {
 	cfg.Logger = cfg.Logger.WithField("verifier", "signature data")
 	v := &signatureDataVerifier{
 		data:          data,
@@ -114,22 +114,4 @@ func (s *signatureDataVerifier) Verify() error {
 
 	s.cfg.Logger.Info("finished verifying")
 	return nil
-}
-
-func (m MACAlgorithm) Algorithm() (crypto.Hash, error) {
-	mapping := map[MACAlgorithm]crypto.Hash{
-		MACAlgorithm_HMAC_SHA2_256: crypto.SHA256,
-		MACAlgorithm_HMAC_SHA2_512: crypto.SHA512,
-		MACAlgorithm_HMAC_SHA3_256: crypto.SHA3_256,
-		MACAlgorithm_HMAC_SHA3_512: crypto.SHA3_512,
-	}
-	h, ok := mapping[m]
-	if !ok {
-		return 0, fmt.Errorf("hash algorithm not implemented :%v", m)
-	}
-	return h, nil
-}
-
-func (h HashAlgorithm) Algorithm() (crypto.Hash, error) {
-	return MACAlgorithm(h).Algorithm()
 }

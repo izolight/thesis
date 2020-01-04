@@ -9,6 +9,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
 	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier"
+	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier/pb"
 	"io/ioutil"
 	"net/http"
 )
@@ -64,7 +65,7 @@ func (v *VerifyService) VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	logger.Trace("decoded signature")
 
-	signatureFile := &verifier.SignatureFile{}
+	signatureFile := &pb.SignatureFile{}
 	if err := proto.Unmarshal(signatureBytes, signatureFile); err != nil {
 		errorHandler(w, logger, fmt.Errorf("could not unmarshal signature to protobuf: %w", err), http.StatusBadRequest)
 		return

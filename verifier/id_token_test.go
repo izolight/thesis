@@ -5,6 +5,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier"
+	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier/pb"
 	"testing"
 	"time"
 )
@@ -18,7 +19,7 @@ func TestVerifyIDToken(t *testing.T) {
 	tsaCA := parsePEM(t, "SwissSign ZertES TSA UNIT CH-2018.pem")
 
 	jwkFile := readFile(t, "jwk.json")
-	ltv := map[string]*verifier.LTV{
+	ltv := map[string]*pb.LTV{
 		fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
 			Ocsp: intermediateCAOCSPFile,
 		},
@@ -34,7 +35,7 @@ func TestVerifyIDToken(t *testing.T) {
 		clientId  string
 		notAfter  time.Time
 		key       []byte
-		ltv       map[string]*verifier.LTV
+		ltv       map[string]*pb.LTV
 		verifyLTV bool
 		email     string
 	}
@@ -111,7 +112,7 @@ func TestVerifyIDToken(t *testing.T) {
 				ClientId: tt.args.clientId,
 				Logger:   log.NewEntry(logger),
 			}
-			signatureData := &verifier.SignatureData{
+			signatureData := &pb.SignatureData{
 				IdToken: tt.args.token,
 				JwkIdp:  tt.args.key,
 				LtvIdp:  tt.args.ltv,

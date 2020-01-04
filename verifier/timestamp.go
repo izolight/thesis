@@ -3,6 +3,7 @@ package verifier
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier/pb"
 	"go.mozilla.org/pkcs7"
 	"time"
 )
@@ -22,7 +23,7 @@ type TimestampVerifier struct {
 	timestamps    [][]byte
 	verifyLTV     bool
 	timestampData chan timestampDataResp
-	ltvData       map[string]*LTV
+	ltvData       map[string]*pb.LTV
 	cfg           *Config
 }
 
@@ -31,7 +32,7 @@ type timestampDataResp struct {
 	Certs       []CertChain `json:"cert_chain"`
 }
 
-func NewTimestampVerifier(timestamps [][]byte, data []byte, verifyLTV bool, ltvData map[string]*LTV, cfg Config) *TimestampVerifier {
+func NewTimestampVerifier(timestamps [][]byte, data []byte, verifyLTV bool, ltvData map[string]*pb.LTV, cfg Config) *TimestampVerifier {
 	cfg.Logger = cfg.Logger.WithField("verifier", "timestamp")
 	return &TimestampVerifier{
 		data:          data,

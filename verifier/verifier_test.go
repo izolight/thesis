@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier/pb"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
@@ -41,7 +42,7 @@ func TestVerifySignatureFile(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			file := readFile(t, tt.args.file)
-			signatureFile := &verifier.SignatureFile{}
+			signatureFile := &pb.SignatureFile{}
 			if err := proto.Unmarshal(file, signatureFile); err != nil {
 				t.Fatalf("could not unmarshal signature file to protobuf: %w", err)
 			}
@@ -64,7 +65,7 @@ func TestGenerateFile(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		b := make([]byte, 4)
 		rand.Read(b)
-		sf := &verifier.SignatureFile{
+		sf := &pb.SignatureFile{
 			SignatureDataInPkcs7: b,
 			Rfc3161InPkcs7:       [][]byte{b},
 		}
@@ -77,7 +78,7 @@ func TestGenerateFile(t *testing.T) {
 }
 
 func TestParseSignatureFile(t *testing.T) {
-	signatureFile := &verifier.SignatureFile{}
+	signatureFile := &pb.SignatureFile{}
 	if err := proto.Unmarshal(readFile(t, "signaturefile"), signatureFile); err != nil {
 		t.Fatal(err)
 	}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/coreos/go-oidc"
 	log "github.com/sirupsen/logrus"
+	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier/pb"
 	"gopkg.in/square/go-jose.v2"
 	"time"
 )
@@ -16,7 +17,7 @@ type idTokenVerifier struct {
 	idToken     chan idToken
 	notAfter    func() time.Time
 	key         jose.JSONWebKey
-	ltvData     map[string]*LTV
+	ltvData     map[string]*pb.LTV
 	verifyLTV   bool
 	ctx         context.Context
 	cfg         *Config
@@ -33,7 +34,7 @@ type idToken struct {
 	Certs []CertChain `json:"cert_chain"`
 }
 
-func NewIDTokenVerifier(signatureData *SignatureData, notAfter time.Time, cfg Config) (*idTokenVerifier, error) {
+func NewIDTokenVerifier(signatureData *pb.SignatureData, notAfter time.Time, cfg Config) (*idTokenVerifier, error) {
 	if signatureData == nil {
 		return nil, errors.New("signature data can't be nil")
 	}

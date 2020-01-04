@@ -6,6 +6,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier"
+	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier/pb"
 	"io/ioutil"
 	"testing"
 )
@@ -16,7 +17,7 @@ func TestVerifyTimestamp(t *testing.T) {
 	tsaCA := parsePEM(t, "SwissSign ZertES TSA UNIT CH-2018.pem")
 	tsaCAOCSPFile := readFile(t, "SwissSign ZertES TSA UNIT CH-2018.pem.ocsp")
 
-	ltvData := map[string]*verifier.LTV{
+	ltvData := map[string]*pb.LTV{
 		fmt.Sprintf("%x", sha256.Sum256(intermediateCA.Raw)): {
 			Ocsp: intermediateCAOCSPFile,
 		},
@@ -29,7 +30,7 @@ func TestVerifyTimestamp(t *testing.T) {
 		data       []byte
 		timestamps [][]byte
 		verifyLTV  bool
-		ltvData    map[string]*verifier.LTV
+		ltvData    map[string]*pb.LTV
 	}
 	tests := []struct {
 		name        string

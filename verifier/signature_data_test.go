@@ -6,12 +6,13 @@ import (
 	"encoding/hex"
 	log "github.com/sirupsen/logrus"
 	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier"
+	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier/pb"
 	"testing"
 )
 
 func TestVerifySignatureData(t *testing.T) {
 	type args struct {
-		data      *verifier.SignatureData
+		data      *pb.SignatureData
 		hash      string
 		nonce     string
 		verifyLTV bool
@@ -74,12 +75,12 @@ func generateNonce(t *testing.T, saltedHashes [][]byte) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func generateFakeSignatureData(t *testing.T, hash string) *verifier.SignatureData {
+func generateFakeSignatureData(t *testing.T, hash string) *pb.SignatureData {
 	macKey, _ := hex.DecodeString("68267cf6c2869a826d89867fd280bcdd47b33c66ef9695aac1a92e7d2a111c80")
-	return &verifier.SignatureData{
-		HashAlgorithm:      verifier.HashAlgorithm_SHA2_256,
+	return &pb.SignatureData{
+		HashAlgorithm:      pb.HashAlgorithm_SHA2_256,
 		MacKey:             macKey,
-		MacAlgorithm:       verifier.MACAlgorithm_HMAC_SHA2_256,
+		MacAlgorithm:       pb.MACAlgorithm_HMAC_SHA2_256,
 		SaltedDocumentHash: [][]byte{generateMac(t, hash, macKey)},
 	}
 }
