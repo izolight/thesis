@@ -19,6 +19,9 @@ func NewDefaultCfg(caFile []byte) Config {
 		Issuer:   "https://keycloak.thesis.izolight.xyz/auth/realms/master",
 		ClientId: "thesis",
 	}
+	if caFile == nil {
+		return cfg
+	}
 	filePEM, _ := pem.Decode(caFile)
 	rootCA, err := x509.ParseCertificate(filePEM.Bytes)
 	if err != nil {

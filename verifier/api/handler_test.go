@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier"
+	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier/api"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -32,7 +33,7 @@ func TestVerifyHandler(t *testing.T) {
 			rr := httptest.NewRecorder()
 			caFile := readFile(t, "rootCA.pem")
 			cfg := verifier.NewDefaultCfg(caFile)
-			verifySvc := verifier.NewVerifyService(cfg)
+			verifySvc := api.NewVerifyService(cfg)
 			verifySvc.VerifyHandler(rr, req)
 
 			body, _ := ioutil.ReadAll(rr.Result().Body)
@@ -52,7 +53,7 @@ func generateReqJSON(t *testing.T, filename, hash string) []byte {
 	t.Helper()
 	signatureFile := readFile(t, filename)
 	sigbase64 := base64.StdEncoding.EncodeToString(signatureFile)
-	verifyRequest := verifier.VerifyRequest{
+	verifyRequest := api.VerifyRequest{
 		Hash:      hash,
 		Signature: sigbase64,
 	}
@@ -61,4 +62,13 @@ func generateReqJSON(t *testing.T, filename, hash string) []byte {
 		t.Fatal(err)
 	}
 	return requestJson
+}
+
+func readFile(t *testing.T, filename string) []byte {
+	t.Helper()
+	data, err := ioutil.ReadFile("testdata/" + filename)
+	if err != nil {
+		t.Errorf("Could not read file: %s", err)
+	}
+	return data
 }
