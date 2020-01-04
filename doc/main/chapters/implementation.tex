@@ -788,6 +788,7 @@ as measured by the Intellij coverage runner.
 This value, while respectable, isn't that as high as we'd like.
 We inspected the coverage report and found that this is mainly due to deserialisation code in data classes that must take fields that are never used.
 Excluding these classes, we achieve a coverage of 94.9\%.
-TODO coverage of verifier.
 
-
+For the verification server, we achieve a test coverage of 85.3\%,
+as measured by the Go test tool.
+Most of the uncovered parts are due to the same reasons as in the signing server tests.
