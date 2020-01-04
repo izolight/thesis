@@ -31,7 +31,7 @@ Anyone must be able to verify the authenticity of a signature and the integrity 
 \subsection{Non-repudiation}\label{subsec:non-repudiation}
 It must be practically impossible for anyone to deny having signed a document.
 
-\subsection{Long-Term Validation}\label{subsec:long-term-validation}
+\subsection{Long-Term Validation}\label{subsec:req-long-term-validation}
 Signatures must be suitable for \gls{LTV} using an RFC3161~\cite{rfc3161} timestamp.
 
 \subsection{Secure Coupling of Authentication and Signature}\label{subsec:secure-coupling-of-authentication-and-signature}
@@ -55,9 +55,6 @@ For webinterfaces, this means that the document must be hashed in the browser it
 
 \section{Signature Server Requiremenents}
 \label{sec:signatureserverrequirements}
-\subsection{CA Key Security}\label{subsec:ca-key-security}
-Technical measures must be taken to make it difficult for the private keys of the signing \gls{CA} to be stolen.
-
 \subsection{Signing Key Security}\label{subsec:signing-key-security}
 Technical measures must be taken to make it difficult to steal the private keys generated on behalf of the users.
 
@@ -87,17 +84,6 @@ More generally, every actor must not have any more information disclosed to it t
 \subsection{Offline Validation}\label{subsec:offline-validation}
 The Verifier must be enabled to verify signatures without an active internet connection using a desktop or laptop computer running GNU/Linux, MacOS or Windows.
 
-\section{IDP Requirements}\label{sec:idp-requirements}
-Anything related to the \gls{IDP} is out of scope for our thesis, except for specifying what we require of the same.
-We assume to be using an existing, \gls{OIDC}-conforming \gls{IDP} providing the required registration and authentication levels.
-
-\subsection{Support for OIDC}\label{subsec:support-for-oidc}
-The \gls{IDP} must support standard \gls{OIDC} as specified in the standard~\cite{oidc}.
-
-
-\subsection{Levels of Assurance}\label{subsec:levels-of-assurance}
-The \gls{IDP} must support \gls{AAL} 2 authentication for advanced signatures, and \gls{AAL} 3 authentication for qualified signatures as specified in the \gls{NIST} publication~\cite{nistdigitalidentityguidelines}.
-
 \subsection{Code Quality}\label{subsec:code-quality}
 The code produced should be, wherever possible:
 \begin{itemize}
@@ -121,6 +107,18 @@ Useable means that the user isn't required to zoom around on a mobile device bec
 nor should a desktop user be presented with a tiny rectangle because the \gls{UI} was designed for smartphones only.
 This requirement isn't about the \gls{UI} looking pretty but about it being useable without being annoying on both form factors.
 
+\section{IDP Requirements}\label{sec:idp-requirements}
+Anything related to the \gls{IDP} is out of scope for our thesis, except for specifying what we require of the same.
+We assume to be using an existing, \gls{OIDC}-conforming \gls{IDP} providing the required registration and authentication levels.
+
+\subsection{Support for OIDC}\label{subsec:support-for-oidc}
+The \gls{IDP} must support standard \gls{OIDC} as specified in the standard~\cite{oidc}.
+
+
+\subsection{Levels of Assurance}\label{subsec:levels-of-assurance}
+The \gls{IDP} must support \gls{AAL} 2 authentication for advanced signatures, and \gls{AAL} 3 authentication for qualified signatures as specified in the \gls{NIST} publication~\cite{nistdigitalidentityguidelines}.
+
+
 \section{Prioritisation of Requirements}\label{sec:prioritisation}
 \begin{figure}
     \begin{center}
@@ -142,9 +140,8 @@ This requirement isn't about the \gls{UI} looking pretty but about it being usea
             Protection of information~(\ref{subsec:protection-of-information}) & Optional\\
             Device-local hashing of documents~(\ref{subsec:local-hashing-of-documents}) & Optional\\
             Efficient signature file format~(\ref{subsec:efficient-signature-file-format}) & Optional\\
-            \gls{CA} key security~(\ref{subsec:ca-key-security}) & Optional\\
             Bulk signatures~(\ref{subsec:secure-coupling-of-authentication-and-signature}) & Optional\\
-            Long-term validation~(\ref{subsec:long-term-validation}) & Optional\\
+            Long-term validation~(\ref{subsec:req-long-term-validation}) & Optional\\
             Code Quality~(\ref{subsec:code-quality}) & Optional\\
             Ease of Use~(\ref{subsec:ease-of-use}) & Optional\\
             Reactive Design~(\ref{subsec:reactive-design}) & Optional\\

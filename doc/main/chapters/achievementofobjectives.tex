@@ -1,5 +1,202 @@
-\section{Achievement of Objectives}\label{sec:achievement-of-objectives}
-In this section, we will review the objectives specified in the requirements,
+\chapter{Achievement of Objectives}\label{ch:achievement-of-objectives}
+In this chapter, we will review the objectives specified in the requirements,
 examine whether they've been achieved, and to which degree.
 
+For a detailed specification of objectives, please see chapter~\ref{ch:objectives}.
+In the interest of brevity, the full specification won't be repeated here.
 
+\section{Functional and Non-Functional Requirements}\label{sec:functional-and-non-functional-requirements}
+
+\begin{center}
+    \begin{longtable}{p{4.0cm}|p{1.35cm}|p{0.7cm}|p{9.0cm}}
+        \textbf{Requirement} & \textbf{Prio.} & \textbf{Done} & \textbf{Comment}
+        \\
+        \hline
+        Authenticity of signature~(\ref{subsec:authenticity})
+        & Required
+        & Yes
+        & Protected by at least three distinct hashes and signatures,
+        once by signature on \gls{JWT},
+        once by signature of document hash,
+        and once by signature of timestamp
+        \\
+        \hline
+        Integrity of document~(\ref{subsec:integrity})
+        & Required
+        & Yes
+        & Protected by hash and signature, same as~\ref{subsec:authenticity}
+        \\
+        \hline
+        Verifiability of signature~(\ref{subsec:verifiability})
+        & Required
+        & Yes
+        & Verifiable by standard technologies X.509 and \gls{JOSE},
+        open specification and implementation,
+        easily replicated
+        \\
+        \hline
+        Non-repudiation~(\ref{subsec:non-repudiation})
+        & Required
+        & Yes
+        & Strong authentication provided by \gls{IDP},
+        and this identity assertion is part of the signature
+        \\
+        \hline
+        Coupling of authn \& sign.~(\ref{subsec:secure-coupling-of-authentication-and-signature})
+        & Required
+        & Yes
+        & Linkage with \gls{HMAC} functions based on hash functions considered secure
+        \\
+        \hline
+        Authentication protocol~(\ref{subsec:authentication-protocol})
+        & Required
+        & Yes
+        & Standard \gls{OIDC} is used, no alterations or extensions necessary
+        \\
+        \hline
+        Supported file formats~(\ref{subsec:supported-file-formats})
+        & Required
+        & Yes
+        & Detached signature ensures compatibility with any file format, past present or future
+        \\
+        No unauthorised id. delegation~(\ref{subsec:no-unauthorised-identity-delegation})
+        & Required
+        & Yes
+        & Without a valid \gls{JWT} issued by the authorised \gls{IDP},
+        the verifier won't accept the signature as valid.
+        Thus, without the active help of the \gls{IDP},
+        the signing server can't create a valid signature.
+        It cannot even steal and abuse a valid \gls{JWT},
+        since each token is bound to a specific document hash.
+        All the \gls{IDP} could do with a stolen \gls{JWT} is sign a document
+        the user wanted to sign anyways,
+        since otherwise there would be no such \gls{JWT}.
+        \\
+        Random number generation~(\ref{subsec:random-number-generation})
+        & Required
+        & Yes
+        & We use the operating-system provided \gls{CSRNG} exclusively.
+        \\
+        \gls{REST} \gls{API}~(\ref{subsec:rest-api})
+        & Required
+        & Yes
+        & The \gls{REST} \gls{API} is implemented fully as specified in~\ref{sec:rest-api}.
+        \\
+        \hline
+        Offline validation~(\ref{subsec:offline-validation})
+        & Required
+        & Yes
+        & Three standalone builds of the verifier program are provided,
+        capable of offline verification.
+        \\
+        \hline
+        Signing key security~(\ref{subsec:signing-key-security})
+        & Optional
+        & Yes*
+        & The signing key is only held in memory,
+        and at that for the shortest duration possible (typically less than two seconds),
+        before being destroyed.
+        It would be exceedingly difficult for an attacker to steal it.
+        However, the use of a dedicated \gls{HSM} could increase security further,
+        which we didn't use.
+        \\
+        \hline
+        Protection of information~(\ref{subsec:protection-of-information})
+        & Optional
+        & Yes
+        & No party receives more than the information they need.
+        We explicitly forbid transmitting the document to be hashed to the signing server,
+        unlike the \gls{CSC}.
+        Furthermore, we salt the hashes to shield them both from the \gls{IDP} as well as
+        from other recipients of multi-signatures.
+        \\
+        \hline
+        Device-local hashing~(\ref{subsec:local-hashing-of-documents})
+        & Optional
+        & Yes
+        & Implemented through in-browser hashing using \gls{WASM}.
+        \\
+        \hline
+        Efficient signature file format~(\ref{subsec:efficient-signature-file-format})
+        & Optional
+        & Yes
+        & Protobuf is one of the most efficient serialisation formats in existence,
+        in most cases as dense as \gls{DER}-encoded \gls{ASN.1}.
+        \\
+        \hline
+        Bulk signatures~(\ref{subsec:secure-coupling-of-authentication-and-signature})
+        & Optional
+        & Yes
+        & Bulk signing or multi-signatures are accounted for in the concept and implemented.
+        \\
+        \hline
+        Long-term validation~(\ref{subsec:req-long-term-validation})
+        & Optional
+        & Yes
+        & \gls{LTV} is accounted for in the concept and implemented by embedding all information
+        necessary into the signature file, and by allowing for infinite lengths of \gls{TSP} chains.
+        \\
+        \hline
+        Code Quality~(\ref{subsec:code-quality})
+        & Optional
+        & Yes
+        & Hard to measure objectively,
+        but we think we've achieved a good level of code quality by strictly separating concerns,
+        using mature libraries,
+        naming classes, methods, arguments and variables well,
+        and by ensuring we have excellent test coverage.
+        \\
+        \hline
+        Ease of Use~(\ref{subsec:ease-of-use})
+        & Optional
+        & Yes
+        & We don't force the user to jump through hoops.
+        Signing and verifying is simple and straight-forward.
+        \\
+        \hline
+        Reactive Design~(\ref{subsec:reactive-design})
+        & Optional
+        & Yes
+        & The frontend scales down so that it is usable on mobile just as easily as it is on desktop.
+        \\
+        \hline
+    \end{longtable}
+    \captionof{table}{Achievement of Objectives}
+\end{center}
+
+\subsection{Use Cases}\label{subsec:use-cases}
+In section~\ref{ch:usecases},
+we specified the use cases whose implementation we review here.
+For brevity, we won't repeat the full specification,
+instead focusing on the result.
+
+\begin{center}
+    \begin{longtable}{p{5.35cm}|p{0.7cm}|p{9.0cm}}
+        \textbf{Use Case} & \textbf{Impl.} & \textbf{Comment}
+        \\
+        \hline
+        Interactive Qualified Signatures~(\ref{subsec:interactive-qualified-signatures})
+        & Yes
+        & Interactive Qualified Signatures work as specified.
+        \\
+        \hline
+        Bulk Advanced Signatures~(\ref{subsec:bulk-advanced-signatures})
+        & No
+        & Multi-file signatures are possible,
+        but not with the reduced-security one-time login method.
+        \\
+        \hline
+        Offline Validation~(\ref{subsec:offline-validation2})
+        & Yes
+        & Offline validation is implemented with the three standalone,
+        per-platform builds of the verifier
+        \\
+        \hline
+        Online Validation~(\ref{subsec:semi-online-validation})
+        & Yes
+        & Online validation is implemented with the verifier running on a server
+        \\
+        \hline
+    \end{longtable}
+    \captionof{table}{Coverage of Use Cases}
+\end{center}
