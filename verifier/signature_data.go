@@ -48,10 +48,7 @@ func (s *signatureDataVerifier) SignatureData() signatureData {
 
 func (s *signatureDataVerifier) Verify() error {
 	s.cfg.Logger.Info("started verifying")
-	macAlgo, err := s.data.MacAlgorithm.Algorithm()
-	if err != nil {
-		return err
-	}
+	macAlgo := s.data.MacAlgorithm.Algorithm()
 	macer := hmac.New(macAlgo.New, s.data.MacKey)
 	hashBytes, err := hex.DecodeString(s.documentHash)
 	if err != nil {
@@ -76,11 +73,7 @@ func (s *signatureDataVerifier) Verify() error {
 		return errors.New("document hash not found")
 	}
 
-	hashAlgo, err := s.data.HashAlgorithm.Algorithm()
-	if err != nil {
-		return err
-	}
-
+	hashAlgo := s.data.HashAlgorithm.Algorithm()
 	hasher := hashAlgo.New()
 	for _, m := range s.data.SaltedDocumentHash {
 		hasher.Write(m)

@@ -2,10 +2,9 @@ package pb
 
 import (
 	"crypto"
-	"fmt"
 )
 
-func (m MACAlgorithm) Algorithm() (crypto.Hash, error) {
+func (m MACAlgorithm) Algorithm() crypto.Hash {
 	mapping := map[MACAlgorithm]crypto.Hash{
 		MACAlgorithm_HMAC_SHA2_256: crypto.SHA256,
 		MACAlgorithm_HMAC_SHA2_512: crypto.SHA512,
@@ -14,11 +13,11 @@ func (m MACAlgorithm) Algorithm() (crypto.Hash, error) {
 	}
 	h, ok := mapping[m]
 	if !ok {
-		return 0, fmt.Errorf("hash algorithm not implemented :%v", m)
+		return crypto.SHA256
 	}
-	return h, nil
+	return h
 }
 
-func (h HashAlgorithm) Algorithm() (crypto.Hash, error) {
+func (h HashAlgorithm) Algorithm() crypto.Hash {
 	return MACAlgorithm(h).Algorithm()
 }
