@@ -585,9 +585,49 @@ For a \gls{UML} component diagram showing a simplified overview of the component
 
 
 \subsection{Components of the Verifier}\label{subsec:modules-of-the-verifier}
-The verifier has an embedded webserver with a single \gls{API} endpoint.
-The webserver handles the \gls{HTTP} side of things.
-It interfaces with the verifier modules, which are split by responsability (e.g. \texttt{id\_token} verification).
+
+The verifier is divided into the following packages:
+\begin{itemize}
+	\item verifier: Contains all the verifying logic. A detailed list with the components is below
+	\item verifier/api: The http router is set up here together with the handlers.
+	\item verifier/config: Configuration files (for now just our rootCA, which isn't in the system truststore), which will be embedded into the binary via vfsgen.
+	\item verifier/static: The generated frontend files(html, js, wasm), which will be embedded into the binary via vfsgen.
+	\item verifier/pb: The generated protobuf serialisation and some helper functions for pretty printing the values.
+	\item verifier/cmd: The entrypoint with the main() function, which wires together the other packages and starts the web server.
+\end{itemize}
+
+
+\begin{figure}
+	\begin{center}
+		\begin{tabular}{p{4.2cm}|p{12cm}}
+			\textbf{Name} & \textbf{Description}
+			\\ \hline
+			Verifier &
+			Takes the outer deserialised protobuf file and the submitted hash and delegates the verifying of signature to the other verifier.
+			All other verifiers will be started in go routines so they can start verifying as soon as possible.
+			Some verifiers depend on output of other verifiers, which will be injected into them via calls from the main verifier that reads from or writes to channels in the other verifiers.
+			It will finish either when one of the verifiers encounters an error or all of them have finished.
+			\\ \hline
+			TimestampVerifier &
+			Parses the RFC 3161 timestamps and verifies them.
+			If multiple timestamps are included, the outermost(last) timestamp timestamps the previous one until the innermost(first) contains the timestamp for the signature container.
+			\\ \hline
+			SignatureContainerVerifier &
+			Verifies the \gls{PKCS7} which envelops our signature data.
+			\\ \hline
+			SignatureVerifier &
+			Checks if the submitted hash is included in the salted hash list and if the list matches the ID token nonce.
+			\\ \hline
+			IDTokenVerifier &
+			Verifies if the ID token is valid(just in a OIDC manner, our use of the nonce will be verified in the SignatureVerifier).
+			\\ \hline
+			LTVVerifier &
+			Is called by the other verifiers to check if the included \gls{LTV} data (if any) verifies for the used certificates.
+		\end{tabular}
+		\captionof{table}{Services and their responsibilities in the verification service\label{table:services-verifier}}
+	\end{center}
+\end{figure}
+
 For a \gls{UML} component diagram showing a simplified overview of the components, see figure~\ref{fig:verifiercomponents}.
 
 \begin{figure}
