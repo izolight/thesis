@@ -254,3 +254,24 @@
 
 #### 30.12.19
 - Arbeit an der Doku
+
+#### 02.01.20
+- Better Unit Tests in signing server
+- Code Coverage Report in signing server
+- Code Cleanup
+
+#### 03.01.20
+- Work on booklet
+- Work on poster
+- Implement OCSP response verification in mozilla library
+- Update gitlab ci for complete build pipeline
+- Work on documentation
+- Include pflichtenheft in main documentation 
+
+#### 04.01.20
+- More Unit tests for verifier
+- Coverage report for verifier
+- Work on documentation
+
+#### 06.01.20
+- Work on documentation
