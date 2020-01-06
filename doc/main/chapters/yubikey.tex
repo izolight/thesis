@@ -56,18 +56,18 @@ Not everything in the standard directly translates to the capabilities of the \g
 so some values are fixed~\cite{yubihsm-pkcs11}.
 
 \section{Conclusion}\label{sec:conclusion}
-TODO insert programming language.
 Using a \gls{HSM} would definitively make our application more secure.
-Unfortunately the \gls{SDK} only provides libraries for C and Python and not for \#insertprogramminglanguage.
+Unfortunately the \gls{SDK} only provides libraries for C and Python and not for Kotlin.
 
 As the \gls{HTTP} interface isn't documented and most likely not intended to be used directly,
-we would be forced to reverse engineer it for use with \#insertprogramminglanguage,
+we would be forced to reverse engineer it for use with Kotlin,
 which would probably take too much time for use in this thesis.
 The long-term stability of such an approach would be questionable,
 as yubico could change the protocol without warning (and they probably will, as they won't expect people to be using it directly).
-However, we could make use of the \gls{PKCS}\#11 module and access the YubiHSM that way.
+
+A possible workaround for this would be to use the \gls{PKCS11} \gls{API} and bind it to the \gls{JCA}.
 
 In conclusion, using the YubiHSM would improve security, but due to time constraints we will make it an optional goal.
-We will however try to make the signing part of our application pluggable (standardised interface allowing for differing implementations,
-for example by using a factory pattern) so that we can easily add support for a \gls{HSM} later,
+We will however aim to make the signing part of our application pluggable (standardised interface allowing for differing implementations,
+for example by using a factory pattern, or \gls{DI}) so that anyone can easily add support for a \gls{HSM} later,
 be it Yubicos' or another manufacturers'.
