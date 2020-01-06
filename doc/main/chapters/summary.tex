@@ -33,7 +33,7 @@ EIDAS calls this authorisation information \gls{SAD}.
 In practice,
 this works by the user providing authentication credentials (username/password, with an optional \gls{OTP}).
 These credentials are verified by the~\gls{HSM} before allowing use of the signing key,
-and only allows signing the documents they subsequently submit to it, and no others.
+and is required to only allow the signing of the documents the users subsequently submit to it, and no others.
 
 The problem is that there is no accountability to this process.
 Users are expected to trust that the~\gls{HSM} properly validates their credentials and only then
@@ -44,12 +44,11 @@ This is where we come in.
 We believe we have proposed the first real solution to the remote key activation problem,
 and our solution is user-verifiable,
 that is,
-the users of our solution are able to verify that the signing service did indeed only use the key they entrusted it to sign the documents they authorised it with to sign after the signature's been created.
+the users of our solution are able to verify that the signing service indeed did use the key they entrusted it with to sign the documents they intended to sign,
+even after the signature's been created.
 
 We have achieved this by incorporating the hashes of the documents-to-be-signed into the authentication process,
 making them part of a nonce value used during the~\gls{OIDC} authentication.
-We have achieved this by making the hashes part of a nonce value used in \gls{OIDC},
-thereby incorporating them into the authentication process itself.
 The identity assertion subsequently issued by the~\gls{IDP} contains that same nonce value,
 but now protected by a digital signature issued by the~\gls{IDP}.
 This way, a secure link between the document the user intends to sign,

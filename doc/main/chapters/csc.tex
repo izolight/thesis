@@ -11,11 +11,11 @@ The result of this consortium is an \gls{API} specification for remote electroni
 The specification is published as a \gls{PDF} document, as well as an \gls{OpenAPI} specification, and a \gls{JSON} schema~\cite{csc-spec}.
 
 
-\subsection{Comparison}\label{subsec:comparison}
+\section{Comparison}\label{subsec:comparison}
 We have examined the standard and compared it to our solution.
 We document the findings in this section.
 
-\subsubsection{Information Leakage to IDP}
+\subsection{Information Leakage to IDP}
 
 One main difference is that in the \gls{CSC} specification,
 the \gls{IDP} gets to know the hash that will be signed,
@@ -23,7 +23,7 @@ and how many documents will be signed through the \texttt{numSignatures} and has
 which has a slight impact on privacy and is a violation of the least information principle.
 In our solution, this problem doesn't exist.
 
-\subsubsection{Information Leakage to Signing Service}
+\subsection{Information Leakage to Signing Service}
 The \gls{CSC} standard allows for the document to be signed to be transmitted to the signing service.
 We see absolutely no reason at all for this to be allowed,
 since in any case,
@@ -32,7 +32,7 @@ There is no scenario - be it in our solution, or Adobe's - where the signing ser
 This is a violation of the least information principle and a break of privacy.
 In our solution, this problem doesn't exist.
 
-\subsubsection{Missing Separation of Concern}
+\subsection{Missing Separation of Concern}
 The \gls{CSC} standard allows for the \gls{IDP} and the signing service to be the same system,
 controlled by the same organisation.
 We find this highly problematic, as this means a single entity is able control all the parts needed to create a signature.
@@ -40,11 +40,11 @@ To be fair, the \gls{EU} allows this as well.
 We strongly disagree with this, and explicitly forbid it in our specification.
 There should never be a single organisation in complete control, especially not one with a profit motive.
 
-\subsubsection{Weak Authentication}
+\subsection{Weak Authentication}
 The \gls{CSC} standard allows for \gls{HTTP} Basic or Digest authentication.
 Saying this is wholly inadequate for creating legally binding signatures would be an understatement.
 
-\subsubsection{No Use of Standard Protocols}
+\subsection{No Use of Standard Protocols}
 The \gls{CSC} standard doesn't use standard protocols like \gls{OIDC} or even \gls{SAML},
 which is a disadvantage:
 Before any \gls{IDP} can be used, it has to implement the extensions specified by the \gls{CSC} standard.
@@ -54,7 +54,7 @@ which has a defined validity period and allows for further signatures to be crea
 which means that an attacker who is able to steal the \gls{SAD} could sign arbitrary documents.
 In our solution, this isn't possible.
 
-\subsubsection{No User Controlled Signing Process}
+\subsection{No User Controlled Signing Process}
 With the \gls{CSC} standard, there is nothing stopping the \gls{TruSP} creating signatures without the user's knowledge or consent.
 The \gls{TruSP} controls all parts necessary.
 The \gls{SAD} looks good on paper,
