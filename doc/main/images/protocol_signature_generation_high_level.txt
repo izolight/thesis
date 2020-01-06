@@ -11,11 +11,12 @@ Signer->Signing Service: send hash(es)
 activate Signing Service
 Signing Service->Signing Service: generate seed & salt
 note right of Signing Service: See step 1 - seed generation for details
-Signer<--Signing Service: return IDP choices, seed & salt
+Signing Service->Signing Service: generate OIDC nonce
+note right of Signing Service: See step 2 - nonce generation for details
+Signer<--Signing Service: return IDP choices, seed, salt & nonce
 deactivate Signing Service
 activate Signer
-Signer->Signer: generate OIDC nonce & choose IDP
-note right of Signer: See step 2 - nonce generation for details
+Signer->Signer: choose IDP
 Signer->IDP: OIDC Authentication
 deactivate Signer
 activate IDP
@@ -25,7 +26,7 @@ Signer<--IDP: return ID Token
 deactivate IDP
 Signer->Signing Service: send ID token, hash(es), seed, salt
 activate Signing Service
-Signing Service->Signing Service:verify ID token, seed
+Signing Service->Signing Service:verify ID token, salt
 note right of Signing Service: See step 4 - ID token verification for details
 Signing Service->Signing Service: generate signature
 note right of Signing Service: See step 5 - signature generation for details

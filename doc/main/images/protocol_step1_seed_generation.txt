@@ -1,4 +1,4 @@
-title Step 1 - Seed Generation
+title Step 1 - Seed & Salt Generation
 actor Signing Service
 
 activate Signing Service
