@@ -41,7 +41,9 @@ Content-Type: application/json
           "issuer":"CN=Thesis Root CA,OU=CA,O=Thesis,L=Bern,ST=BE,C=CH",
           "subject":"CN=Thesis Root CA,OU=CA,O=Thesis,L=Bern,ST=BE,C=CH",
           "not_before":"2019-11-23T05:28:00Z",
-          "not_after":"2049-11-15T05:28:00Z"
+          "not_after":"2049-11-15T05:28:00Z",
+          "ocsp_status": "Good",
+          "ocsp_generation_time": "2019-11-23T05:27:00Z"
         },
         ...
       ]
