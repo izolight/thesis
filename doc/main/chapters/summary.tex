@@ -12,8 +12,8 @@ on any device, anywhere,
 and be freed of the burden of key management,
 without giving up control over what is signed in their name.
 
-We have achieved this by splitting up authentication and signing,
-and placed these two separate concerns into the hands of separate organisations.
+We have achieved this by separating authentication and signing,
+and placing these two concerns into the hands of separate organisations.
 The trust required is now distributed over two parties,
 and any one of them acting alone cannot create a valid signature.
 
@@ -21,37 +21,45 @@ The core problem of Remote Signing Services is that the \gls{TruSP} has control 
 The industry standard solution for this is to employ a \gls{HSM},
 which provides a secure enclave for the private keys.
 No one is supposed to be able to access the keys stored in such a \gls{HSM},
-not even the owner of the device.
+not even the owner of the \gls{HSM} itself.
 
-But how is the signer supposed to securely access their own key stored remotely in a~\gls{HSM},
-to approve a specific signature operation?
-
-EIDAS~\cite{eidas} tries to solve this by requiring the implementation of a \gls{SAP}.
+But even if such a \gls{HSM} is trustworthy,
+how is the signer supposed to securely access their own key stored remotely in a~\gls{HSM},
+to approve a specific signature operation? EIDAS~\cite{eidas} tries to solve this by requiring the implementation of a \gls{SAP}.
 This~\gls{SAP} should provide secure authorisation from the user's device through the signing service and to the~\gls{HSM},
 activating the key in the~\gls{HSM} and generating a signature.
+EIDAS calls this authorisation information \gls{SAD}.
 
 In practice,
-this is implemented by the user providing authentication credentials (username/password, with an optional \gls{OTP}),
-which is verified by the~\gls{HSM} before allowing use of the signing key.
+this works by the user providing authentication credentials (username/password, with an optional \gls{OTP}).
+These credentials are verified by the~\gls{HSM} before allowing use of the signing key,
+and only allows signing the documents they subsequently submit to it, and no others.
 
-However, there is no accountability to this process.
-Users are required to trust that the~\gls{HSM} properly validates their credentials and only then
+The problem is that there is no accountability to this process.
+Users are expected to trust that the~\gls{HSM} properly validates their credentials and only then
 allows use of the signing key.
 
-We believe we have proposed the first real solution to the remote key activation problem,
-and our solution is user-verifiable.
+This is where we come in.
 
-We have achieved this by making the hashes of the documents to be signed part of the authentication process,
-by incorporating them into a nonce value used during the~\gls{OIDC} authentication.
-The authentication token subsequently issued by the~\gls{IDP} contains that same nonce value,
+We believe we have proposed the first real solution to the remote key activation problem,
+and our solution is user-verifiable,
+that is,
+the users of our solution are able to verify that the signing service did indeed only use the key they entrusted it to sign the documents they authorised it with to sign after the signature's been created.
+
+We have achieved this by incorporating the hashes of the documents-to-be-signed into the authentication process,
+making them part of a nonce value used during the~\gls{OIDC} authentication.
+We have achieved this by making the hashes part of a nonce value used in \gls{OIDC},
+thereby incorporating them into the authentication process itself.
+The identity assertion subsequently issued by the~\gls{IDP} contains that same nonce value,
 but now protected by a digital signature issued by the~\gls{IDP}.
+This way, a secure link between the document the user intends to sign,
+the identification of the user,
+and the confirmed intent of the user to sign that document is established.
 
 Then, based upon that identity assertion, the signing server issues the signature.
 By making the identity assertion - containing the document hashes - part of the signature file,
-anyone can verify that the signing server indeed signed the hashes intended by the user.
+anyone can verify that the signing server indeed signed the specific hashes intended by the user and nothing else.
+And because the identity assertion must be signed by the \gls{IDP} to be valid,
+the signing server alone cannot issue signatures.
 
 This is the core idea of our solution.
-
-In this thesis, we have worked out a detailed and complete proposal for an implementation of this idea.
-Then we have implemented it as a working proof-of-concept.
-
