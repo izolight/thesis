@@ -25,9 +25,9 @@ Finally with some formats it's not possible to include additional data at all.
 
 The government of Estonia faced the same problem when they developed their solution to digital signatures.
 They solved it by creating a new document format called DigiDoc~\cite{digidoc},
-which, in essence, is a container format for the actual document along with the signature information.
-With their solution, arbitrary document formats can be used,
-but the downside is that the user needs to install a program that is able to extract and display the document contained in DigiDoc,
+which is, in essence, a container format for the actual document along with the signature information.
+With their solution, arbitrary document formats can be used.
+However, the downside is that the user needs to install a program able to extract and display the document contained in the DigiDoc container,
 even if they just wished to view the document without verifying the signature.
 
 We chose to have a detached signature file, that is,
@@ -55,14 +55,14 @@ Our original specification for the signature format is based on our work in Proj
 This format would be encoded as a protobuf message in order to not have an overly verbose file (as opposed to \gls{XML}),
 but still support having a schema (as opposed to \gls{JSON}).
 
-\subsection{Difference Between Advanced And Qualified Signatures}\label{subsec:difference-between-advanced-and-qualified-signatures}
+\section{Difference Between Advanced And Qualified Signatures}\label{subsec:difference-between-advanced-and-qualified-signatures}
 The distinction between electronic and digital as well as advanced and qualified signatures is derived from Swiss Federal Law~\cite{zertes}.
 
 \subsubsection{Electronic or Digital Signatures}
 An electronic signature is a purely technical, non-legal term.
 Put simply, the term denotes electronic information associated logically with other electronic information.
 Such information may be used by a signatory for creation of a signature.
-It may simply consist of a digitally scanned, handwritten paper signature.
+It may consist simply of a digitally scanned, handwritten paper signature.
 
 In contrast, a digital signature is always based upon one or several cryptographic algorithms.
 A digital signature incorporates an unforgeable representation of the original data (guaranteed integrity)
@@ -83,7 +83,7 @@ Advanced electronic signatures have no direct legal significance, however,
 they may reinforce the cogency of proof in a court of law~\cite[4.19]{crypto-folien-hassenstein}.
 
 \subsubsection{Qualified Electronic Signature}\label{subsubsec:qualifiedsignature}
-A qualified electronic signature is an advanced electronic signature which meetds the following additional conditions:
+A qualified electronic signature is an advanced electronic signature which meets the following additional conditions:
 \begin{enumerate}
     \item It is created using a secured signature creation device~\cite[Art. 6]{zertes}
     \item It is based upon a qualified certificate~\cite[Art. 7 and 8]{zertes}, whose subject is a natural person,
@@ -100,14 +100,15 @@ which we specified in Projekt~2~\cite{projekt2} employed a server-side secret no
 which needed to be kept in memory until the signer returned with the ID token from their trip to the \gls{IDP}.
 This introduces two disadvantages for the signing server:
 \begin{itemize}
-    \item It could be used to \gls{DoS} the signing server, by forcing it to store immense amounts of nonce values
-    \item It makes the server stateful
+    \item It could be used to \gls{DoS} the signing server, by forcing it to store immense amounts of such nonce values
+    \item It makes the server stateful, since it is forced to store state between two requests in form of the nonce
 \end{itemize}
 
 
 Furthermore, with our original idea,
 for the verification of the signature all documents that were signed together needed to be present at the time of verification,
 since their hashes were incorporated in the \gls{OIDC} nonce.
+(The nonce cannot be reconstructed and verified without knowing all of the document hashes that went into it in the first place.)
 
 On top of that, multi-signatures, while technically possible, were made impractical for some applications:
 If a single person wishes to sign multiple documents at once that will be used together,
@@ -117,6 +118,7 @@ However, if multiple, independent documents are to be signed together
 (for example, a company sending 50 bills to 50 different customers),
 having to send each customer all the bills is just silly.
 
+
 We wanted to do better than that.
 
 \subsection{Draft 1: Making the Protocol stateless}\label{subsec:draft-1:-making-the-protocol-stateless}
@@ -125,9 +127,10 @@ we thought about changing the protocol to make this part stateless.
 
 To achieve this, we introduce two more nonce-like values called \texttt{seed} and \texttt{salt}.
 The \texttt{seed} is a randomly generated value that is used to verify the id token when the signer returns from the \gls{IDP}.
-The \texttt{salt} is the \gls{MAC} of the document hash(es) concatenated with the \texttt{seed}, using a static server side secret as key.
+The \texttt{salt} is the \gls{MAC} of the document hashes concatenated with the \texttt{seed}, using a static server side secret as key.
 
-The \texttt{salt} takes the role of the original nonce that was used to construct the \gls{OIDC} nonce and protects against the \gls{IDP} gaining knowledge of the signed hashes and to protect against the \gls{IDP} learning about the document hashes.
+
+The \texttt{salt} takes the role of the original nonce that was used to construct the \gls{OIDC} nonce and to protects against the \gls{IDP} gaining knowledge of the hashes to be signed.
 
 The signing server returns both the \texttt{seed} and the \texttt{salt} to the client,
 which then constructs the \gls{OIDC} nonce.
@@ -174,14 +177,15 @@ but for the reasons explained in~\ref{subsec:draft-2:-improving-signing-of-multi
 we need to include the other maskes hashes: that's what \texttt{other\_macs} is for.
 
 \texttt{Timestamped} allows us to add certificate revocation information (\gls{CRL} and \gls{OCSP}) for the certificates used in the RFC~3161~\cite{rfc3161} timestamps.
-The inclusion of these is necessary for proper offline verification, where the verifier is most likely not able to retrieve this information by itself.
+The inclusion of these is necessary for proper offline verification, where the verifier is most likely not able to retrieve this information by itself,
+and to prove the signing key was valid at the time of signing.
 
 \texttt{SignatureContainer} is used to add revocation information for the certificates used in \texttt{SignatureData}.
 
 When we examined RFC~5652~\cite{rfc5652} more closely, we discovered that it's possible to add
 \gls{CRL}s as well as \gls{OCSP} responses to \gls{CMS} messages (but not to \gls{PKCS7}~\cite[Section 10.2.1, RevocationInfoChoices and OtherRevocationInfoFormat]{rfc5652}).
 Since both \texttt{SignatureData} and the RFC~3161~\cite{rfc3161} timestamps are RFC~5652~\gls{CMS} messages which do support including revocation information,
-we can simply put the revocation information in there and don't need our own message formats.
+we can simply put the revocation information in the \gls{CMS} and don't need our own message formats.
 
 Then it occured to us that we don't need to have the hash of the current document separate from the masked hashes of the other documents.
 We can simply include a list of masked hashes.

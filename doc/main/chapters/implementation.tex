@@ -56,7 +56,8 @@ The verification service is implemented in the Go programming language~\cite{gol
 For the verifier we chose Go,
 because it allows us to generate statically linked binaries for all major platforms,
 without worrying about dependencies.
-Further the Go standard library already includes a lot of cryptographic functionality,
+Since we need binaries able to run on GNU/Linux, Mac OSX and Windows, this is very useful to us.
+Furthermore, the Go standard library already includes a lot of cryptographic functionality,
 requiring fewer third party dependencies.
 Go's built-in concurrency primitives (goroutines and channels) make it easy implement the verification of the many parts of the signatures asynchronously.
 With only having a single \gls{API} endpoint for verifying the signature it isn't necessary to use a complicated web framework as the \texttt{http} package of the Go standard library provide all needed functions.
@@ -129,6 +130,8 @@ Each of these options comes with a number of advantages and disadvantages, as di
 \label{subsec:subtlecrypto}
 The \texttt{SubtleCrypto} class offers the \texttt{digest(algorithm, data)} method~\cite{subtlecrypto}, which can be used to
 calculate \gls{SHA-256} checksums.
+This \gls{API} is implemented in the browsers themselves,
+and no additional dependencies are necessary.
 The advantage of using this implementation is that it is available in all modern browsers\footnote{Where modern browsers means Mozilla Firefox, Google Chrome/Chromium, and Microsoft Edge, not older than the respective versions available in 2018},
 and since it's executed with native code, being able to take advantage of \gls{AVX2} instructions, instead of JavaScript it should be quite fast.
 There's a major drawback though: hashing a large amount of data progressively is not supported, the data has to be
@@ -143,7 +146,8 @@ Furthermore, this limit is probably lower still on mobile devices such as smartp
 
 \subsubsection{Using CryptoJS}
 \label{subsec:cryptojs}
-\texttt{CryptoJS} does not have the limitation of \texttt{SubtleCrypto} and supports progressive hashing\footnote{
+\texttt{CryptoJS}, a JavaScript library,
+does not have the limitation of \texttt{SubtleCrypto} and supports progressive hashing\footnote{
 By progressive hashing we mean the ability to pass to the hash function the data piece by piece in order to avoid holding all of it in memory at once.},
 as seen in listing~\ref{lst:cryptojsprogressive}.
 
@@ -169,7 +173,6 @@ While developing the \gls{WASM}-based hashing programmes, we encountered some in
 \paragraph{CORS Policy} While JavaScript can be executed simply by pointing the browser at a local \gls{HTML} file, the same doesn't work for \gls{WASM}.
 The browser's security policy forbids it due to its \gls{CORS} rule~\cite{cors}.
 We solved this by starting the \gls{HTTP} server built in to Go's standard library and having the browser load the \gls{WASM} binary through \gls{HTTP}.
-The code is in appendix~\ref{chap:appendix_golangwebserver}.
 For the Rust-based implementation we used the built-in web server of webpack~\cite{webpack}.
 
 \paragraph{JavaScript/WASM Compatibility} The Golang project conveniently provides a file containing the necessary boilerplate code to load, start and interact with \gls{WASM} programmes called \texttt{wasm\_exec.js}.
@@ -200,14 +203,13 @@ As the Go implementation also includes the Go runtime,
 which makes the wasm file much larger,
 and starts a programme that will run continuously in the background it isn't the optimal choice for creating a WebAssembly implementation.
 As neither of us knows any other of the other languages that compile to WebAssembly well, we excluded them at first.
-However with the drawbacks of the Go based implementation we decided to try to implement a Rust-based version as well,
-in order to see how they compare both in performance and ease of development.
+However with the drawbacks of the Go based implementation we decided to try to implement a Rust-based version as well.
 
 
 \subsubsection{Performance Comparison}
 \label{subsec:perfcomphashing}
 No one likes waiting for slow software to do its work, and neither do we.
-This is why we decided to compare the performance of the aforementioned options in a simple test:
+This is why we decided to compare the performance of each implementation in a simple test:
 we measure the time it takes for the browser to calculate the checksum of 1GB of random data using the aforementioned methods.
 The tests were run on Debian 10 using Firefox 69 on an Intel i7-8550U.
 The results can be seen in figure~\ref{fig:hashingperformance}.
@@ -261,14 +263,14 @@ That is, they are licenced with \gls{FSF} approved open source licences.
             An implementation of the \gls{SLF4J} \gls{API}.
             It's a replacement for log4j, but brings a large number of improvements.
             Also, it's Swiss, which we found nice.
-            We use it as the \gls{SLF4J} implementation.
             \\ \hline
             Apache HttpClient &
             Ktor's built-in \gls{HTTP} client isn't usable on its own,
             it requires a backing engine.
             We've selected the Apache HttpClient for this.
             Other alternatives were \gls{CIO}, Jetty, and OkHttp.
-            It's probably the most configurable and complete \gls{HTTP} client available at the time of writing. It supports both \gls{HTTP}/1.1 and \gls{HTTP}/2,
+            Out of the available backing engines, it is the most configurable and complete \gls{HTTP} client available at the time of writing.
+            It supports both \gls{HTTP}/1.1 and \gls{HTTP}/2,
             and is the only one available that supports following redirects and allows for configuration of timeouts and proxies.
             \\ \hline
             kotlinx.serialization &
@@ -310,7 +312,7 @@ That is, they are licenced with \gls{FSF} approved open source licences.
             We use it to submit the login form on the Keycloack \gls{IDP} in the unit tests.
             We can't POST the form directly because there is a hidden \gls{CSRF} token field in the form,
             whose value we have to extract.
-            This is what jsoup is good in.
+            This is what jsoup is good at.
             \\ \hline
             protobuf &
             This is the reference implementation of protocol buffers.
@@ -338,11 +340,14 @@ In some cases, we needed to fork and extend functionality for which we created p
     \begin{center}
         \begin{tabular}{p{4.2cm}|p{12cm}}
             \textbf{Name} & \textbf{Description} \\ \hline
-            github.com/sirupsen/logrus & A structured logger, that is API compatible with the Go standard library logger. Used so we don't have to do the log formatting all by ourself. \\
+            github.com/sirupsen/logrus & A structured logger,
+            that is API compatible with the Go standard library logger.
+            Used so we don't have to do the log formatting all by ourselves. \\
             \hline
-            go.mozilla.org/pkcs7 & Library for parsing and verifying \gls{PKCS7}/\gls{CMS} and RFC3161\cite{rfc3161} timestamps. \\
+            go.mozilla.org/pkcs7 & Library for parsing and verifying \gls{PKCS7}/\gls{CMS} and RFC3161~\cite{rfc3161} timestamps. \\
             \hline
-            gopkg.in/square/go-jose.v2 & Implementation of the \gls{JOSE} set of standard like \gls{JWT} and \gls{JWK}. Used for extracting the X.509 certificates from the \gls{JWK}s in the signature data and for verifying the ID token signature. \\
+            gopkg.in/square/go-jose.v2 & Implementation of the \gls{JOSE} set of standards like \gls{JWT} and \gls{JWK}.
+            Used for extracting the X.509 certificates from the \gls{JWK}s in the signature data and for verifying the ID token signature. \\
             \hline
 			github.com/coreos/go-oidc & Used for verifying and parsing the \gls{OIDC} ID tokens. \\
             \hline
@@ -359,7 +364,6 @@ In some cases, we needed to fork and extend functionality for which we created p
 \subsubsection{Enhancing Mozilla's PKCS7 library with OCSP support}
 Unfortunately, as useful as Mozilla's \gls{PKCS7} library is to us,
 it doesn't support verifying \gls{OCSP} responses.
-This is a bit of a surprise, as they are just \gls{CMS} messages themselves.
 Since we needed the functionality,
 we implemented this ourselves.
 We will submit a pull request to Mozilla,
@@ -373,7 +377,7 @@ It allows us to specify project metadata,
 build configuration,
 and of course build- and runtime dependencies in a central location.
 Most Java developers are familiar with Maven and should be able to feel right at home.
-We chose Maven over alternatives such as Gradle and Ant because it is the most widely used dependency and build management system available in the Java world.
+We chose Maven over alternatives such as Gradle and Ant because it is the most widely used dependency management and build system available in the Java world.
 
 For the verifier,
 we use Go's built-in module system.
@@ -381,16 +385,16 @@ A Go module is a set of Go packages in a file tree with a \texttt{go.mod} file a
 This file defines the dependency requirements,
 which are pulled by the Go build system before compilation.
 A Go package is included with an import path,
-which specifies the location of the source code (the import path may be an \gls{URL}.
+which specifies the location of the source code (the import path may be an \gls{URL}).
 At this path the Go tool expects to find a source code repository (Git, SVN, Mercurial),
 with the tagging system of the \gls{VCS} used for determining the version to use, if specified.
 
 Unfortunately, in the web world, there are no such well thought out and coherent solutions,
-and we are forced to combine multiple dependency management and build tools.
+and we are forced to stitch together multiple dependency management and build tools.
 \paragraph{npm} The node package manager is used to install the TypeScript compiler \texttt{tsc},
 which type-checks, then translates the TypeScript source code into JavaScript.
 We also use \texttt{webpack},
-a tool which allows us to combine all of the compiled JavaScript files into a single bundle file.
+a tool which allows us to combine all of the compiled JavaScript files into a runnable single bundle file.
 The code in that bundle file is minified,
 a process in which the code is transformed in such a way as to be as small as possible.
 This reduces the amount of data that has to be transmitted over the network.
@@ -432,10 +436,10 @@ The end result is one single executable file which contains everything it needs,
 even its own runtime (unlike the fat \gls{JAR} which doesn't work without a \gls{JRE}).
 
 \subsection{Custom Docker Image for Rust+Webpack Build}\label{subsec:custom-docker-image-for-rust+webpack-build}
-Gitlab \gls{CI} uses docker images as the build environment in which to compile and package artifacts.
+Gitlab \gls{CI} uses Docker images as the build environment in which to compile and package artifacts.
 For all but one of our components we were lucky enough to find pre-built images providing what we needed (for example, a Maven 3 environment).
 Unfortunately it seems with Rust + Webpack we're a bit on the forefront of things,
-and no one's published a usable docker image for that build configuration to Dockerhub yet.
+and no one's published a usable Docker image for that build configuration to Dockerhub yet.
 
 This is why we built our own image on top of a base Ubuntu+Rust image by adding the following:
 \begin{enumerate}
@@ -521,9 +525,11 @@ its dependencies through interfaces,
 and having it supplied the implementation of that interface from the system it is part of,
 without knowing anything whatsoever about that implementation.
 
-Applying these methodologies doesn't guarantee clean code, nothing does.
-However in our experience, modularisation, decoupling, and separation of concerns is the best single principle
-to apply to software development to achieve some level of code quality.
+Applying these methodologies doesn't guarantee clean code.
+Nothing does.
+However, in our experience, modularisation, decoupling, and separation of concerns is the best single principle
+to apply to software development to achieve some level of code quality,
+and to keep the complexity of a growing system manageable.
 \pagebreak
 
 \subsection{Components of the Signing Service}\label{subsec:modules-of-the-signing-service}
@@ -533,7 +539,7 @@ There are three groups of components in the signing service:
     \item The services: Replaceable components providing functionality needed by the views in order to
     be able to meet their purpose.
     \item Marshalling: Classes which provide type-safe serialisation and de-serialisation of input and output data,
-    as well as validation
+    as well as validation.
 \end{itemize}
 
 \begin{figure}[H]
@@ -576,7 +582,7 @@ There are three groups of components in the signing service:
             and it could be backed by a \gls{HSM} or other hardware crypto device for increased security.
             At the moment, the secret is generated randomly at instantiation time, and not configurable nor persisted,
             for security.
-            We would like to apologise for the pun, but we couldn't help ourselves.
+            We would like to apologise for the pun in the name.
         \end{tabular}
         \captionof{table}{Services and their responsibilities in the signing service\label{table:services}}
     \end{center}
@@ -598,12 +604,12 @@ For a \gls{UML} component diagram showing a simplified overview of the component
 
 The verifier is divided into the following packages:
 \begin{itemize}
-	\item verifier: Contains all the verifying logic. A detailed list with the components is below
+	\item verifier: Contains all the verification logic. A detailed list with the components is provided in table~\ref{table:services-verifier}.
 	\item verifier/api: The http router is set up here together with the handlers.
-	\item verifier/config: Configuration files (for now just our rootCA, which isn't in the system truststore), which will be embedded into the binary via vfsgen.
-	\item verifier/static: The generated frontend files(html, js, wasm), which will be embedded into the binary via vfsgen.
+	\item verifier/config: Configuration files (for now just our root \gls{CA}, which isn't in the system truststore), which will be embedded into the binary via vfsgen.
+	\item verifier/static: The generated frontend files which will be embedded into the binary via vfsgen.
 	\item verifier/pb: The generated protobuf serialisation and some helper functions for pretty printing the values.
-	\item verifier/cmd: The entrypoint with the main() function, which wires together the other packages and starts the web server.
+	\item verifier/cmd: The entrypoint with the \texttt{main()} function, which wires together the other packages and starts the web server.
 \end{itemize}
 
 
@@ -620,7 +626,7 @@ The verifier is divided into the following packages:
 			\\ \hline
 			TimestampVerifier &
 			Parses the RFC 3161 timestamps and verifies them.
-			If multiple timestamps are included, the outermost(last) timestamp timestamps the previous one until the innermost(first) contains the timestamp for the signature container.
+			If multiple timestamps are included, the outermost (last) timestamp timestamps the previous one until the innermost (first) contains the timestamp for the signature container.
 			\\ \hline
 			SignatureContainerVerifier &
 			Verifies the \gls{PKCS7} which envelops our signature data.
@@ -681,7 +687,7 @@ We construct the timestamping requests using the \texttt{TimeStampRequestGenerat
 which works well.
 
 \subsection{Finding an IDP}\label{sec:finding-an-idp}
-Finding an \gls{IDP} prividing such strong guarantees as required for Swiss citizens was not easy,
+Finding an \gls{IDP} for the Swiss population providing such strong guarantees as required was not easy,
 we were able to find only one: SwissID.
 We searched online for documentation from them on how we could integrate their \gls{IDP} into our project,
 but we could find none.
@@ -703,16 +709,16 @@ We found the following:
     \item Microsoft: Uses X.509, but the intermediate certificate is self-signed. Why they're doing that is unclear to us, it seems futile.
 \end{itemize}
 
-So, in the end, unfortunately we didn't find a single free-of-charge \gls{IDP} that we could use.
+So, in the end, unfortunately we couldn't find any free-of-charge \gls{IDP} that we could use.
 Thus we were forced to set up our own.
-For this purpose we selected Keycloak, a powerful \gls{IDM}, developed by Red Hat~\cite{keycloak}.
+For this purpose we selected Keycloak, a powerful and open source \gls{IDM}, developed by Red Hat~\cite{keycloak}.
 Keycloak is highly configurable and allowed us to run exactly the \gls{IDP} we needed.
 For the duration of our thesis, it can be found at \url{https://keycloak.thesis.izolight.xyz/auth/realms/master/.well-known/openid-configuration}.
 
 \subsubsection{Infrastructure setup for the IDP}
 It would've been easy to run Keycloak on our local machines, and for the demo this would've been enough,
 but we wanted to do it properly, with an internet-accessible \gls{IDP}.
-To achieve this, we needed an internet-accessible server, a certificate for \gls{HTTPS},
+To achieve this, we needed a server, a certificate for \gls{HTTPS},
 and \gls{DNS} entries.
 
 For the server, we chose Scaleway's development server simply because it costs as little as 3 EUR per month~\cite{scaleway}.
@@ -751,7 +757,7 @@ On top of that we already had some knowledge of \texttt{cfssl}.
 On the same server we'd already spun up to host our \texttt{Keycloak} \gls{IDP},
 we installed \texttt{cfssl}.
 
-\subsection{Real-time updating of OCSP responses for certificates issued}\label{subsec:real-time-updating-of-ocsp-responses-for-certificates-issued}
+\subsection{Real-time Updating of OCSP Responses for Certificates Issued}\label{subsec:real-time-updating-of-ocsp-responses-for-certificates-issued}
 \texttt{cfssl} keeps a database of the certificates it issues,
 which mainly consists of the subject name hash and the certificate's serial number.
 Periodically, the \gls{OCSP} responder software checks the certificates issued,
@@ -761,7 +767,7 @@ This is done for perfomance reasons,
 as generating an \gls{OCSP} response would be too costly.
 
 Ordinarily this wouldn't be a problem, but for our purposes we need the \gls{OCSP} responses to be available immediately,
-since we generate, sign and destory the signing key in a manner of seconds.
+since we generate, sign and destroy the signing key in a manner of seconds.
 The fastest \texttt{cfssl} is able do update its \gls{OCSP} response database is once per minute,
 which is way too slow for us.
 Interactive users can't wait for 60+ seconds for signature generation.
@@ -778,7 +784,7 @@ hoping that others might find it helpful.
 \subsubsection{Separation of services using Docker containers}
 
 In order to have some separation between the different pieces of software we decided to use Docker.
-Furthermore docker makes the deployment of the software easier as we don't have to install software and their dependencies, which may conflict on the host system.
+Docker makes the deployment of the software easier as we don't have to install software and their dependencies, which may conflict on the host system.
 
 Table~\ref{tbl:docker} contains a complete list of Docker containers running on our server.
 For a graphical representation, please see figure~\ref{fig:infrastructurebigpicture}.
@@ -841,7 +847,7 @@ Two people hacking away at a shared project each on their own rarely works out w
 If we're lucky the code produced might even work, but it's probably going to be of low quality,
 and there's risk of duplication of effort,
 coordination and communication difficulties,
-as well as exceeding deadlines.
+as well as missing deadlines.
 
 This is why before starting work, we agreed upon a minimum of methodology.
 
@@ -860,7 +866,7 @@ Another developer updates their system and now uses a later version of a library
 
 Furthermore,
 our advisors most likely aren't very keen on installing the toolchains necessary for building our artefacts on their own machines,
-they'd rather directly examine the results.
+they'd rather examine the results directly.
 
 This is why a standardised, centralised build environment is a good thing to have.
 Since \gls{BFH} is so kind as to offer us Gitlab runners toghether with their Gitlab instance~\cite{gitlab},
@@ -882,7 +888,7 @@ we divided the work packages into user stories,
 as is customary in SCRUM.
 We again used Gitlab for filing, planning and tracking the user stories.
 Gitlab's issue system isn't exactly meant for use with SCRUM,
-but we've managed to adapt it by using it as follows:
+but we've managed to adapt it as follows:
 \begin{itemize}
     \item Issues are used for User Stories
     \item Labels are used for tracking progress ("todo", "doing", "done")
@@ -890,7 +896,7 @@ but we've managed to adapt it by using it as follows:
 \end{itemize}
 Together with the issue board view used as a Storyboard view,
 this works quite well for smaller projects such as ours.
-Figure~\ref{fig:scrumboard} contains a screenshot of what this looks like.
+Figure~\ref{fig:scrumboard} contains a screenshot of what this looks like in action.
 
 \begin{figure}
     \begin{center}

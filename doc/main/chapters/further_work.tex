@@ -25,7 +25,7 @@ the signer could see this by inspecting the data structure,
 as there would be an entry for a signature there the signer doesn't remember creating.
 
 If the signing service were to create a signature without publishing it into the data structure,
-everyone could see this by inspecting the data structure,
+any verifier could see this by inspecting the data structure,
 because the signature file would not be published in it.
 
 
@@ -34,7 +34,7 @@ In order to facilitate signatures with multiple parties (for example, a standard
 There are many possibilities to implement this.
 
 \subsection{Nested Signatures}
-One possibility is that the next signer signs the previously created signature file of the document instead of the document itself.
+One possibility is that the subsequent signer signs the previously created signature file of the document instead of the document itself.
 The signing service will then generate another signature for the previous signature.
 The new signature would replace the original one, as it embeds it.
 This can be repeated as many times as necessary, creating a chain of signatures.

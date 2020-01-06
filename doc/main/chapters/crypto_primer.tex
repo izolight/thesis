@@ -1,4 +1,4 @@
-\chapter{A cryptographic primer}\label{ch:a-cryptographic-primer}
+\chapter{A Cryptographic Primer}\label{ch:a-cryptographic-primer}
 In this chapter we well very briefly introduce the most important IT security and cryptography building blocks we use to make remote digital signing possible.
 Readers with a basic knowledge of IT security topics such as hash functions, X.509, \gls{PKI} and \gls{DSA} can safely skip it.
 The descriptions given are as brief as possible in order to introduce the topics, they're not meant to be complete nor excruciatingly precise.
@@ -107,7 +107,7 @@ Figure~\ref{fig:pubkeymidm} expands upon figure~\ref{fig:simplepubkeycomm} to il
 Public-key encrypted and authenticated communication as described in chapter~\ref{sec:digital-signatures}
 is vulnerable to man-in-the-middle attacks as illustrated in figure~\ref{fig:pubkeymidm}.
 This attack works because Malroy is able to mislead Bob and Alice to use his keys instead of theirs
-by intercepting their public keys in the initial key exchange.
+by intercepting and replacing their public keys in the initial key exchange.
 
 This could be solved trivially if Alice and Bob exchanged their keys in a secure manner,
 for example by meeting face-to-face,

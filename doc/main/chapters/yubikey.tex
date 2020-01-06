@@ -10,9 +10,9 @@ We were offered one from G. Hassenstein to investigate whether it could be used 
 \section{Main Features}\label{sec:technical-specification}
 The yubihsm-2 allows us to generate and store the signing keys on the device and perform the cryptographic operations there without the keys ever leaving the device.
 Another capability of the yubihsm-2 is remote management and operation.
-In addition of using the device on the host where it is attached via a standard \gls{PKCS}\#11 interface,
+In addition of using the device on the host where it is attached via a standard \gls{PKCS11} interface,
 it is possible to connect to it over the network as well,
-which would enable us to really have a dedicated signing server.
+which would enable us to realise a dedicated signing server.
 
 It supports modern standards like \gls{SHA-256} for hashing, up to 4096 Bit \gls{RSA} in \gls{PSS} mode for signing,
 and \gls{ECC}-based signatures in \gls{ECDSA} with many different curves and \gls{EdDSA} using curve25519 as well.
@@ -70,4 +70,4 @@ A possible workaround for this would be to use the \gls{PKCS11} \gls{API} and bi
 In conclusion, using the YubiHSM would improve security, but due to time constraints we will make it an optional goal.
 We will however aim to make the signing part of our application pluggable (standardised interface allowing for differing implementations,
 for example by using a factory pattern, or \gls{DI}) so that anyone can easily add support for a \gls{HSM} later,
-be it Yubicos' or another manufacturers'.
+be it Yubico's or another manufacturer's.

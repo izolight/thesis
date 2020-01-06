@@ -1,4 +1,4 @@
-title Step 3 - OIDC authentication
+title Step 3 - OIDC Authentication
 
 actor Signer
 actor IDP

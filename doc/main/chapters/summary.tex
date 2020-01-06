@@ -1,7 +1,29 @@
 \chapter*{Summary}
-We have proposed a solution which makes remote signing services as standardised by the \gls{EU} more secure,
+The core problem of Remote Signing Services is that the \gls{TruSP} has control over the user's private key.
+The industry standard solution for key security is to employ a \gls{HSM},
+which provides a secure enclave for the private keys.
+No one is supposed to be able to access the keys stored in such a \gls{HSM},
+not even the owner of the \gls{HSM} itself.
+
+But even if such a \gls{HSM} is trustworthy,
+how is the signer supposed to securely access their own key stored in a remote \gls{HSM},
+to approve a specific signature operation? EIDAS~\cite{eidas} tries to solve this by requiring the implementation of a \gls{SAP}.
+The~\gls{SAP} should provide secure authorisation from the user's device through the signing service and to the~\gls{HSM},
+activating the key in the~\gls{HSM} and generating a signature.
+EIDAS calls this authorisation information \gls{SAD}.
+
+In practice,
+this works by the user providing authentication credentials (username/password, with an optional \gls{OTP}).
+These credentials are verified by the~\gls{HSM} before allowing use of the signing key,
+and is required to only allow the signing of the documents the users subsequently submit to it, and no others.
+
+The problem is that there is no accountability to this process.
+Users are expected to trust that the~\gls{HSM} properly validates their credentials and only then
+allows use of the signing key.
+
+We propose a solution which makes remote signing services as standardised by the \gls{EU} more secure,
 and more trustworthy,
-by giving users back a part of the power they lost when they gave up control over their private keys.
+by giving users back a part of the control they lost when they gave up ownership of their private keys.
 
 With our solution,
 a \gls{TruSP} cannot sign a document in the user's name,
@@ -17,27 +39,6 @@ and placing these two concerns into the hands of separate organisations.
 The trust required is now distributed over two parties,
 and any one of them acting alone cannot create a valid signature.
 
-The core problem of Remote Signing Services is that the \gls{TruSP} has control over the user's private key.
-The industry standard solution for this is to employ a \gls{HSM},
-which provides a secure enclave for the private keys.
-No one is supposed to be able to access the keys stored in such a \gls{HSM},
-not even the owner of the \gls{HSM} itself.
-
-But even if such a \gls{HSM} is trustworthy,
-how is the signer supposed to securely access their own key stored remotely in a~\gls{HSM},
-to approve a specific signature operation? EIDAS~\cite{eidas} tries to solve this by requiring the implementation of a \gls{SAP}.
-This~\gls{SAP} should provide secure authorisation from the user's device through the signing service and to the~\gls{HSM},
-activating the key in the~\gls{HSM} and generating a signature.
-EIDAS calls this authorisation information \gls{SAD}.
-
-In practice,
-this works by the user providing authentication credentials (username/password, with an optional \gls{OTP}).
-These credentials are verified by the~\gls{HSM} before allowing use of the signing key,
-and is required to only allow the signing of the documents the users subsequently submit to it, and no others.
-
-The problem is that there is no accountability to this process.
-Users are expected to trust that the~\gls{HSM} properly validates their credentials and only then
-allows use of the signing key.
 
 This is where we come in.
 

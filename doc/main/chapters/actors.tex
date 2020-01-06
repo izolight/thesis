@@ -21,9 +21,9 @@ The following subsections provide a description of the interactions as numbered 
 \begin{enumerate}
     \item Registration of identity with the \gls{RA} (Authenticator)
 
-    A pre-requisite for using our signing service is that the user (Verifier) is registered with an \gls{IDP} supported by the Signing Service.
+    A pre-requisite for using our signing service is that the user (Verifier) is registered with an \gls{IDP} trusted by the Signing Service.
     The user registers at the \gls{RA} by proving their identity to it.
-    In most cases, this process to be completed only once per user.
+    In most cases, this process needs to be completed only once per user.
 
     \item Propagate identity to \gls{IDP} (Identifier)
 
@@ -67,7 +67,7 @@ The following subsections provide a description of the interactions as numbered 
     \item Verify ID token
 
     The signing service validates the ID token (\gls{JWT}) and checks its contents,
-    in order to confirm whether the secure linking of the user's intent to sign specific documents with the authentication.
+    in order to confirm whether the secure linking of the user's intent to sign specific documents with the authentication is valid.
 \end{enumerate}
 
 
@@ -91,15 +91,15 @@ The following subsections provide a description of the interactions as numbered 
 
     \item Request signature from \gls{HSM}
 
-    The signing service sends the data to be signed, which includes the document hashes, to be signed to the \gls{HSM}.
+    The signing service sends the data to be signed, which includes the document hashes, to the \gls{HSM}.
 
     \item Receive signature
 
-    The \gls{HSM} signs the data using the newly created signing key and returns the signature to the signing service.
+    The \gls{HSM} signs the data, using the signing key generated in step 10, and returns the signature to the signing service.
 
     \item Request timestamp from \gls{TSS}
 
-    The signing service sends the signature value to the \gls{TSS}.
+    The signing service sends the hash value of the signature data to the \gls{TSS}.
 
     \item Receive timestamp
 
@@ -111,6 +111,8 @@ The following subsections provide a description of the interactions as numbered 
     The signing service constructs the final signature file containing at least the signed hash,
     the signed timestamp, the ID token and the chains of all used certificates as well as revocation information to the user.
 \end{enumerate}
+
+Steps 16 and 17 correspond exactly to RFC 3161~\cite{rfc3161}.
 
 \subsection{Signature Verification}\label{subsec:signature-verification}
 \begin{enumerate}[resume]
@@ -125,13 +127,13 @@ The following subsections provide a description of the interactions as numbered 
 
 \section{The Signer}
 \label{sec:actorsigner}
-The Signer is the person who wishes to have the signing server sign a document in their name.
+The Signer is the person who wishes to have the signing server sign one or more documents in their name.
 For example, a medical professional issuing a prescription for medication to a patient.
 
 \section{The Verifier}
 \label{sec:actorverifier}
-The Verifier is the person who wishes to verify the integrity and authorship of a document.
-For example, the pharmacist whom the patient gives the prescription to (as previously authored and signed by The Signer as specified in section~\ref{sec:actorsigner}) in order to purchase the medication prescribed by the medical professional.
+The Verifier is the person who wishes to verify the integrity of a document and its signature.
+For example, the pharmacist whom the patient gives the prescription to (as previously signed by The Signer as specified in section~\ref{sec:actorsigner}) in order to purchase the medication prescribed by the medical professional.
 
 \section{The Authenticator}
 \label{sec:actorauthenticator}
@@ -143,14 +145,15 @@ they must have been registered with The Authenticator by The Identifier as speci
 \section{The Identifier}
 \label{sec:authoridentifier}
 The Identifier is the system or person who asserts the identity of The Signer.
-In order for the signing service to issue qualified signatures as defined by relevant Swiss legislation~\cite{zertes} and Swiss Federal Council regulations~\cite{vzertes},
+In order for the signing service to issue qualified signatures as defined by Swiss Federal Assembly legislation~\cite{zertes} and Swiss Federal Council regulations~\cite{vzertes},
 the identity must be proven in-person using a government-issued photographic identification document such as a passport.
 
 \section{The Signing Service}
 \label{sec:actorsigningservice}
 The Signing Service is the system who actually creates the signatures on behalf of the user.
-It generates the signing keys and requests the \gls{CA}~\ref{sec:actorca} to sign them.
+It generates the signing keys and requests the \gls{CA} (actor~\ref{sec:actorca}) to sign them.
 
 \section{The Certificate Authority}
 \label{sec:actorca}
-The \gls{CA} is the system who signs the signing keys generated by the Signing Service~\ref{sec:actorsigningservice}.
+The \gls{CA} is the system who signs the signing keys generated by the Signing Service (actor~\ref{sec:actorsigningservice}).
+The \gls{CA} offers \gls{CRL} and \gls{OCSP} responders.

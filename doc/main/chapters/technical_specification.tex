@@ -16,7 +16,7 @@ All of the requirements specified must be met in order for qualified signatures 
 For an explanation on what qualified signatures are, please see~\ref{subsubsec:qualifiedsignature}.
 
 \subsection{Independence of IDP and Signing Service}\label{subsec:organisational-and-financial-independence}
-The \gls{IDP} and the organisation responsible for it must be independent from the organisation responsible for the signing service and vice versa
+The \gls{IDP} and the organisation responsible for it must be independent from the organisation responsible for the signing service and vice versa.
 It must not be the same company, or conglomerate, or even the same owner of two companies,
 that own or operate these services;
 because otherwise there may be a single stakeholder able to influence or even control both.
@@ -153,9 +153,9 @@ This way the \gls{IDP} cannot learn whether two people sign the same document(s)
 If we wouldn't salt the hashes, the \gls{OIDC} nonce would be the same for the same sorted list of hashes,
 and the \gls{IDP} could detect when two people sign the same document(s).
 
-While someone could argue that the IDP server learning about different people signing the same document
+While someone could argue that the \gls{IDP} learning about different people signing the same document
 isn't much of a security problem, we want to ensure that each involved party is given the absolute minimum
-of information necessary for them to fulfil their role\footnote{as specified in the non-functional requirements, "Protection of Information"}.
+of information necessary for them to fulfil their role.
 
 In addition to shielding the hashes from the \gls{IDP},
 the salt masks the document hashes from recipients of multi-file signatures.
@@ -167,10 +167,10 @@ they could learn the document hashes of the other files.
 Again, this shouldn't be a significant problem but again, we don't want to allow this.
 So we include only the salted hashes in the signature file, and the salt itself.
 
-Since the verifier is in possession of the document(s), they can calculate their respective hashes,
-and then derive the salted hash(es) themselves since the salt is included in the signature file.
+Since the verifier is in possession of the documents, they can calculate their respective hashes,
+and then derive the salted hashes themselves since the salt is included in the signature file.
 Then they can check whether their document hash(es) are in the list of salted hashes.
-This way, they can verify their document(s) without learning anything about the other documents,
+This way, they can verify their documents without learning anything about the other documents,
 not even their hash values.
 
 \paragraph{Purpose of the seed}
@@ -232,7 +232,7 @@ but we decided against it for two reasons:
 As shown in figure~\ref{fig:tokenverificationstep},
 the client sends the ID token, the list of hashes, the \texttt{seed} and the \texttt{salt} to the signing service.
 The signing service then verifies the \texttt{salt}, OIDC nonce and ID token as described in~\ref{subsubsec:verificationhashesseedsalt}.
-After this step, the \texttt{seed} is not used anymore and should be discarded.
+After this step, the \texttt{seed} is not used anymore and is discarded.
 
 
 \subsubsection{Verification of hashes, seed and salt}\label{subsubsec:verificationhashesseedsalt}
@@ -257,16 +257,16 @@ These verifications are paramount to the safety of the system.
 The signing server requests a new signing key from the \gls{HSM}, which in turn generates a private key and returns a \gls{CSR}.
 This \gls{CSR} is sent to the \gls{CA} where it is signed and the signed certificate returned.
 
-The data to be signed is then submitted to the \gls{HSM} to be signed by the signing key,
+The data to be signed is then submitted to the \gls{HSM} to be signed using the signing key,
 resulting in a \gls{CMS} with an embedded signature.
-The data to be signed consists of the certificate chains for the signing key and the \gls{JWT} key  of the \gls{IDP},
+The \gls{CMS} consists of the certificate chains for the signing key and the \gls{JWT} key  of the \gls{IDP},
 \gls{OCSP} and \gls{CRL} for them,
 the \gls{JWT} itself,
 and the masked document hashes and related data.
 
 The hash of this \gls{CMS} is sent to a \gls{TSA} where a signed timestamp is created and returned.
 
-Finally, the timestamp and the signature are combined in a protobuf message.
+Finally, the timestamp and the signature are combined in a protobuf message as specified in section~\ref{sec:signature-file-format}.
 
 See figure~\ref{fig:signaturegenerationstep} for a sequence diagram of this process.
 
@@ -471,7 +471,7 @@ This is where the actual signature file is being assembled by the signing server
         \begin{tabular}{c|c|c|c}
             \textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\
             \hline
-            id\_token & MANDATORY & string & OIDC ID token \\
+            id\_token & MANDATORY & String & OIDC ID token \\
             \hline
             seed & MANDATORY & String & Seed for generating the salt \\
             \hline
@@ -494,7 +494,7 @@ Output:
         \begin{tabular}{c|c|c|c}
             \textbf{Parameter} & \textbf{Presence} & \textbf{Type} & \textbf{Description} \\
             \hline
-            signature url & MANDATORY & Url & Url to the generated signature file \\
+            signature & MANDATORY & Url & Url to the generated signature file \\
         \end{tabular}
     \end{center}
     \captionof{table}{Output of the signing endpoint}
@@ -613,7 +613,7 @@ The signature file consists of the following parts, from innermost to outermost:
     \item A number RFC~3161~\cite{rfc3161} timestamps are added to the same Protobuf message.
 \end{itemize}
 
-For a graphical overview of the format see ~\ref{fig:signaturefile}.
+For a graphical overview of the format see figure~\ref{fig:signaturefile}.
 
 \begin{figure}[H]
 	\begin{center}
@@ -631,14 +631,14 @@ The information that is being signed is structured as a Protobuf message with th
 \lstinputlisting[caption={SignatureData schema}, captionpos=b, label={lst:signaturedataschema}]{listings/signaturedata.proto}
 
 \paragraph{salted\_document\_hash} is a list of salted document hashes.
-The are salted as described in section~\ref{subsec:pre-login}.
+They are salted as described in section~\ref{subsec:pre-login}.
 There must be at least one salted hash.
 There cannot be more than 100'000 hashes.
 We limit this so that no one tries encoding arbitrary data in there (like pictures of cats) just because they can.
 
 \paragraph{hash\_algorithm} is the hash algorithm used for the values in \texttt{salted\_document\_hash} as well as the \gls{OIDC} nonce.
 \paragraph{mac\_key} is the key fed to the \gls{HMAC} function specified by \texttt{mac\_algorithm} for masking the hashes.
-For an explanation on that masquerade and why it's done see~\ref{subsec:pre-login}.
+For an explanation on that masquerade and why it's necessary see~\ref{subsec:pre-login}.
 \paragraph{mac\_algorithm} is the specific \gls{HMAC} function that's being used to masquerade the hashes.
 \texttt{mac\_key} is the key that's fed to \texttt{mac\_algorithm}.
 \paragraph{signature\_level} is either qualified or advanced, depending on the \gls{LoA} provided by the \gls{IDP}.
@@ -667,10 +667,10 @@ Please note that RFC~5652~\cite{rfc5652} \gls{CMS} messages are required and no 
 because they don't allow for including \gls{OCSP} responses, only \gls{CRL}s.
 For more information on including \gls{OCSP} in \gls{CMS} see~\cite[Section 10.2.1, RevocationInfoChoices and OtherRevocationInfoFormat]{rfc5652}.
 
-In summary.tex, we now have serialised the core signature information, signed it, and combined it with certificate information.
+In summary, we now have serialised the core signature information, signed it, and combined it with certificate information.
 The next step is to timestamp the signature as described in~\ref{subsec:signaturefile:-combining-signed-data-with-timestamps}.
 
-\subsection{SignatureFile: Combining signed data with timestamps}\label{subsec:signaturefile:-combining-signed-data-with-timestamps}
+\subsection{SignatureFile: Combining Signed Data with Timestamps}\label{subsec:signaturefile:-combining-signed-data-with-timestamps}
 All signatures issued by the signing server are augmented by at least one timestamp by at least one \gls{TSA} independent of the signing server and the \gls{IDP}.
 
 \subsubsection{Why timestamp?}
@@ -710,14 +710,14 @@ The timestamp confirms that the signatures were issued before the \gls{CA} was c
 thus protecting their validity.
 This is also the reason why the signing server can't just add the date and time of creation in the signature on its own,
 because that information is protected by a signature that was created with a certificate authenticated
-by a compromised \gls{CA}, thus making that information useless.
+by a compromised \gls{CA}, thus making that information unreliable.
 
 By using at least one independent third party \gls{TSA} the time of signature creation can be ascertained,
 because that information is authenticated by a different \gls{CA}.
 The risk can be reduced further by combining \gls{TSA}s.
 Then the signature will remain valid even if the signature server \gls{CA} and the \gls{TSA} \gls{CA} were compromised.
 
-Readers knowledgeable with \gls{JWT} will observer that we could use the \texttt{iat} (Issued At) and \texttt{exp} (Expiration Time)
+Readers knowledgeable with \gls{JWT} will observe that we could use the \texttt{iat} (Issued At) and \texttt{exp} (Expiration Time)
 claims from the \texttt{id\_token} issued by the \gls{IDP} instead of adding a RFC~3161~timestamp,
 since the \texttt{id\_token} is signed by a party using a different \gls{CA} than the signing server as well,
 but unfortunately these claims are optional and we can't rely on them being present~\cite[Sections 4.1.4 and 4.1.6]{rfc7519}.
@@ -725,7 +725,7 @@ but unfortunately these claims are optional and we can't rely on them being pres
 There's another reason for using timestamps: \glsdesc{LTV}; but this is out of scope for this chapter.
 For more information on that please refer to~\ref{subsec:long-term-validation}.
 
-\subsubsection{Combining the SignatureData CMS with the RFC~3161 timestamps}
+\subsubsection{Combining the SignatureData CMS with the RFC~3161 Timestamps}
 For adding the timestamp(s) to the \gls{CMS} message created in~\ref{subsec:signaturedata:-the-information-that-is-being-signed}
 we define another Protobuf message as follows:
 
@@ -736,7 +736,7 @@ we define another Protobuf message as follows:
 
 Any number of timestamps can be added.
 Timestamps either confirm \texttt{signature\_data} or another timestamp earlier in the chain.
-The chains of timestamps that are formed that way can be used for \gls{LTV} as described in~\ref{subsec:long-term-validation}.
+The chains of timestamps formed that way can be used for \gls{LTV} as described in~\ref{subsec:long-term-validation}.
 
 The signature file returned to the user is the binary serialisation of \texttt{SignatureFile}.
 

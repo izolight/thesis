@@ -32,7 +32,7 @@ Anyone must be able to verify the authenticity of a signature and the integrity 
 It must be practically impossible for anyone to deny having signed a document.
 
 \subsection{Long-Term Validation}\label{subsec:req-long-term-validation}
-Signatures must be suitable for \gls{LTV} using an RFC3161~\cite{rfc3161} timestamp.
+Signatures must be suitable for \gls{LTV} using RFC3161~\cite{rfc3161} timestamps.
 
 \subsection{Secure Coupling of Authentication and Signature}\label{subsec:secure-coupling-of-authentication-and-signature}
 It must be practically impossible for anyone to abuse a stolen \gls{OIDC} ID token to sign a document other than intended by The Signer.
@@ -62,7 +62,7 @@ Technical measures must be taken to make it difficult to steal the private keys 
 It must be practically impossible for the signing server to create a signature on its own.
 
 \subsection{Random Number Generation}\label{subsec:random-number-generation}
-The \gls{RNG} used for generating signatures must be a cryptographically secure.
+The \gls{RNG} used for generating signatures must be cryptographically secure.
 
 \subsection{REST API}\label{subsec:rest-api}
 The Signature Server must offer a \gls{REST} \gls{API} that can be used by third parties to interface with the signing service,
@@ -82,7 +82,7 @@ The \gls{IDP} must not learn of the document hash.
 More generally, every actor must not have any more information disclosed to it than is necessary for them to perform their function.
 
 \subsection{Offline Validation}\label{subsec:offline-validation}
-The Verifier must be enabled to verify signatures without an active internet connection using a desktop or laptop computer running GNU/Linux, MacOS or Windows.
+The Verifier must be able to verify signatures without an active internet connection using a desktop or laptop computer running GNU/Linux, MacOS or Windows.
 
 \subsection{Code Quality}\label{subsec:code-quality}
 The code produced should be, wherever possible:
@@ -120,7 +120,7 @@ The \gls{IDP} must support \gls{AAL} 2 authentication for advanced signatures, a
 
 
 \section{Prioritisation of Requirements}\label{sec:prioritisation}
-\begin{figure}
+\begin{figure}[H]
     \begin{center}
         \begin{tabular}{p{12cm}|p{2.5cm}}
             \textbf{Requirement} & \textbf{Prioritisation}\\

@@ -21,7 +21,7 @@ Signing Service->HSM: send signature data
 deactivate Signing Service
 activate HSM
 HSM->HSM: sign data
-Signing Service<--HSM: return pkcs#7 signed data
+Signing Service<--HSM: return CMS signed data
 deactivate HSM
 activate Signing Service
 Signing Service->Signing Service: generate TSQ for signed data

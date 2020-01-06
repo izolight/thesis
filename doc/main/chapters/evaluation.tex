@@ -42,10 +42,10 @@ In the interest of brevity, the full specification won't be repeated here.
         and this identity assertion is part of the signature
         \\
         \hline
-        Coupling of authn \& sign.~(\ref{subsec:secure-coupling-of-authentication-and-signature})
+        Coupling of authentication \& signing~(\ref{subsec:secure-coupling-of-authentication-and-signature})
         & Required
         & Yes
-        & Linkage with \gls{HMAC} functions based on hash functions considered secure
+        & Linkage with \gls{HMAC} functions based on secure hash functions
         \\
         \hline
         Authentication protocol~(\ref{subsec:authentication-protocol})
@@ -57,7 +57,7 @@ In the interest of brevity, the full specification won't be repeated here.
         Supported file formats~(\ref{subsec:supported-file-formats})
         & Required
         & Yes
-        & Detached signature ensures compatibility with any file format, past present or future
+        & Detached signature ensures compatibility with any file format, past, present, or future
         \\ \hline
         No unauthorised id. delegation~(\ref{subsec:no-unauthorised-identity-delegation})
         & Required
@@ -75,7 +75,7 @@ In the interest of brevity, the full specification won't be repeated here.
         Random number generation~(\ref{subsec:random-number-generation})
         & Required
         & Yes
-        & We use the operating-system provided \gls{CSRNG} exclusively.
+        & We use the operating system provided \gls{CSRNG} exclusively.
         \\ \hline
         \gls{REST} \gls{API}~(\ref{subsec:rest-api})
         & Required
@@ -98,7 +98,7 @@ In the interest of brevity, the full specification won't be repeated here.
         before being destroyed.
         It would be exceedingly difficult for an attacker to steal it.
         However, the use of a dedicated \gls{HSM} could increase security further,
-        which we didn't employ.
+        which we didn't.
         \\
         \hline
         Protection of information~(\ref{subsec:protection-of-information})
@@ -108,7 +108,7 @@ In the interest of brevity, the full specification won't be repeated here.
         We explicitly forbid transmitting the document to be hashed to the signing server,
         unlike the \gls{CSC}.
         Furthermore, we salt the hashes to shield them both from the \gls{IDP} as well as
-        from other recipients of multi-signatures.
+        from other recipients of multi-file signatures.
         \\
         \hline
         Device-local hashing~(\ref{subsec:local-hashing-of-documents})
@@ -189,12 +189,12 @@ instead focusing on the result.
         Offline Validation~(\ref{subsec:offline-validation2})
         & Yes
         & Offline validation is implemented with the three standalone,
-        per-platform builds of the verifier
+        per-platform builds of the verifier.
         \\
         \hline
         Online Validation~(\ref{subsec:semi-online-validation})
         & Yes
-        & Online validation is implemented with the verifier running on a server
+        & Online validation is implemented with the verifier running on a server.
         \\
         \hline
     \end{longtable}
@@ -213,7 +213,7 @@ We planned to have the specification complete to a degree it'd be ready for impl
 We were ready by that date to begin implementation,
 but we weren't satisfied with our solution.
 The solution we had by then would've worked, and it would've worked rather well,
-but we wanted to improve it further (see~\ref{ch:signingprotocol}), which we did.
+but we wanted to improve it further (see chapter~\ref{ch:signingprotocol}), which we did.
 We have achieved an efficient and secure solution, which we are proud of.
 Deviating from the project plan to achieve this is a trade-off well worth it.
 

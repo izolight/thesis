@@ -1,4 +1,4 @@
-title Step 2 - Nonce generation
+title Step 2 - Nonce Generation
 
 actor Signing Service
 activate Signing Service

@@ -1,4 +1,4 @@
-title Signature verification (online)
+title Signature Verification (online)
 
 actor Signer
 actor Verifier

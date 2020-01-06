@@ -1,10 +1,10 @@
-title Step 4 - ID token verification
+title Step 4 - ID Token Verification
 
 actor Signing Service
 
 activate Signing Service
 Signing Service->Signing Service: verify salt
-note right of Signing Service: salt:\nMAC((seed + secret), hash(es))\nsecret is static
+note right of Signing Service: salt:\nHMAC(HKDF(seed, secret), hash(es))\nsecret is static
 Signing Service->Signing Service: verify OIDC nonce
 note right of Signing Service:OIDC nonce:\nHash of the sorted list of\nHMAC(salt, hash)
 Signing Service->Signing Service: verify ID token locally
