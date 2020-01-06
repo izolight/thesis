@@ -1,0 +1,57 @@
+\chapter*{Summary}
+We have proposed a solution which makes remote signing services as standardised by the \gls{EU} more secure,
+and more trustworthy,
+by giving users back a part of the power they lost when they gave up control over their private keys.
+
+With our solution,
+a \gls{TSP} cannot sign a document in the user's name,
+despite being in possession of the user's private key.
+
+Users can now enjoy the usability advantages of Remote Signing,
+on any device, anywhere,
+and be freed of the burden of key management,
+without giving up control over what is signed in their name.
+
+We have achieved this by splitting up authentication and signing,
+and placed these two separate concerns into the hands of separate organisations.
+The trust required is now distributed over two parties,
+and any one of them acting alone cannot create a valid signature.
+
+The core problem of Remote Signing Services is that the \gls{TSP} has control over the user's private key.
+The industry standard solution for this is to employ a \gls{HSM},
+which provides a secure enclave for the private keys.
+No one is supposed to be able to access the keys stored in such a \gls{HSM},
+not even the owner of the device.
+
+But how is the signer supposed to securely access their own key stored remotely in a~\gls{HSM},
+to approve a specific signature operation?
+
+EIDAS~\ref{eidas} tries to solve this by requiring the implementation of a \gls{SAP}.
+This~\gls{SAP} should provide secure authorisation from the user's device through the signing service and to the~\gls{HSM},
+activating the key in the~\gls{HSM} and generating a signature.
+
+In practice,
+this is implemented by the user providing authentication credentials (username/password, with an optional \gls{OTP}),
+which is verified by the~\gls{HSM} before allowing use of the signing key.
+
+However, there is no accountability to this process.
+Users are required to trust that the~\gls{HSM} properly validates their credentials and only then
+allows use of the signing key.
+
+We believe we have proposed the first real solution to the remote key activation problem,
+and our solution is user-verifiable.
+
+We have achieved this by making the hashes of the documents to be signed part of the authentication process,
+by incorporating them into a nonce value used during the~\gls{OIDC} authentication.
+The authentication token subsequently issued by the~\gls{IDP} contains that same nonce value,
+but now protected by a digital signature issued by the~\gls{IDP}.
+
+Then, based upon that identity assertion, the signing server issues the signature.
+By making the identity assertion - containing the document hashes - part of the signature file,
+anyone can verify that the signing server indeed signed the hashes intended by the user.
+
+This is the core idea of our solution.
+
+In this thesis, we have worked out a detailed and complete proposal for an implementation of this idea.
+Then we have implemented it as a working proof-of-concept.
+
