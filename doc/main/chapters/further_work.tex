@@ -3,7 +3,9 @@ Due to time constraints given by the timeboxed bachelor thesis, we weren't able 
 We document these aspects and our thoughts on them here for future works.
 
 \section{Public Append-Only Data Structure}\label{sec:public-append-only-data-structure}
-The main defence against malicious signature services - signing document files without the users' consent - is the integration of the authentication token signed by the \gls{IDP} into the signature file TODO link to section where this is explained in more detail.
+The main defence against malicious signature services -
+signing document files without the users' consent -
+is the integration of the authentication token signed by the \gls{IDP} into the signature file (as described in~\ref{subsec:pre-login}).
 If the signing server were to create a signature file on their own they'd be unable to get such a token from the \gls{IDP}, and this would be detected upon signature verification.
 
 However, if the \gls{IDP} were under the control of the same organisation as the signing service,
@@ -11,8 +13,10 @@ or if the \gls{IDP} were compromised as well,
 or if the user were to be tricked into authenticating with the \gls{IDP} not knowing what they were doing,
 a malicious signing service could still create a valid signature not authorised by the user.
 
-In order to defend against this, as an additional safety mechanism, we propose using a public append-only data structure,
-inspired by blockchain technologies.
+In order to defend against this,
+as an additional safety mechanism,
+we propose using a public append-only data structure (for example, a Merkle hash tree).
+
 The signature service would be required to publish all signatures it creates by appending them to this data structure.
 This would allow everybody and anybody to see the signatures the signing server issues.
 
@@ -47,6 +51,3 @@ With pairing-based cryptography like \gls{BLS}~\cite{bls} we could implement n-o
 This wouldn't provide nor require any ordering in the signing process, and while much more elegant,
 would complicate the cryptographic aspect\footnote{Saying we fully understand the mathematics behind it would be a lie.} and could introduce errors as we don't have a lot experience with pairing based cryptography.
 
-\section{CADES Signatures}\label{sec:cades-signatures}
-TODO supporting CMS/CADES signatures as defined in \url{https://www.etsi.org/deliver/etsi_ts/101700_101799/101733/02.02.01_60/ts_101733v020201p.pdf}
-for inclusion in pdfs
