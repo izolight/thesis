@@ -381,7 +381,7 @@ A Go module is a set of Go packages in a file tree with a \texttt{go.mod} file a
 This file defines the dependency requirements,
 which are pulled by the Go build system before compilation.
 A Go package is included with an import path,
-which is actually simply an \gls{URL} pointing to the package source code.
+which specifies the location of the source code (the import path may be an \gls{URL}.
 At this path the Go tool expects to find a source code repository (Git, SVN, Mercurial),
 with the tagging system of the \gls{VCS} used for determining the version to use, if specified.
 
