@@ -332,8 +332,7 @@ That is, they are licenced with \gls{FSF} approved open source licences.
 Table~\ref{table:libraries} summarises the software libraries used in the implementation of the verification service.
 As with the libraries for the signing service,
 they are all of high quality and free and open source software.
-In some cases, we needed to fork a library and extend functionality for which we created pull requests in the respective project repositories.
-For more information about our contributions to open source software during this thesis see TODO document PRs and link here.
+In some cases, we needed to fork and extend functionality for which we created pull requests in the respective project repositories.
 
 \begin{figure}
     \begin{center}
@@ -341,7 +340,7 @@ For more information about our contributions to open source software during this
             \textbf{Name} & \textbf{Description} \\ \hline
             github.com/sirupsen/logrus & A structured logger, that is API compatible with the Go standard library logger. Used so we don't have to do the log formatting all by ourself. \\
             \hline
-            go.mozilla.org/pkcs7 & Library for parsing and verifying \gls{PKCS7}/\gls{CMS} and RFC3161\cite{rfc3161} timestamps. As the library only supported \gls{CRL}s for checking the revocation data, we added support for \gls{OCSP}. \\
+            go.mozilla.org/pkcs7 & Library for parsing and verifying \gls{PKCS7}/\gls{CMS} and RFC3161\cite{rfc3161} timestamps. \\
             \hline
             gopkg.in/square/go-jose.v2 & Implementation of the \gls{JOSE} set of standard like \gls{JWT} and \gls{JWK}. Used for extracting the X.509 certificates from the \gls{JWK}s in the signature data and for verifying the ID token signature. \\
             \hline
@@ -357,6 +356,15 @@ For more information about our contributions to open source software during this
     \end{center}
 \end{figure}
 
+\subsubsection{Enhancing Mozilla's PKCS7 library with OCSP support}
+Unfortunately, as useful as Mozilla's \gls{PKCS7} library is to us,
+it doesn't support verifying \gls{OCSP} responses.
+This is a bit of a surprise, as they are just \gls{CMS} messages themselves.
+Since we needed the functionality,
+we implemented this ourselves.
+We will submit a pull request to Mozilla,
+in the hope that they may find our contributions useful,
+and if so, that they can include our contributions into their library.
 
 \subsection{Dependency Management}\label{subsec:dependency-management}
 For the signing service's dependency management,
@@ -741,6 +749,30 @@ On top of that we already had some knowledge of \texttt{cfssl}.
 On the same server we'd already spun up to host our \texttt{Keycloak} \gls{IDP},
 we installed \texttt{cfssl}.
 
+\subsection{Real-time updating of OCSP responses for certificates issued}\label{subsec:real-time-updating-of-ocsp-responses-for-certificates-issued}
+\texttt{cfssl} keeps a database of the certificates it issues,
+which mainly consists of the subject name hash and the certificate's serial number.
+Periodically, the \gls{OCSP} responder software checks the certificates issued,
+and generates \gls{OCSP} responses for these certificates,
+which it in turn stores in its own database.
+This is done for perfomance reasons,
+as generating an \gls{OCSP} response would be too costly.
+
+Ordinarily this wouldn't be a problem, but for our purposes we need the \gls{OCSP} responses to be available immediately,
+since we generate, sign and destory the signing key in a manner of seconds.
+The fastest \texttt{cfssl} is able do update its \gls{OCSP} response database is once per minute,
+which is way too slow for us.
+Interactive users can't wait for 60+ seconds for signature generation.
+
+So we expanded \texttt{cfssl}'s code to generate the \gls{OCSP} responses real-time,
+that is, as soon as a certificate is issued and stored in the database,
+the associated \gls{OCSP} response is generated and stored in the responders' database.
+
+We have found many people on the internet asking for the same feature,
+hitting the same problem we did.
+For this reason we will submit a pull request to the \texttt{cfssl} project with our enhancements,
+hoping that others might find it helpful.
+
 \subsubsection{Separation of services using Docker containers}
 
 In order to have some separation between the different pieces of software we decided to use Docker.
@@ -883,3 +915,6 @@ Excluding these classes, we achieve a coverage of 94.9\%.
 For the verification server, we achieve a test coverage of 85.3\%,
 as measured by the Go test tool.
 Most of the uncovered parts are due to the same reasons as in the signing server tests.
+
+
+
