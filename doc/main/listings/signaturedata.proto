@@ -1,0 +1,11 @@
+
+message SignatureData {
+    repeated bytes salted_document_hash = 1;
+    HashAlgorithm hash_algorithm = 2;
+    bytes mac_key = 3;
+    MACAlgorithm mac_algorithm = 4;
+    SignatureLevel signature_level = 5;
+    bytes id_token = 6;
+    bytes jwk_idp = 7;
+    map<string, LTV> ltv_idp = 8;
+}

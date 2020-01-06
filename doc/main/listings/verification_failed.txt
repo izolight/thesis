@@ -1,0 +1,7 @@
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+    "valid": false,
+    "error": "signed hash and provided hash don't match"
+}

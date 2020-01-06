@@ -417,14 +417,7 @@ This format of returning errors is the same for all endpoints of the signing ser
 \end{figure}
 
 Sample Error Response:
-\begin{lstlisting}[caption={Error response}, captionpos=b, language=JavaScript, label={lst:errorresponse}]
-    HTTP/1.1 400 Bad Request
-    Content-Type: application/json
-
-    {
-    "message": "Invalid hash length"
-    }
-\end{lstlisting}
+\lstinputlisting[caption={Error response}, captionpos=b, language=JavaScript, label={lst:errorresponse}]{listings/error_response.txt}
 
 \subsubsection{login}
 This endpoint is used for submitting the hashes the user wishes to sign.
@@ -463,34 +456,11 @@ Output:
 
 Sample Request:
 
-\begin{lstlisting}[caption={login request}, captionpos=b, language=JavaScript, label={lst:hashesrequest}]
-    POST /api/v1/hashes HTTP/1.1
-    Host: service.example.org
-    Content-Type: application/json
-
-    {
-    "hashes": [
-    "e8a96e6203b9c0df058ba862abc63d9c520157faef6d5d54e54e526b0a85b2be",
-    "0b9a7fd3e612061a7fe6d834e102a143170f33d0e8c5a8eb79416aa3eb53c0d6"
-    ]
-    }
-\end{lstlisting}
+\lstinputlisting[caption={login request}, captionpos=b, language=JavaScript, label={lst:hashesrequest}]{listings/hashes_request.txt}
 
 Sample Response:
 
-\begin{lstlisting}[caption={login response}, captionpos=b, language=JavaScript, label={lst:hashesresponse}]
-    HTTP/1.1 201 Created
-    Content-Type: application/json
-
-    {
-    "providers": {
-    "SwissID": "https://...&nonce=6cd7ef99e5e79d68d681e5d097b7f805381c4d013152fa3f26d06bd728ae49fa",
-    "Google": "https://...&nonce=6cd7ef99e5e79d68d681e5d097b7f805381c4d013152fa3f26d06bd728ae49fa"
-    },
-    "seed": "84c97acc49335faa0266fb29b4228205e9400a85a10faa68ec30cf894e1730ed",
-    "salt": "cfb663431af5e2d68be48867f93e86e477cd7eeefc10b16a51c238d2c810561b"
-    }
-\end{lstlisting}
+\lstinputlisting[caption={login response}, captionpos=b, language=JavaScript, label={lst:hashesresponse}]{listings/signing_request.txt}
 
 \subsubsection{Sign}\label{subsubsec:signrequest}
 After having authenticated with the IDP, the client application calls the signing endpoint.
@@ -531,32 +501,11 @@ Output:
 \end{figure}
 
 Sample Request:
-\begin{lstlisting}[caption={Sign request}, captionpos=b, language=JavaScript, label={lst:signrequestexample}]
-    POST /api/v1/sign HTTP/1.1
-    Host: service.example.org
-    Content-Type: application/json
-
-    {
-    "id\_token": {...},
-    "seed": "84c97acc49335faa0266fb29b4228205e9400a85a10faa68ec30cf894e1730ed",
-    "salt": "cfb663431af5e2d68be48867f93e86e477cd7eeefc10b16a51c238d2c810561b",
-    "hashes": [
-    "e8a96e6203b9c0df058ba862abc63d9c520157faef6d5d54e54e526b0a85b2be",
-    "0b9a7fd3e612061a7fe6d834e102a143170f33d0e8c5a8eb79416aa3eb53c0d6"
-    ]
-    }
-\end{lstlisting}
+\lstinputlisting[caption={Sign request}, captionpos=b, language=JavaScript, label={lst:signrequestexample}]{listings/sign_request_example.txt}
 
 Sample Response:
 
-\begin{lstlisting}[caption={sign response}, captionpos=b, language=JavaScript, label={lst:signresponse}]
-    HTTP/1.1 201 Created
-    Content-Type: application/json
-
-    {
-    "signature": "https://signingservice.local/api/v1/signatures/0b1131ca0b68f3d55b8e32a55e8"
-    }
-\end{lstlisting}
+\lstinputlisting[caption={sign response}, captionpos=b, language=JavaScript, label={lst:signresponse}]{listings/sign_response.txt}
 
 \subsubsection{signatures/:id}
 Input:
@@ -577,20 +526,11 @@ Output: Binary data, meant to be presented to the user as a file download
 
 Sample Request:
 
-\begin{lstlisting}[caption={signature request}, captionpos=b, language=JavaScript, label={lst:signaturerequest}]
-    GET /api/v1/signatures/e8a96e62034e526b0a85b2be HTTP/1.1
-    Host: service.example.org
-\end{lstlisting}
+\lstinputlisting[caption={signature request}, captionpos=b, language=JavaScript, label={lst:signaturerequest}]{listings/signature_request.txt}
 
 Sample Response:
 
-\begin{lstlisting}[caption={signature response}, captionpos=b, language=JavaScript, label={lst:signatureresponse}]
-    HTTP/1.1 200 OK
-    Content-Type: application/octet-stream
-    Content-Disposition: attachment; filename="signaturefile"
-
-    <binary data follows>
-\end{lstlisting}
+\lstinputlisting[caption={signature response}, captionpos=b, language=JavaScript, label={lst:signatureresponse}]{listings/signature_response.txt}
 
 \subsection{Verification Service}\label{subsec:verification-service}
 Endpoints:
@@ -646,16 +586,7 @@ Output:
 \end{figure}
 
 Sample Request:
-\begin{lstlisting}[caption={sign request}, captionpos=b, language=JavaScript, label={lst:verifyrequest}]
-    POST /verify HTTP/1.1
-    Host: service.example.org
-    Content-Type: application/json
-
-    {
-    "hash": "e8a96e6203b9c0df058ba862abc63d9c520157faef6d5d54e54e526b0a85b2be",
-    "signature": "IyMjIFJFU1QgQVBJIFNwZWNpZm...yMjIyMgRW5kcG9pbnQKYGBgUE9TVCAvYXBpL3YxL3NpZ25gYGAK"
-    }
-\end{lstlisting}
+\lstinputlisting[caption={sign request}, captionpos=b, language=JavaScript, label={lst:verifyrequest}]{listings/verification_request.txt}
 
 Sample Response:
 
@@ -663,15 +594,7 @@ Sample Response:
 
 Invalid signature:
 
-\begin{lstlisting}[caption={sign response}, captionpos=b, language=JavaScript, label={lst:verifyresponsefailed}]
-    HTTP/1.1 200 OK
-    Content-Type: application/json
-
-    {
-    "valid": false,
-    "error": "signed hash and provided hash don't match"
-    }
-\end{lstlisting}
+\lstinputlisting[caption={sign response}, captionpos=b, language=JavaScript, label={lst:verifyresponsefailed}]{listings/verification_failed.txt}
 
 \section{Signature File Format}\label{sec:signature-file-format}
 Digital signatures unfortunately aren't very simple.
@@ -705,18 +628,7 @@ In the following subsections each of these parts is explained in more detail.
 \subsection{SignatureData: The information that is being signed}\label{subsec:signaturedata:-the-information-that-is-being-signed}
 The information that is being signed is structured as a Protobuf message with the following schema:
 
-\begin{lstlisting}[caption={SignatureData schema}, captionpos=b, label={lst:signaturedataschema}]
-    message SignatureData {
-    repeated bytes salted_document_hash = 1;
-    HashAlgorithm hash_algorithm = 2;
-    bytes mac_key = 3;
-    MACAlgorithm mac_algorithm = 4;
-    SignatureLevel signature_level = 5;
-    bytes id_token = 6;
-    bytes jwk_idp = 7;
-    map<string, LTV> ltv_idp = 8;
-    }
-\end{lstlisting}
+\lstinputlisting[caption={SignatureData schema}, captionpos=b, label={lst:signaturedataschema}]{listings/signaturedata.proto}
 
 \paragraph{salted\_document\_hash} is a list of salted document hashes.
 The are salted as described in section~\ref{subsec:pre-login}.
@@ -817,12 +729,7 @@ For more information on that please refer to~\ref{subsec:long-term-validation}.
 For adding the timestamp(s) to the \gls{CMS} message created in~\ref{subsec:signaturedata:-the-information-that-is-being-signed}
 we define another Protobuf message as follows:
 
-\begin{lstlisting}[caption={SignatureFile message}, captionpos=b, label={lst:signaturefileschema}]
-    message SignatureFile {
-    bytes signature_data = 1;
-    repeated bytes rfc3161 = 2;
-    }
-\end{lstlisting}
+\lstinputlisting[caption={SignatureFile message}, captionpos=b, label={lst:signaturefileschema}]{listings/signaturefile.proto}
 
 \paragraph{signature\_data} is the \gls{DER}-encoded \gls{CMS} message created as described in~\ref{subsec:signaturedata:-the-information-that-is-being-signed}.
 \paragraph{rfc3161} is one or more \gls{DER}-encoded timestamps according to RFC~3161~\cite{rfc3161}.

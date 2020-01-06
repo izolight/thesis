@@ -1,0 +1,2 @@
+GET /api/v1/signatures/e8a96e62034e526b0a85b2be HTTP/1.1
+Host: service.example.org

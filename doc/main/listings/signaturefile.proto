@@ -1,0 +1,5 @@
+
+message SignatureFile {
+    bytes signature_data = 1;
+    repeated bytes rfc3161 = 2;
+}

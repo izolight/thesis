@@ -1,0 +1,6 @@
+HTTP/1.1 201 Created
+Content-Type: application/json
+
+{
+    "signature": "https://signingservice.local/api/v1/signatures/0b1131ca0b68f3d55b8e32a55e8"
+}

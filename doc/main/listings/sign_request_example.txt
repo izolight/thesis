@@ -1,0 +1,13 @@
+POST /api/v1/sign HTTP/1.1
+Host: service.example.org
+Content-Type: application/json
+
+{
+    "id_token": {...},
+    "seed": "84c97acc49335faa0266fb29b4228205e9400a85a10faa68ec30cf894e1730ed",
+    "salt": "cfb663431af5e2d68be48867f93e86e477cd7eeefc10b16a51c238d2c810561b",
+    "hashes": [
+        "e8a96e6203b9c0df058ba862abc63d9c520157faef6d5d54e54e526b0a85b2be",
+        "0b9a7fd3e612061a7fe6d834e102a143170f33d0e8c5a8eb79416aa3eb53c0d6"
+    ]
+}

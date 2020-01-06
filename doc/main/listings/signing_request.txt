@@ -1,0 +1,11 @@
+HTTP/1.1 200 Ok
+Content-Type: application/json
+
+{
+    "providers": {
+        "SwissID": "https://...&nonce=6cd7ef99e5e79d68d...f26d06bd728ae49fa",
+        "SecIDP": "https://...&nonce=6cd7ef99e5e79d68d...f26d06bd728ae49fa"
+    },
+    "seed": "84c97acc49335faa0266fb29b4228205e9400a85a10faa68ec30cf894e1730ed",
+    "salt": "cfb663431af5e2d68be48867f93e86e477cd7eeefc10b16a51c238d2c810561b"
+}

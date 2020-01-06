@@ -1,0 +1,8 @@
+POST /verify HTTP/1.1
+Host: service.example.org
+Content-Type: application/json
+
+{
+    "hash": "e8a96e6203b9c0df058ba862abc63d9c520157faef6d5d54e54e526b0a85b2be",
+    "signature": "IyMjIFJFU1QgQVBJIFNwZWNpZm...yMjIyMgRW5kcG9pbnQKYGBgUE9TVCAvYXBpL3YxL3NpZ25gYGAK"
+}
