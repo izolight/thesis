@@ -1,4 +1,4 @@
-\chapter{Achievement of Objectives}\label{ch:achievement-of-objectives}
+\chapter{Evaluation}\label{ch:achievement-of-objectives}
 In this chapter, we will review the objectives specified in the requirements,
 examine whether they've been achieved, and to which degree.
 
@@ -58,7 +58,7 @@ In the interest of brevity, the full specification won't be repeated here.
         & Required
         & Yes
         & Detached signature ensures compatibility with any file format, past present or future
-        \\
+        \\ \hline
         No unauthorised id. delegation~(\ref{subsec:no-unauthorised-identity-delegation})
         & Required
         & Yes
@@ -71,12 +71,12 @@ In the interest of brevity, the full specification won't be repeated here.
         All the \gls{IDP} could do with a stolen \gls{JWT} is sign a document
         the user wanted to sign anyways,
         since otherwise there would be no such \gls{JWT}.
-        \\
+        \\ \hline
         Random number generation~(\ref{subsec:random-number-generation})
         & Required
         & Yes
         & We use the operating-system provided \gls{CSRNG} exclusively.
-        \\
+        \\ \hline
         \gls{REST} \gls{API}~(\ref{subsec:rest-api})
         & Required
         & Yes
@@ -98,7 +98,7 @@ In the interest of brevity, the full specification won't be repeated here.
         before being destroyed.
         It would be exceedingly difficult for an attacker to steal it.
         However, the use of a dedicated \gls{HSM} could increase security further,
-        which we didn't use.
+        which we didn't employ.
         \\
         \hline
         Protection of information~(\ref{subsec:protection-of-information})
@@ -164,7 +164,7 @@ In the interest of brevity, the full specification won't be repeated here.
     \captionof{table}{Achievement of Objectives}
 \end{center}
 
-\subsection{Use Cases}\label{subsec:use-cases}
+\section{Use Cases}\label{subsec:use-cases}
 In section~\ref{ch:usecases},
 we specified the use cases whose implementation we review here.
 For brevity, we won't repeat the full specification,
@@ -200,3 +200,25 @@ instead focusing on the result.
     \end{longtable}
     \captionof{table}{Coverage of Use Cases}
 \end{center}
+
+
+\section{Project Management}\label{sec:project-management}
+At the beginning of this work we allocated the time available to us
+to the work packages, and created a project timeline.
+There were some deviations from the plan,
+which we outline here.
+
+\subsection{More Time Invested Into Concept}\label{subsec:more-time-invested-into-concept}
+We planned to have the specification complete to a degree it'd be ready for implementation at 14th October.
+We were ready by that date to begin implementation,
+but we weren't satisfied with our solution.
+The solution we had by then would've worked, and it would've worked rather well,
+but we wanted to improve it further (see~\ref{ch:signingprotocol}), which we did.
+We have achieved an efficient and secure solution, which we are proud of.
+Deviating from the project plan to achieve this is a trade-off well worth it.
+
+\subsection{Implementation Completed Later Than Planned}\label{subsec:implementation-completed-later-than-planned}
+Because we invested more time that planned into the concept phase,
+the implementation was completed later than planned as well.
+With the original plan it was to be complete by 23rd December, in reality it was finished by 4th January.
+
