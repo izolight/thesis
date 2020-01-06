@@ -91,11 +91,11 @@ The following subsections provide a description of the interactions as numbered 
 
     \item Request signature from \gls{HSM}
 
-    The signing service sends the hashes of the documents to be signed to the \gls{HSM}.
+    The signing service sends the data to be signed, which includes the document hashes, to be signed to the \gls{HSM}.
 
     \item Receive signature
 
-    The \gls{HSM} signs the hashes using the newly created signing key and returns the signature to the signing service.
+    The \gls{HSM} signs the data using the newly created signing key and returns the signature to the signing service.
 
     \item Request timestamp from \gls{TSS}
 
