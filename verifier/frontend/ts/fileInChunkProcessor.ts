@@ -115,15 +115,25 @@ export class TS {
                     localStorage.setItem('lolnogenerics', JSON.stringify(p));
                     this.showSignatureResult(response);
                 },
-                err => console.log(`error ${err}`),
+                err => this.showError(err),
                 'application/json');
             console.log(`POST ${hashList}`);
+    }
+
+    public static showError(response: PostVerifyResponse) {
+        console.log(response);
+        const inputFilesArea = q("input-files-area");
+        const text_template = `<p>ERROR</p>`;
+        if (Validate.notNull(inputFilesArea)) {
+            inputFilesArea.innerHTML = `<p class="lead text-danger">An error occured during verifying</p>`;
+            inputFilesArea.innerHTML = inputFilesArea.innerHTML + text_template.replace('ERROR', String(response));
+        }
     }
 
     public static showSignatureResult(response: PostVerifyResponse) {
         const inputFilesArea = q("input-files-area");
         if (Validate.notNull(inputFilesArea)) {
-            inputFilesArea.innerHTML = `<p class="lead">Signature Verified</p>`
+            inputFilesArea.innerHTML = `<p class="lead text-success">Signature Verified</p>`
         }
         const cardArea = q("file.0");
         const cert_template = `<li>
