@@ -567,7 +567,7 @@ There are three groups of components in the signing service:
             It submits \gls{PKCS10} certificate signing requests to the \gls{CA} and returns the signed certificate.
             \\ \hline
             TimestampingService &
-            Provides an interface to the RFC 3161 trusted timestamping services.
+            Provides an interface to the \gls{RFC} 3161 trusted timestamping services.
             Given the data to timestamp, it constructs a timestamping request (including a nonce for increased security),
             submits it, and returns the timestamping response.
             The response is a \gls{CMS} containing the signature of the hash of the data
@@ -634,7 +634,7 @@ The verifier is divided into the following packages:
 			It will finish either when one of the verifiers encounters an error or all of them have finished.
 			\\ \hline
 			TimestampVerifier &
-			Parses the RFC 3161 timestamps and verifies them.
+			Parses the \gls{RFC} 3161 timestamps and verifies them.
 			If multiple timestamps are included, the outermost (last) timestamp timestamps the previous one until the innermost (first) contains the timestamp for the signature container.
 			\\ \hline
 			SignatureContainerVerifier &
