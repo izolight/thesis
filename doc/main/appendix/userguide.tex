@@ -150,3 +150,65 @@ The signature has been created successfully.
 
 \section{Verifying a Signature}\label{sec:verifying-a-signature}
 This section contains a step by step guide on how to verify a signature that was previously created.
+
+\subsection{Ready the Document and Its Signature File}\label{subsec:ready-the-document-and-its-signature-file}
+The first step is to make the document and its signature file is at hand.
+
+If the document is ready for verification, navigate to the verification service using the preferred web browser.
+The verification service may be running either in an internet-accessible location,
+or on the local machine.
+For devices such as tables and smartphones running Android or iOS,
+only online verification is supported.
+For devices such as laptops and desktops running GNU/Linux, Mac OS X or Windows,
+offline verification is supported by launching the appropriate build of the verifier program on the local machine.
+
+Whether the verification service is accessed locally or not doesn't matter for the steps that follow,
+the procedure remains the same.
+
+Upon accessing the verification service, its frontend will present itself as shown in figure~\ref{fig:verify0}.
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[width=\linewidth]{images/userguide_verify_0.png}
+    \end{center}
+    \caption{The frontend of the verification service upon initial access}
+    \label{fig:verify0}
+\end{figure}
+
+Proceed by selecting first the document, and then its signature to begin the verification process.
+
+After selecting the files, press the green "Add" button.
+The frontend will start hashing the document.
+When hashing is completed,
+the document's hash and the signature file are ready for transmission to the verification service,
+as shown in figure~\ref{fig:verify1}.
+
+Please note that no matter how the verification service is used,
+remote or local,
+mobile device or not,
+the document never leaves the device.
+
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[width=\linewidth]{images/userguide_verify_1.png}
+    \end{center}
+    \caption{Verification service ready for verification}
+    \label{fig:verify1}
+\end{figure}
+
+When ready for submission, press the green button labelled "submit for verifying".
+
+The verification service will then attempt to verify the signature.
+If signature verification was successful,
+the verification service will display a result as shown in figure~\ref{fig:verify2}.
+
+
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[width=\linewidth]{images/userguide_verify_2.png}
+    \end{center}
+    \caption{Verification service has completed verification}
+    \label{fig:verify2}
+\end{figure}
+
+Congratulations!
+The signature has been verified successfully.
