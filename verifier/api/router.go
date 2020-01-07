@@ -14,7 +14,7 @@ func NewRouter(logger logrus.StdLogger, rootCA []byte) *mux.Router {
 	r.HandleFunc("/verify", verifySvc.VerifyHandler).Methods("POST")
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(static.Assets)))
 	r.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/static/index.html", http.StatusFound)
+		http.Redirect(w, r, "/static/index.html", http.StatusTemporaryRedirect)
 	})
 
 	return r
