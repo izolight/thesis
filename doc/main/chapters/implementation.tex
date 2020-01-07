@@ -474,6 +474,12 @@ For this reason we document it here.
     which were built in steps 1-4
     \item The signing server copies its frontend files built in steps 1-4 into its resources directory,
     then calls Maven to build its fat \gls{JAR}.
+    Maven downloads the dependencies,
+    compiles the Kotlin source code,
+    generates the source code for marshalling using \texttt{kotlinx.serialization},
+    generates the source code for the protobuf marshalling classes,
+    and packages everything together into a fat \gls{JAR},
+    including the frontend files from the resources directory.
     \item The verifier calls \texttt{go build} three times,
     once respectively for GNU/Linux, Mac OSX and Windows,
     resulting in the binaries for each platform.
@@ -481,6 +487,9 @@ For this reason we document it here.
 
 
 Figure~\ref{fig:pipelines} illustrates the combined build process as implemented in Gitlab \gls{CI}.
+Since there are quite a few steps to the build process and we have 8 Gitlab runners available,
+we have parallelised it as much as we could.
+This way we were able to reduce build times from 20 minutes to around 4 minutes.
 
 
 \begin{figure}
