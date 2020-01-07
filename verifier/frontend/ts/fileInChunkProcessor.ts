@@ -115,7 +115,7 @@ export class TS {
                     localStorage.setItem('lolnogenerics', JSON.stringify(p));
                     this.showSignatureResult(response);
                 },
-                err => this.showError(err),
+                err => this.showError(JSON.parse(err)),
                 'application/json');
             console.log(`POST ${hashList}`);
     }
@@ -126,7 +126,7 @@ export class TS {
         const text_template = `<p>ERROR</p>`;
         if (Validate.notNull(inputFilesArea)) {
             inputFilesArea.innerHTML = `<p class="lead text-danger">An error occured during verifying</p>`;
-            inputFilesArea.innerHTML = inputFilesArea.innerHTML + text_template.replace('ERROR', String(response));
+            inputFilesArea.innerHTML = inputFilesArea.innerHTML + text_template.replace('ERROR', response.error);
         }
     }
 
