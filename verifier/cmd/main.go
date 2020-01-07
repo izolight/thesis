@@ -16,7 +16,7 @@ func main() {
 		logger.Fatalln(err)
 	}
 	r := api.NewRouter(logger, rootCA)
-	logger.Fatalln(http.ListenAndServe(":8080", r))
+	logger.Fatalln(http.ListenAndServe(":8081", r))
 }
 
 func getRootCA(filename string) ([]byte, error) {
