@@ -1,4 +1,4 @@
-package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
+package ch.bfh.ti.hirtp1ganzg1.thesis.api.services.def
 
 
 interface ICache<T, U> {

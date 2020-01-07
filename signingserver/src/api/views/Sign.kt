@@ -2,7 +2,8 @@ package ch.bfh.ti.hirtp1ganzg1.thesis.api.views
 
 import Signature
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.*
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.*
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.def.*
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.impl.IOIDCService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.*
 import com.google.protobuf.ByteString
 import io.ktor.application.call
@@ -56,10 +57,10 @@ fun Routing.sign() {
                 }
                 logger.info("Seed, salt, nonce, id_token validation succeeded")
 
-                val subjectInformation = SigningKeySubjectInformation.fromIdToken(jwtValidationResult.idToken)
+                val subjectInformation = ISigningKeysService.SigningKeySubjectInformation.fromIdToken(jwtValidationResult.idToken)
                 logger.info(
                     "Generating signing key for subject {}",
-                    prettyJson.stringify(SigningKeySubjectInformation.serializer(), subjectInformation)
+                    prettyJson.stringify(ISigningKeysService.SigningKeySubjectInformation.serializer(), subjectInformation)
                 )
                 val certificateHolder = caService.signCSR(
                     signingKeyService.generateSigningKey(subjectInformation).also {
@@ -80,7 +81,7 @@ fun Routing.sign() {
 
                 logger.info(
                     "Destroying signing key for subject {}", prettyJson.stringify(
-                        SigningKeySubjectInformation.serializer(),
+                        ISigningKeysService.SigningKeySubjectInformation.serializer(),
                         subjectInformation
                     )
                 )

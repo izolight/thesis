@@ -1,6 +1,7 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis
 
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.*
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.def.*
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.impl.*
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.runBlocking
 import org.koin.dsl.module

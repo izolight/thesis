@@ -1,13 +1,10 @@
-package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
+package ch.bfh.ti.hirtp1ganzg1.thesis.api.services.impl
 
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.def.ISecretService
 import org.bouncycastle.crypto.digests.SHA256Digest
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator
 import org.bouncycastle.crypto.params.HKDFParameters
 import java.security.SecureRandom
-
-interface ISecretService {
-    fun hkdf(salt: ByteArray, length: Int = 64): ByteArray
-}
 
 
 class SecretServiceDefaultImpl : ISecretService {

@@ -1,4 +1,4 @@
-package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
+package ch.bfh.ti.hirtp1ganzg1.thesis.api.services.impl
 
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.InvalidDataException
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.defaultConfig
@@ -81,17 +81,18 @@ class OurDemoOIDCService private constructor(
         val x5t_S256: String
     ) {
         companion object {
-            fun fromJwk(jwks: Jwk) = JWK(
-                kid = jwks.id,
-                kty = jwks.type,
-                alg = jwks.algorithm,
-                use = jwks.usage,
-                n = jwks.additionalAttributes["n"]!!.toString(),
-                e = jwks.additionalAttributes["e"]!!.toString(),
-                x5c = jwks.certificateChain,
-                x5t = jwks.certificateThumbprint,
-                x5t_S256 = jwks.additionalAttributes["x5t#S256"]!!.toString()
-            )
+            fun fromJwk(jwks: Jwk) =
+                JWK(
+                    kid = jwks.id,
+                    kty = jwks.type,
+                    alg = jwks.algorithm,
+                    use = jwks.usage,
+                    n = jwks.additionalAttributes["n"]!!.toString(),
+                    e = jwks.additionalAttributes["e"]!!.toString(),
+                    x5c = jwks.certificateChain,
+                    x5t = jwks.certificateThumbprint,
+                    x5t_S256 = jwks.additionalAttributes["x5t#S256"]!!.toString()
+                )
         }
     }
 
@@ -109,11 +110,14 @@ class OurDemoOIDCService private constructor(
 
     companion object {
         suspend operator fun invoke() = coroutineScope {
-            OurDemoOIDCService(futureDiscoveryDocument = async {
-                HttpClient(Apache) { defaultConfig() }.use {
-                    it.get<OIDCDiscoveryDocument>(Config.OIDC_CONFIGURATION_DISCOVERY_URL)
-                }
-            })
+            OurDemoOIDCService(
+                futureDiscoveryDocument = async {
+                    HttpClient(Apache) { defaultConfig() }.use {
+                        it.get<OIDCDiscoveryDocument>(
+                            Config.OIDC_CONFIGURATION_DISCOVERY_URL
+                        )
+                    }
+                })
         }
 
         private val json = Json(JsonConfiguration.Stable)
@@ -154,14 +158,17 @@ class OurDemoOIDCService private constructor(
         )
     }
 
-    override fun marshalJwk(jwk: Jwk) = json.stringify(JWK.serializer(), JWK.fromJwk(jwk))
+    override fun marshalJwk(jwk: Jwk) = json.stringify(
+        JWK.serializer(),
+        JWK.fromJwk(jwk)
+    )
 
-    fun getAlgorithm(jwk: Jwk) = when (val a = jwk.algorithm) {
+    private fun getAlgorithm(jwk: Jwk): Algorithm = when (val a = jwk.algorithm) {
         "RS256" -> Algorithm.RSA256(jwk.publicKey as RSAPublicKey, null)
         else -> throw InvalidDataException("Unsupported algorithm in JWK: $a")
     }
 
-    fun buildVerifier(algorithm: Algorithm): JWTVerifier = JWT.require(algorithm)
+    private fun buildVerifier(algorithm: Algorithm): JWTVerifier = JWT.require(algorithm)
         .withIssuer(this.getIssuer().toString())
         .withAudience(Config.OIDC_CLIENT_ID)
         .build()
@@ -172,7 +179,10 @@ class OurDemoOIDCService private constructor(
             val jwk = jwkProvider.get(jwt.keyId)
             val algo = getAlgorithm(jwk)
             val verifier = buildVerifier(algo)
-            return IOIDCService.JwtValidationResult(idToken = verifier.verify(idToken), jwk = jwk)
+            return IOIDCService.JwtValidationResult(
+                idToken = verifier.verify(idToken),
+                jwk = jwk
+            )
         } catch (e: JWTDecodeException) {
             throw InvalidDataException(message = "Invalid JWT: Unable to decode")
         } catch (e: JwkException) {

@@ -1,6 +1,6 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis
 
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.Config
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.impl.Config
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.defaultConfig
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.views.URLs
 import io.ktor.client.HttpClient
@@ -188,7 +188,7 @@ class TestSigningRequest : KoinTest {
                     "Status: ${response.status().toString()}, body: ${response.content}"
                 )
                 val responseText = response.content.toString()
-                assertTrue("not a valid" in responseText, responseText)
+                assertTrue("not a valid" in responseText, response.content)
             }
 
             with(handleRequest(HttpMethod.Post, URLs.SUBMIT_HASHES) {

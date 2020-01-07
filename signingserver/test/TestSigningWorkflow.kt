@@ -1,6 +1,6 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis
 
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.Config
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.impl.Config
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.defaultConfig
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.views.URLs
 import io.ktor.client.HttpClient

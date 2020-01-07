@@ -1,7 +1,7 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis.api.views
 
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.*
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.ISignaturesHoldingService
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.def.ISignaturesHoldingService
 import io.ktor.application.call
 import io.ktor.http.ContentDisposition
 import io.ktor.http.ContentType

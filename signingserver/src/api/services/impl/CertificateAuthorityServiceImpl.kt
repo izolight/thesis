@@ -1,6 +1,7 @@
-package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
+package ch.bfh.ti.hirtp1ganzg1.thesis.api.services.impl
 
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.*
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.def.ICertificateAuthorityService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.defaultConfig
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.hexStringToByteArray
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.hmacSha256
@@ -24,12 +25,13 @@ import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.util.*
 
-class CertificateAuthorityServiceImpl : ICertificateAuthorityService {
+class CertificateAuthorityServiceImpl :
+    ICertificateAuthorityService {
     companion object {
         private const val HMAC_KEY = "7BAFD191E2631D4505F612C7D6B2010A"
         private const val CA_URL = "https://intermediate-ca.thesis.izolight.xyz"
-        const val CA_SIGN_URL = "${CA_URL}/api/v1/cfssl/authsign"
-        const val CA_BUNDLE_URL = "${CA_URL}/api/v1/cfssl/bundle"
+        const val CA_SIGN_URL = "$CA_URL/api/v1/cfssl/authsign"
+        const val CA_BUNDLE_URL = "$CA_URL/api/v1/cfssl/bundle"
         private val json = Json(JsonConfiguration.Stable)
     }
 
@@ -103,7 +105,11 @@ class CertificateAuthorityServiceImpl : ICertificateAuthorityService {
 
         private fun allPems() = splitBundleIntoPems().toMutableList().also { it.add(this.root) }.toList()
 
-        fun allCerts() = allPems().map { s -> pemToCertificate(s) }
+        fun allCerts() = allPems().map { s ->
+            pemToCertificate(
+                s
+            )
+        }
     }
 
     @Serializable
@@ -159,7 +165,9 @@ class CertificateAuthorityServiceImpl : ICertificateAuthorityService {
             }
         }.validate()
         ) {
-        is Valid -> pemToCertificate(validatedResponse.value.result.certificate)
+        is Valid -> pemToCertificate(
+            validatedResponse.value.result.certificate
+        )
         is Invalid -> throw validatedResponse.error
     }
 

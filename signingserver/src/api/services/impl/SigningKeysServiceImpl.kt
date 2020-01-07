@@ -1,7 +1,8 @@
-package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
+package ch.bfh.ti.hirtp1ganzg1.thesis.api.services.impl
 
 import Signature
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.*
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.def.ISigningKeysService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.defaultConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
@@ -62,7 +63,7 @@ class Constants {
 
 class SigningKeysServiceImpl : ISigningKeysService {
     private val keyPairGenerator = KeyPairGenerator.getInstance(Constants.KEY_ALGORITHM)
-    private val keyCache = HashMap<SigningKeySubjectInformation, KeyPair>()
+    private val keyCache = HashMap<ISigningKeysService.SigningKeySubjectInformation, KeyPair>()
     private val contentSignerBuilder = JcaContentSignerBuilder(Constants.SIGNATURE_ALGORITHM)
     private val secureRandom = SecureRandom()
     private val logger = LoggerFactory.getLogger(SigningKeysServiceImpl::class.java)
@@ -71,7 +72,7 @@ class SigningKeysServiceImpl : ISigningKeysService {
         keyPairGenerator.initialize(Constants.RSA_KEY_BITS)
     }
 
-    override fun generateSigningKey(subjectInformation: SigningKeySubjectInformation): PKCS10CertificationRequest {
+    override fun generateSigningKey(subjectInformation: ISigningKeysService.SigningKeySubjectInformation): PKCS10CertificationRequest {
         val keyPair = this.keyPairGenerator.generateKeyPair()
         this.keyCache[subjectInformation] = keyPair
 
@@ -102,7 +103,7 @@ class SigningKeysServiceImpl : ISigningKeysService {
         ).build(this.contentSignerBuilder.build(keyPair.private)) ?: throw CryptoException("Unable to construct CSR")
     }
 
-    override fun destroySigningKey(subjectInformation: SigningKeySubjectInformation) {
+    override fun destroySigningKey(subjectInformation: ISigningKeysService.SigningKeySubjectInformation) {
         this.keyCache.remove(subjectInformation)
     }
 
@@ -116,7 +117,7 @@ class SigningKeysServiceImpl : ISigningKeysService {
         }[0]
 
     override suspend fun signCMS(
-        subjectInformation: SigningKeySubjectInformation,
+        subjectInformation: ISigningKeysService.SigningKeySubjectInformation,
         dataToSign: Signature.SignatureData,
         signedCertificate: JcaX509CertificateHolder
     ): CMSSignedData = CMSSignedDataGenerator().also {
@@ -276,7 +277,10 @@ class SigningKeysServiceImpl : ISigningKeysService {
                 it.post<CertificateAuthorityServiceImpl.CfsslBundleResponse> {
                     url(CertificateAuthorityServiceImpl.CA_BUNDLE_URL)
                     contentType(ContentType.Application.Json)
-                    body = CertificateAuthorityServiceImpl.CfsslBundleRequest(certificate = certificateToPem(cert))
+                    body = CertificateAuthorityServiceImpl.CfsslBundleRequest(certificate = certificateToPem(
+                        cert
+                    )
+                    )
                 }.result.allCerts()
             })
 }

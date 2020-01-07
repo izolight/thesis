@@ -1,5 +1,6 @@
-package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
+package ch.bfh.ti.hirtp1ganzg1.thesis.api.services.impl
 
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.def.ITimestampingService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.defaultConfig
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.sha256
 import io.ktor.client.HttpClient

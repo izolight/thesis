@@ -4,10 +4,10 @@ import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.HashesSubmissionResponse
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.Invalid
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.SubmittedHashes
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.Valid
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.Config
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.INonceGeneratorService
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.IOIDCService
-import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.ISecretService
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.def.ISecretService
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.impl.Config
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.impl.INonceGeneratorService
+import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.impl.IOIDCService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.*
 import io.ktor.application.call
 import io.ktor.request.receive

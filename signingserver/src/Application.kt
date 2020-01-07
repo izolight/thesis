@@ -89,7 +89,7 @@ fun Application.module() {
         exception<InvalidRequestException> { exception ->
             call.respond(
                 HttpStatusCode.BadRequest,
-                ApiError(message = "Invalid request: ${exception.message}")
+                ApiError(message = exception.message ?: "Unspecified error")
             )
         }
 
@@ -100,7 +100,7 @@ fun Application.module() {
             )
             call.respond(
                 HttpStatusCode.InternalServerError,
-                ApiError(message = "Unexpected error: ${exception.message ?: "Unknown"}")
+                ApiError(message = exception.message ?: "Unspecified error")
             )
         }
     }
@@ -108,7 +108,7 @@ fun Application.module() {
     install(Locations)
 
     routing {
-//        trace { application.log.trace(it.buildText()) }
+        //        trace { application.log.trace(it.buildText()) }
 
         root()
         static()
@@ -128,7 +128,7 @@ fun Routing.root() {
 
 fun Routing.static() {
     static("/static") {
-//        files("resources/static")
+        //        files("resources/static")
         resources("static")
     }
 

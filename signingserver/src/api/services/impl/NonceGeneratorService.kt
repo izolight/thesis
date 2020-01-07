@@ -1,4 +1,4 @@
-package ch.bfh.ti.hirtp1ganzg1.thesis.api.services
+package ch.bfh.ti.hirtp1ganzg1.thesis.api.services.impl
 
 import java.security.SecureRandom
 
@@ -6,7 +6,8 @@ interface INonceGeneratorService {
     fun getNonce(): ByteArray
 }
 
-class NonceGeneratorServiceDefaultImpl : INonceGeneratorService {
+class NonceGeneratorServiceDefaultImpl :
+    INonceGeneratorService {
     private val secureRandom = SecureRandom()
 
     override fun getNonce(): ByteArray {
