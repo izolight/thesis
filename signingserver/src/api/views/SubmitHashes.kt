@@ -14,11 +14,13 @@ import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.Routing
 import io.ktor.routing.post
+import kotlinx.serialization.UnstableDefault
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import org.koin.ktor.ext.inject
 import org.slf4j.Logger
 
+@UnstableDefault
 fun Routing.postHashes() {
     val nonceGenerator by inject<INonceGeneratorService>()
     val secretService by inject<ISecretService>()

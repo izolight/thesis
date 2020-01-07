@@ -11,7 +11,7 @@ import io.ktor.application.install
 import io.ktor.features.*
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.files
+import io.ktor.http.content.resources
 import io.ktor.http.content.static
 import io.ktor.locations.KtorExperimentalLocationsAPI
 import io.ktor.locations.Locations
@@ -24,6 +24,7 @@ import io.ktor.routing.routing
 import io.ktor.serialization.DefaultJsonConfiguration
 import io.ktor.serialization.serialization
 import io.ktor.util.KtorExperimentalAPI
+import kotlinx.serialization.UnstableDefault
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.Koin
 import org.slf4j.event.Level
@@ -35,6 +36,7 @@ fun main(args: Array<String>) = io.ktor.server.jetty.EngineMain.main(args)
 //    io.ktor.server.netty.EngineMain.main(args)
 //}
 
+@UnstableDefault
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
 @Suppress("unused") // Referenced in application.conf
@@ -126,7 +128,8 @@ fun Routing.root() {
 
 fun Routing.static() {
     static("/static") {
-        files("resources/static")
+//        files("resources/static")
+        resources("static")
     }
 
 }

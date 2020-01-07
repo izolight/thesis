@@ -41,6 +41,7 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder
 import org.bouncycastle.pkcs.PKCS10CertificationRequest
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder
+import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.security.KeyPair
@@ -64,6 +65,7 @@ class SigningKeysServiceImpl : ISigningKeysService {
     private val keyCache = HashMap<SigningKeySubjectInformation, KeyPair>()
     private val contentSignerBuilder = JcaContentSignerBuilder(Constants.SIGNATURE_ALGORITHM)
     private val secureRandom = SecureRandom()
+    private val logger = LoggerFactory.getLogger(SigningKeysServiceImpl::class.java)
 
     init {
         keyPairGenerator.initialize(Constants.RSA_KEY_BITS)
@@ -113,7 +115,7 @@ class SigningKeysServiceImpl : ISigningKeysService {
             it.subject == cert.issuer
         }[0]
 
-    override suspend fun signToPkcs7(
+    override suspend fun signCMS(
         subjectInformation: SigningKeySubjectInformation,
         dataToSign: Signature.SignatureData,
         signedCertificate: JcaX509CertificateHolder
@@ -123,7 +125,6 @@ class SigningKeysServiceImpl : ISigningKeysService {
             val crlCert = async { retrieveCrl(signedCertificate) }
             val bundle = futureBundle.await()
             val issuerCert = extractIssuerCertificate(signedCertificate, bundle)
-//            val crlIssuer = async { retrieveCrl(issuerCert) }
             val rootCert = extractIssuerCertificate(issuerCert, bundle)
             val ocspCert = async { retrieveOcsp(signedCertificate, issuerCert) }
             val ocspIssuer = async { retrieveOcsp(issuerCert, rootCert) }
@@ -136,8 +137,9 @@ class SigningKeysServiceImpl : ISigningKeysService {
                     signedCertificate
                 )
             )
-            it.addCRL(crlCert.await())
-//            it.addCRL(crlIssuer.await())
+            crlCert.await().ifPresent { crl ->
+                it.addCRL(crl)
+            }
             it.addOtherRevocationInfo(
                 OCSPObjectIdentifiers.id_pkix_ocsp_basic,
                 ocspCert.await().toASN1Structure()
@@ -173,36 +175,47 @@ class SigningKeysServiceImpl : ISigningKeysService {
         ).accessDescriptions[0].accessLocation.name.toString()
     )
 
-    // TODO this is not optimal: only one crl url is extracted, and there is no error handling
-    private suspend fun extractCrlUrl(signedCertificate: X509CertificateHolder) = Url(
+    private suspend fun extractCrlUrl(signedCertificate: X509CertificateHolder): List<Url> =
         withContext(Dispatchers.IO) {
-            (CRLDistPoint.getInstance(
+            CRLDistPoint.getInstance(
                 JcaX509ExtensionUtils.parseExtensionValue(
                     signedCertificate.getExtension(Extension.cRLDistributionPoints).extnValue.encoded
                 )
-            ).distributionPoints[0].distributionPoint.name as GeneralNames).names[0].name.toString()
-        }
-    )
-
-    private suspend fun retrieveCrl(signedCertificate: X509CertificateHolder): JcaX509CRLHolder = when (
-        val response = HttpClient(Apache) {
-            defaultConfig()
-        }.use {
-            it.get<CfsslCrlResponse> {
-                url(extractCrlUrl(signedCertificate))
+            ).distributionPoints.mapNotNull {
+                try {
+                    Url((it.distributionPoint.name as GeneralNames).names[0].name.toString())
+                } catch (e: Exception) {
+                    logger.error("Unable to parse CRL distribution point: %s", e)
+                    null
+                }
             }
-        }.validate()
-        ) {
-        is Valid -> JcaX509CRLHolder(
-            CertificateFactory.getInstance("X.509").generateCRL(
-                ByteArrayInputStream(
-                    Base64.getDecoder().decode(response.value.result)
-                )
-            ) as X509CRL
-        )
-        is Invalid -> throw response.error
-    }
+        }
 
+    private suspend fun retrieveCrl(signedCertificate: X509CertificateHolder): Optional<JcaX509CRLHolder> {
+        HttpClient(Apache) { defaultConfig() }.use { client ->
+            extractCrlUrl(signedCertificate).forEach { url ->
+                try {
+                    when (val response = client.get<CfsslCrlResponse> { url(url) }.validate()) {
+                        is Valid -> return Optional.of(
+                            JcaX509CRLHolder(
+                                CertificateFactory.getInstance("X.509").generateCRL(
+                                    ByteArrayInputStream(
+                                        Base64.getDecoder().decode(response.value.result)
+                                    )
+                                ) as X509CRL
+                            )
+                        )
+                        is Invalid -> throw response.error
+
+                    }
+                } catch (e: Exception) {
+                    logger.info("Failed to download CRL from %s, trying next", url)
+                }
+            }
+        }
+        logger.warn("Unable to reach any CRL distribution points")
+        return Optional.empty()
+    }
 
     private fun constructOcspRequest(
         signedCertificate: X509CertificateHolder,

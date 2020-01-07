@@ -34,7 +34,6 @@ fun Routing.sign() {
     val logger by inject<Logger>()
     val prettyJson = Json(JsonConfiguration.Default.copy(prettyPrint = true))
 
-    // TODO refactor this monster into smaller methods
     post(URLs.SIGN) {
         when (val input = call.receive<SigningRequest>().validate()) {
             is Valid -> {
@@ -68,7 +67,7 @@ fun Routing.sign() {
                     }
                 )
                 logger.info("Constructing and signing inner CMS")
-                val pkcs7Signature = signingKeyService.signToPkcs7(
+                val pkcs7Signature = signingKeyService.signCMS(
                     subjectInformation,
                     buildSignature(
                         maskedHashes,
