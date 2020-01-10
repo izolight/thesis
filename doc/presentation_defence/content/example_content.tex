@@ -139,20 +139,6 @@
 \end{frame}
 
 \begin{frame}[t]\frametitle{Our Solution}
-	\framesubtitle{How we do it}
-	\begin{itemize}
-		\item Reuse the nonce in the OIDC ID token
-		\begin{itemize}
-			\item nonce consists of list of salted hashes of the documents
-			\item couples documents with the ID token
-		\end{itemize}
-		\item Signing Service can only sign the hashes which flow into the nonce
-		\item Signature is detached
-		\item All certificate chains and revocation info (CRL/OCSP) are in the signature for offline verification
-	\end{itemize}
-\end{frame}
-
-\begin{frame}[t]\frametitle{Our Solution}
 	\framesubtitle{Signature Format}
 	\begin{figure}[ht]
 		\centering
