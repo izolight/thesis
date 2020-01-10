@@ -57,7 +57,7 @@
 	\framesubtitle{Adobe Sign}
 	\begin{itemize}
 	  \item Users don't have control of their private keys
-      \item Signing Service can create signatures without the User's knowledge
+      \item Signing Service can create signatures without the user's knowledge
       \item Trust-based Signature Activation Protocol
       \item Has access to your documents
 	  \item Implementation is absolutely proprietary
@@ -68,6 +68,14 @@
 
 \section{Our Solution}
 \sectionpage
+
+\begin{frame}[t]\frametitle{Our Solution}
+	\framesubtitle{Big Picture}
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[scale=0.22]{BigPicture_v4.png}
+	\end{figure}
+\end{frame}
 
 \begin{frame}[t]\frametitle{Our Solution}
 	\framesubtitle{Overview}
@@ -85,14 +93,14 @@
 \begin{frame}[t]\frametitle{Our Solution}
 	\framesubtitle{How we do it}
 	\begin{itemize}
-		\item Reuse the Nonce in the OIDC ID token
+		\item Reuse the nonce in the OIDC ID token
 		\begin{itemize}
 			\item nonce consists of list of salted hashes of the documents
 			\item couples documents with the ID token
 		\end{itemize}
 		\item Signing Service can only sign the hashes which flow into the nonce
 		\item Signature is detached
-		\item All certificate chains and revocation info(crl/ocsp) are in the signature for offline verification
+		\item All certificate chains and revocation info (CRL/OCSP) are in the signature for offline verification
 	\end{itemize}
 \end{frame}
 
