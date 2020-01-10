@@ -9,7 +9,7 @@ import io.ktor.client.features.logging.Logging
 
 fun HttpClientConfig<*>.defaultConfig() {
     install(Logging) {
-        level = LogLevel.BODY
+        level = LogLevel.INFO
     }
     install(JsonFeature) {
         serializer = KotlinxSerializer()
