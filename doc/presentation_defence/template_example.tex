@@ -1,0 +1,50 @@
+\documentclass{beamer}
+
+%% ----- used pkg --------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{arev}
+\usepackage{tikz}
+\usepackage{bbding}
+\usepackage{multicol}
+\usepackage{graphicx}
+
+%% -----------------------------------------------
+
+\input{variables}
+
+%% -----------------------------------------------
+
+\graphicspath{{pictures/}{tplimages/}}
+
+\makeatletter
+\def\input@path{{content/}{texmf/}}
+\makeatother
+
+%% -----------------------------------------------
+
+\title{\presentationTitle}
+\subtitle{\presentationTopic}
+\date{\presentationDate}
+\author{\authorName}
+\institute{\instituteName}
+
+%% -----------------------------------------------
+
+% Graphic located in pictures named frontGraphic on
+% title page.
+\titlegraphic{frontGraphic}
+
+\usetheme[
+%  frontgraphic  %% no title picture comment this line
+] {bfhbeamer}
+
+%% -----------------------------------------------
+
+\begin{document}
+
+\include{example_content}
+
+\end{document}
+
+%% -----------------------------------------------
