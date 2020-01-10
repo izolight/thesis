@@ -90,6 +90,54 @@
 	\end{itemize}
 \end{frame}
 
+\begin{frame}[t]{Our Solution}
+	\framesubtitle{Protocol Overview}
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[scale=0.18]{protocol_signature_generation_high_level.png}
+	\end{figure}
+\end{frame}
+
+\begin{frame}[t]{Our Solution}
+	\framesubtitle{Step 1 - Seed generation}
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[scale=0.13]{protocol_step1_seed_generation.png}
+	\end{figure}
+\end{frame}
+
+\begin{frame}[t]{Our Solution}
+	\framesubtitle{Step 2 - Nonce generation}
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[scale=0.13]{protocol_step2_nonce_generation.png}
+	\end{figure}
+\end{frame}
+
+\begin{frame}[t]{Our Solution}
+	\framesubtitle{Step 3 - OIDC Authentication}
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[scale=0.1]{protocol_step3_oidc_authentication.png}
+	\end{figure}
+\end{frame}
+
+\begin{frame}[t]{Our Solution}
+	\framesubtitle{Step 4 - ID token verification}
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[scale=0.1]{protocol_step4_id_token_verification.png}
+	\end{figure}
+\end{frame}
+
+\begin{frame}[t]{Our Solution}
+	\framesubtitle{Step 5 - Signature Generation}
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[scale=0.06]{protocol_step5_signature_generation.png}
+	\end{figure}
+\end{frame}
+
 \begin{frame}[t]\frametitle{Our Solution}
 	\framesubtitle{How we do it}
 	\begin{itemize}
@@ -103,15 +151,6 @@
 		\item All certificate chains and revocation info (CRL/OCSP) are in the signature for offline verification
 	\end{itemize}
 \end{frame}
-
-\begin{frame}[t]\frametitle{Our Solution}
-	\framesubtitle{Big Picture}
-	\begin{figure}[ht]
-		\centering
-		\includegraphics[scale=0.2]{BigPicture_v4.png}
-	\end{figure}
-\end{frame}
-
 
 \begin{frame}[t]\frametitle{Our Solution}
 	\framesubtitle{Signature Format}
