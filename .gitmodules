@@ -1,0 +1,3 @@
+[submodule "doc/presentation/tpl_latex-presentation"]
+	path = doc/presentation/tpl_latex-presentation
+	url = git@gitlab.ti.bfh.ch:latex-utils/tpl_latex-presentation.git
