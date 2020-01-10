@@ -4,8 +4,6 @@
 \end{frame}
 %% ---------------------------------------------------------------------------------
 
-\section{Introduction}
-
 %%%% ---------------------------------------------------------------------------------
 \begin{frame}[c] \frametitle{Overview}
 %  \framesubtitle{Untertitel}
@@ -18,24 +16,85 @@
 \end{frame}
 %%%% ---------------------------------------------------------------------------------
 
+\section{Introduction}
+\sectionpage
+
 %%%% ---------------------------------------------------------------------------------
-%%%% Who helps you
+%%%% Introduction
 %%%% ---------------------------------------------------------------------------------
 \begin{frame}[t]\frametitle{Introduction}
- \framesubtitle{What is remote signing}
+ \framesubtitle{What is remote signing?}
  \begin{columns}[T]
 	\begin{column}{0.5\textwidth}
-		\includegraphics[width=\textwidth]{images/cardreader.jpg}
+		\includegraphics[width=\textwidth]{cardreader.jpg}
 	\end{column}
 	\begin{column}{0.5\textwidth}
-		\includegraphics[width=\textwidth]{images/tablet-smartphone.jpg}
+		\includegraphics[width=\textwidth]{tablet-smartphone.jpg}
 	\end{column}
  \end{columns}
 \end{frame}
+
+\begin{frame}[t]\frametitle{Introduction}
+ \framesubtitle{What is remote signing?}
+  \begin{itemize}
+    \item Electronic signatures
+    \begin{itemize}
+      \item are legally binding
+	  \item use digital signatures (cryptographic primitives)
+    \end{itemize}
+    \item No more hardware tokens
+    \item Signing from every device, everywhere
+    \item Signature Activation Protocol for unlocking the private key
+  \end{itemize}
+\end{frame}
 %%%% ---------------------------------------------------------------------------------
 
-\section{Something We Always Remember}
+\section{Problems with existing solutions}
 \sectionpage
+
+
+\begin{frame}[t]\frametitle{Problems with existing solutions}
+	\framesubtitle{Adobe Sign}
+	\begin{itemize}
+	  \item Users don't have control of their private keys
+      \item Signing Service can create signatures without the User's knowledge
+      \item Implementation of Signature Activation Protocol is trust based
+      \item Has access to your documents
+	  \item Based on CSC standard, but implementation is proprietary
+	  \item (over 200 Identity providers (who is the authoritative source))
+	  \item Only possible to sign PDFs
+	\end{itemize}
+\end{frame}
+
+
+\section{Our Solution}
+\sectionpage
+
+\begin{frame}[t]\frametitle{Our Solution}
+	\framesubtitle{Overview}
+	\begin{itemize}
+		\item Trust is distributed between IdP and Signing Service
+		\item Sign arbitrary documents
+		\item Signing Service only receives hash of document
+		\item Web-Based
+		\item Signature Activation Protocol is based on cryptography
+		\item Offline verification
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[t]\frametitle{Our Solution}
+	\framesubtitle{How we do it}
+	\begin{itemize}
+		\item Reuse the Nonce in the OIDC ID token
+		\begin{itemize}
+			\item nonce consists of list of salted hashes of the documents
+			\item couples documents with the ID token
+		\end{itemize}
+		\item Signing Service can only sign the hashes which flow into the nonce
+		\item Signature is detached (separate file)
+		\item All certificate chains and revocation info(crl/ocsp) are in the signature for offline verification
+	\end{itemize}
+\end{frame}
 
 %%%% ---------------------------------------------------------------------------------
 %%%% Important Websites
