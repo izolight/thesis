@@ -1,0 +1,27 @@
+\mode<presentation>
+
+% Requirement
+%\RequirePackage{ifthen}
+\RequirePackage{color}
+\RequirePackage{tikz}
+\usetikzlibrary{positioning,calc}
+\RequirePackage[framemethod=tikz]{mdframed}
+% Settings
+
+\DeclareOptionBeamer{frontgraphic}{\PassOptionsToPackage{frontgraphic}{beamerinnerthemebfhbeamer}}
+\ProcessOptionsBeamer
+
+
+\setbeamersize{text margin left=0.7cm}
+
+\useinnertheme{bfhbeamer}
+\useoutertheme{bfhbeamer}
+\usecolortheme{bfhbeamer}
+\usefonttheme{bfhbeamer}
+
+\setbeamertemplate{navigation symbols}{}
+%\setbeamertemplate{blocks}[rounded][shadow=true]  
+\setbeamertemplate{blocks}[rounded][shadow=false]  
+
+
+\mode<all>

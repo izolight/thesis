@@ -1,0 +1,40 @@
+\mode<presentation>
+
+\defbeamertemplate*{frametitle}{bfhbeamer}%
+{
+\begin{beamercolorbox}[wd=\paperwidth,leftskip=0.3cm,sep=0.3cm]{bfhHeader}%ht=12mm
+	\usebeamerfont{frametitle}\strut\insertframetitle%\strut%\par%
+	\vskip0mm%
+	\usebeamerfont{framesubtitle}\strut\insertframesubtitle%\strut%\par%
+	\vskip-5mm%
+\end{beamercolorbox}
+}
+
+\defbeamertemplate*{footline}{bfhbeamer}%
+{
+    \ifnum \insertpagenumber=1
+      \leavevmode%
+      \hbox{%
+      \begin{beamercolorbox}[wd=\paperwidth,leftskip=0.7cm,ht=2.25ex,dp=2ex]{bfhFooter}%
+	\begin{tikzpicture}[scale=0.13]%
+	\fill [color=bfhorange] (0,0) -- (1,0.5) -- (0,1) -- cycle;
+	\end{tikzpicture}%
+	\;\usebeamerfont{bfhFooter}%\usebeamerfont{institute}%
+	\insertinstitute
+        \newline
+        \vskip.2pt
+	\;\usebeamerfont{bfhFooter}%\usebeamerfont{institute}%
+	\insertauthor%
+      \end{beamercolorbox}%
+      }%
+      \vskip5pt%
+    \else
+      \leavevmode%
+      \hbox{%
+      \begin{beamercolorbox}[wd=\paperwidth,leftskip=0.7cm,ht=2.25ex,dp=2ex]{bfhFooter}%
+        \usebeamerfont{bfhFooter}Berner Fachhochschule | Haute \'ecole sp\'ecialis\'ee bernoise | Bern University of Applied Sciences
+      \end{beamercolorbox}}%
+      \vskip5pt%
+    \fi
+}
+\mode<all>
