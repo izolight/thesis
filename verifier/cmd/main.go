@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/pkg/browser"
 	"github.com/sirupsen/logrus"
 	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier/api"
 	"gitlab.ti.bfh.ch/hirtp1/thesis/src/verifier/config"
@@ -16,7 +17,10 @@ func main() {
 		logger.Fatalln(err)
 	}
 	r := api.NewRouter(logger, rootCA)
-	logger.Fatalln(http.ListenAndServe(":8081", r))
+	const port = 8081
+	browser.OpenURL(fmt.Sprintf("http://localhost:%d", port))
+	logger.Printf("starting webserver on port %d\n", port)
+	logger.Fatalln(http.ListenAndServe(fmt.Sprintf(":%d", port), r))
 }
 
 func getRootCA(filename string) ([]byte, error) {
