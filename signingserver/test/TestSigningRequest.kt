@@ -3,22 +3,19 @@ package ch.bfh.ti.hirtp1ganzg1.thesis
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.impl.Config
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.defaultConfig
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.views.URLs
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.request.forms.submitForm
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.response.HttpResponse
-import io.ktor.client.response.readText
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.locations.KtorExperimentalLocationsAPI
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.serialization.*
+import io.ktor.server.testing.*
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import org.jsoup.Jsoup
 import org.jsoup.nodes.FormElement
 import org.junit.Test
@@ -35,13 +32,12 @@ class TestSigningRequest : KoinTest {
     fun testInvalidRequests() {
 
         withTestApplication({ module() }) {
-            val json = Json(JsonConfiguration.Stable)
             val signatureRequest = with(handleRequest(HttpMethod.Post, URLs.SUBMIT_HASHES) {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
 
                 setBody(
-                    json.stringify(
+                    DefaultJson.encodeToString(
                         TestSubmitHashesPostBody.serializer(),
                         TestSubmitHashesPostBody(TESTHASHES)
                     )
@@ -50,7 +46,7 @@ class TestSigningRequest : KoinTest {
                 assertEquals(HttpStatusCode.OK, response.status(), response.content)
                 val responseText = response.content.toString()
                 assertTrue("nonce" in responseText, responseText)
-                val responseBody = json.parse(ExpectedNonceResponse.serializer(), responseText)
+                val responseBody = DefaultJson.decodeFromString<ExpectedNonceResponse>(responseText)
                 assertNotNull(responseBody)
                 assertFalse(responseBody.providers.isEmpty())
                 assertTrue(responseBody.providers.containsKey(Config.OIDC_IDP_NAME))
@@ -60,7 +56,7 @@ class TestSigningRequest : KoinTest {
 
                 val location = runBlocking {
                     val client = HttpClient(CIO) { defaultConfig().also { followRedirects = false } }
-                    val initialIdpResponse = client.get<HttpResponse>(idpUrl)
+                    val initialIdpResponse = client.get<HttpStatement>(idpUrl).execute()
                     assertEquals(initialIdpResponse.status, HttpStatusCode.OK)
 
                     val htmlLoginForm =
@@ -95,14 +91,14 @@ class TestSigningRequest : KoinTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
 
                 setBody(
-                    json.stringify(
-                        SignatureRequest.serializer(),
+                    DefaultJson.encodeToString(
                         SignatureRequest(
                             id_token = "${signatureRequest.id_token}invalid",
                             salt = signatureRequest.salt,
                             seed = signatureRequest.seed,
                             hashes = TESTHASHES
                         )
+
                     )
                 )
             }) {
@@ -114,8 +110,7 @@ class TestSigningRequest : KoinTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
 
                 setBody(
-                    json.stringify(
-                        SignatureRequest.serializer(),
+                    DefaultJson.encodeToString(
                         SignatureRequest(
                             id_token = signatureRequest.id_token,
                             salt = signatureRequest.salt + "a",
@@ -133,8 +128,7 @@ class TestSigningRequest : KoinTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
 
                 setBody(
-                    json.stringify(
-                        SignatureRequest.serializer(),
+                    DefaultJson.encodeToString(
                         SignatureRequest(
                             id_token = signatureRequest.id_token,
                             salt = signatureRequest.salt,
@@ -152,8 +146,7 @@ class TestSigningRequest : KoinTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
 
                 setBody(
-                    json.stringify(
-                        SignatureRequest.serializer(),
+                    DefaultJson.encodeToString(
                         SignatureRequest(
                             id_token = signatureRequest.id_token,
                             salt = signatureRequest.salt,
@@ -171,8 +164,7 @@ class TestSigningRequest : KoinTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
 
                 setBody(
-                    json.stringify(
-                        TestSubmitHashesPostBody.serializer(),
+                    DefaultJson.encodeToString(
                         TestSubmitHashesPostBody(
                             listOf(
                                 "06180c7ede6c6936334501f94ccfc5d0ff828e57a4d8f6dc03f049eaad5fb308",
@@ -196,8 +188,7 @@ class TestSigningRequest : KoinTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
 
                 setBody(
-                    json.stringify(
-                        TestSubmitHashesPostBody.serializer(),
+                    DefaultJson.encodeToString(
                         TestSubmitHashesPostBody(
                             listOf(
                             )

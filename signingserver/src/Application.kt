@@ -5,26 +5,16 @@ import ch.bfh.ti.hirtp1ganzg1.thesis.api.marshalling.InvalidRequestException
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.views.postHashes
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.views.sign
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.views.signature
-import io.ktor.application.Application
-import io.ktor.application.call
-import io.ktor.application.install
+import io.ktor.application.*
 import io.ktor.features.*
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.resources
-import io.ktor.http.content.static
-import io.ktor.locations.KtorExperimentalLocationsAPI
-import io.ktor.locations.Locations
-import io.ktor.request.path
-import io.ktor.response.respond
-import io.ktor.response.respondRedirect
-import io.ktor.routing.Routing
-import io.ktor.routing.get
-import io.ktor.routing.routing
-import io.ktor.serialization.DefaultJsonConfiguration
-import io.ktor.serialization.serialization
-import io.ktor.util.KtorExperimentalAPI
-import kotlinx.serialization.UnstableDefault
+import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.locations.*
+import io.ktor.request.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.serialization.*
+import io.ktor.util.*
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.Koin
 import org.slf4j.event.Level
@@ -36,10 +26,8 @@ fun main(args: Array<String>) = io.ktor.server.jetty.EngineMain.main(args)
 //    io.ktor.server.netty.EngineMain.main(args)
 //}
 
-@UnstableDefault
 @KtorExperimentalLocationsAPI
 @KtorExperimentalAPI
-@Suppress("unused") // Referenced in application.conf
 fun Application.module() {
 
     install(Compression) {
@@ -66,22 +54,11 @@ fun Application.module() {
     }
 
     install(ContentNegotiation) {
-        //        jackson {
-//            configure(SerializationFeature.INDENT_OUTPUT, true)
-//            setDefaultPrettyPrinter(DefaultPrettyPrinter().apply {
-//                indentArraysWith(DefaultPrettyPrinter.FixedSpaceIndenter.instance)
-//                indentObjectsWith(DefaultIndenter("  ", "\n"))
-//            })
-//            registerModule(KotlinModule())
-//        }
-        serialization(
-            contentType = ContentType.Application.Json,
-            json = Json(
-                DefaultJsonConfiguration.copy(
-                    prettyPrint = true
-                )
-            )
-
+        json(
+            Json {
+                prettyPrint = true
+            },
+            contentType = ContentType.Application.Json
         )
     }
 

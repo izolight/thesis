@@ -9,29 +9,25 @@ import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.impl.Config
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.impl.INonceGeneratorService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.impl.IOIDCService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.*
-import io.ktor.application.call
-import io.ktor.request.receive
-import io.ktor.response.respond
-import io.ktor.routing.Routing
-import io.ktor.routing.post
-import kotlinx.serialization.UnstableDefault
+import io.ktor.application.*
+import io.ktor.request.*
+import io.ktor.response.*
+import io.ktor.routing.*
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
 import org.koin.ktor.ext.inject
 import org.slf4j.Logger
 
-@UnstableDefault
 fun Routing.postHashes() {
     val nonceGenerator by inject<INonceGeneratorService>()
     val secretService by inject<ISecretService>()
     val oidcService by inject<IOIDCService>()
     val logger by inject<Logger>()
-    val prettyJson = Json(JsonConfiguration.Default.copy(prettyPrint = true))
+    val prettyJson = Json { prettyPrint = true }
 
     post(URLs.SUBMIT_HASHES) {
         when (val input = call.receive<SubmittedHashes>().validate()) {
             is Valid -> {
-                logger.info("Request: {}", prettyJson.stringify(SubmittedHashes.serializer(), input.value))
+                logger.info("Request: {}", prettyJson.encodeToString(SubmittedHashes.serializer(), input.value))
                 val seed = nonceGenerator.getNonce()
                 val sortedHashes = input.value.hashes.sorted()
                 val salt = calculateSalt(secretService.hkdf(seed), sortedHashes)
@@ -55,7 +51,7 @@ fun Routing.postHashes() {
 
                 call.respond(response)
 
-                logger.info("Response: {}", prettyJson.stringify(HashesSubmissionResponse.serializer(), response))
+                logger.info("Response: {}", prettyJson.encodeToString(HashesSubmissionResponse.serializer(), response))
             }
             is Invalid -> throw input.error
         }

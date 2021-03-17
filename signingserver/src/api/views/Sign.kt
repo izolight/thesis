@@ -6,16 +6,12 @@ import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.def.*
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.impl.IOIDCService
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.*
 import com.google.protobuf.ByteString
-import io.ktor.application.call
-import io.ktor.locations.KtorExperimentalLocationsAPI
-import io.ktor.locations.locations
-import io.ktor.request.receive
-import io.ktor.response.respond
-import io.ktor.routing.Routing
-import io.ktor.routing.post
-import kotlinx.serialization.UnstableDefault
+import io.ktor.application.*
+import io.ktor.locations.*
+import io.ktor.request.*
+import io.ktor.response.*
+import io.ktor.routing.*
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
 import org.bouncycastle.asn1.ASN1Encoding
 import org.bouncycastle.asn1.ASN1OutputStream
 import org.bouncycastle.cms.CMSSignedData
@@ -23,7 +19,6 @@ import org.koin.ktor.ext.inject
 import org.slf4j.Logger
 import java.io.ByteArrayOutputStream
 
-@UnstableDefault
 @KtorExperimentalLocationsAPI
 fun Routing.sign() {
     val oidcService by inject<IOIDCService>()
@@ -33,12 +28,12 @@ fun Routing.sign() {
     val tsaService by inject<ITimestampingService>()
     val signatureHoldingService by inject<ISignaturesHoldingService>()
     val logger by inject<Logger>()
-    val prettyJson = Json(JsonConfiguration.Default.copy(prettyPrint = true))
+    val prettyJson = Json { prettyPrint = true }
 
     post(URLs.SIGN) {
         when (val input = call.receive<SigningRequest>().validate()) {
             is Valid -> {
-                logger.info("Request: {}", prettyJson.stringify(SigningRequest.serializer(), input.value))
+                logger.info("Request: {}", prettyJson.encodeToString(SigningRequest.serializer(), input.value))
                 val sortedHashes = input.value.hashes.sorted()
                 val salt = calculateSalt(
                     secretService.hkdf(hexStringToByteArray(input.value.seed)),
@@ -60,7 +55,10 @@ fun Routing.sign() {
                 val subjectInformation = ISigningKeysService.SigningKeySubjectInformation.fromIdToken(jwtValidationResult.idToken)
                 logger.info(
                     "Generating signing key for subject {}",
-                    prettyJson.stringify(ISigningKeysService.SigningKeySubjectInformation.serializer(), subjectInformation)
+                    prettyJson.encodeToString(
+                        ISigningKeysService.SigningKeySubjectInformation.serializer(),
+                        subjectInformation
+                    )
                 )
                 val certificateHolder = caService.signCSR(
                     signingKeyService.generateSigningKey(subjectInformation).also {
@@ -80,7 +78,7 @@ fun Routing.sign() {
                 ).toDER()
 
                 logger.info(
-                    "Destroying signing key for subject {}", prettyJson.stringify(
+                    "Destroying signing key for subject {}", prettyJson.encodeToString(
                         ISigningKeysService.SigningKeySubjectInformation.serializer(),
                         subjectInformation
                     )

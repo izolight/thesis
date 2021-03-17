@@ -5,22 +5,19 @@ import ch.bfh.ti.hirtp1ganzg1.thesis.api.services.def.ICertificateAuthorityServi
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.defaultConfig
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.hexStringToByteArray
 import ch.bfh.ti.hirtp1ganzg1.thesis.api.utils.hmacSha256
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache.Apache
-import io.ktor.client.request.post
-import io.ktor.client.request.url
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import kotlinx.io.StringWriter
+import io.ktor.client.*
+import io.ktor.client.engine.apache.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.serialization.*
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder
 import org.bouncycastle.openssl.MiscPEMGenerator
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter
 import org.bouncycastle.pkcs.PKCS10CertificationRequest
 import org.bouncycastle.util.io.pem.PemWriter
 import java.io.ByteArrayInputStream
+import java.io.StringWriter
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.util.*
@@ -32,7 +29,6 @@ class CertificateAuthorityServiceImpl :
         private const val CA_URL = "https://intermediate-ca.thesis.izolight.xyz"
         const val CA_SIGN_URL = "$CA_URL/api/v1/cfssl/authsign"
         const val CA_BUNDLE_URL = "$CA_URL/api/v1/cfssl/bundle"
-        private val json = Json(JsonConfiguration.Stable)
     }
 
     @Serializable
@@ -126,10 +122,10 @@ class CertificateAuthorityServiceImpl :
     )
 
     private fun authenticateCertificateRequest(request: Valid<CertificateRequest>) = with(
-        json.toJson(
+        DefaultJson.encodeToString(
             CertificateRequest.serializer(),
             request.value
-        ).toString().toByteArray(Charsets.UTF_8)
+        ).toByteArray(Charsets.UTF_8)
     ) {
         Request(
             request = Base64.getEncoder().encodeToString(this),

@@ -11,21 +11,18 @@ import com.auth0.jwt.exceptions.JWTDecodeException
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.auth0.jwt.interfaces.JWTVerifier
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache.Apache
-import io.ktor.client.request.get
-import io.ktor.http.Parameters
-import io.ktor.http.Url
-import io.ktor.http.formUrlEncode
-import io.ktor.util.KtorExperimentalAPI
+import io.ktor.client.*
+import io.ktor.client.engine.apache.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.serialization.*
+import io.ktor.util.*
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
 import java.net.URL
 import java.security.interfaces.RSAPublicKey
 
@@ -120,7 +117,6 @@ class OurDemoOIDCService private constructor(
                 })
         }
 
-        private val json = Json(JsonConfiguration.Stable)
     }
 
     override fun getAuthorisationEndpoint(): Url {
@@ -158,7 +154,7 @@ class OurDemoOIDCService private constructor(
         )
     }
 
-    override fun marshalJwk(jwk: Jwk) = json.stringify(
+    override fun marshalJwk(jwk: Jwk) = DefaultJson.encodeToString(
         JWK.serializer(),
         JWK.fromJwk(jwk)
     )

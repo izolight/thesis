@@ -1,11 +1,10 @@
 package ch.bfh.ti.hirtp1ganzg1.thesis
 
 import at.favre.lib.bytes.Bytes
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.locations.KtorExperimentalLocationsAPI
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.withTestApplication
+import io.ktor.http.*
+import io.ktor.locations.*
+import io.ktor.server.testing.*
+import io.ktor.util.*
 import org.koin.test.KoinTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -21,6 +20,7 @@ class ApplicationTest : KoinTest {
         byteArray.forEachIndexed { index, byte ->  assertEquals(byte, byteArray2[index]) }
     }
 
+    @KtorExperimentalAPI
     @Test
     fun testRoot() {
         withTestApplication({ module() }) {
